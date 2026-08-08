@@ -6,8 +6,17 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 from reportlab.graphics.shapes import Drawing, Rect, String, Circle, Group, Line
 
-RECEIPTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "uploads", "receipts"))
-os.makedirs(RECEIPTS_DIR, exist_ok=True)
+if os.path.exists("/data"):
+    RECEIPTS_DIR = "/data/uploads/receipts"
+elif os.path.exists("/tmp"):
+    RECEIPTS_DIR = "/tmp/uploads/receipts"
+else:
+    RECEIPTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "uploads", "receipts"))
+
+try:
+    os.makedirs(RECEIPTS_DIR, exist_ok=True)
+except Exception:
+    pass
 
 
 def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str = "Print Hub") -> str:

@@ -31,13 +31,19 @@ app = FastAPI(
     version=settings.APP_VERSION,
 )
 
-# Setup persistent uploads directory (supports Hugging Face /data volume)
+# Setup persistent uploads directory (supports Hugging Face /data volume or Vercel /tmp)
 if os.path.exists("/data"):
     uploads_dir = "/data/uploads"
+elif os.path.exists("/tmp"):
+    uploads_dir = "/tmp/uploads"
 else:
     uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
-os.makedirs(uploads_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
+try:
+    os.makedirs(uploads_dir, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+except Exception as e:
+    print(f"Warning: Could not mount uploads directory: {e}")
 
 register_exception_handlers(app)
 

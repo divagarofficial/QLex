@@ -1,9 +1,15 @@
+import os
 from pathlib import Path
 from uuid import UUID
 
 import aiofiles
 
-UPLOAD_ROOT = Path("uploads")
+if os.path.exists("/data"):
+    UPLOAD_ROOT = Path("/data/uploads")
+elif os.path.exists("/tmp"):
+    UPLOAD_ROOT = Path("/tmp/uploads")
+else:
+    UPLOAD_ROOT = Path("uploads")
 
 DRAFT_ROOT = UPLOAD_ROOT / "drafts"
 
