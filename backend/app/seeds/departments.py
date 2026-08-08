@@ -1,31 +1,42 @@
 from app.models.department import Department
 
 DEPARTMENTS = [
-    {"name": "Artificial Intelligence and Data Science", "code": "AI&DS"},
     {"name": "Computer Science and Engineering", "code": "CSE"},
-    {"name": "Information Technology", "code": "IT"},
+    {"name": "Artificial Intelligence and Data Science", "code": "AIDS"},
+    {"name": "Computer Science and Engineering (Artificial Intelligence and Machine Learning)", "code": "CSE (AIML)"},
+    {"name": "Computer Science and Business Systems", "code": "CSBS"},
+    {"name": "Computer and Communication Engineering", "code": "CCE"},
+    {"name": "Bio Technology", "code": "BIOTECH"},
     {"name": "Electronics and Communication Engineering", "code": "ECE"},
-    {"name": "Electrical and Electronics Engineering", "code": "EEE"},
+    {"name": "Electronics and Communication Engineering(VLSI)", "code": "ECE(VLSI)"},
     {"name": "Mechanical Engineering", "code": "MECH"},
-    {"name": "Civil Engineering", "code": "CIVIL"},
 ]
 
 
 def seed_departments(db):
+    # Remove old departments not in the new list if any
+    valid_codes = [d["code"] for d in DEPARTMENTS]
+    db.query(Department).filter(Department.code.not_in(valid_codes)).delete(synchronize_session=False)
+
     for index, department in enumerate(DEPARTMENTS, start=1):
-        exists = (
+        existing = (
             db.query(Department)
             .filter(Department.code == department["code"])
             .first()
         )
 
-        if not exists:
+        if not existing:
             db.add(
                 Department(
                     name=department["name"],
                     code=department["code"],
                     display_order=index,
+                    is_active=True,
                 )
             )
+        else:
+            existing.name = department["name"]
+            existing.display_order = index
+            existing.is_active = True
 
     db.commit()
