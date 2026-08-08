@@ -35,9 +35,46 @@ SessionLocal = sessionmaker(
 )
 
 
+_tables_initialized = False
+
+
+def init_db_tables():
+    global _tables_initialized
+    if not _tables_initialized:
+        try:
+            from app.db.base import Base
+            import app.models  # noqa: F401
+
+            Base.metadata.create_all(bind=engine)
+
+            db = SessionLocal()
+            try:
+                from app.seeds.departments import seed_departments
+                from app.seeds.years import seed_years
+                from app.seeds.sections import seed_sections
+                from app.seeds.seed_services import seed_services
+                from app.seeds.seed_platform_settings import seed_platform_settings
+                from app.seeds.seed_pricing import seed_pricing
+
+                seed_departments(db)
+                seed_years(db)
+                seed_sections(db)
+                seed_services(db)
+                seed_platform_settings(db)
+                seed_pricing(db)
+            except Exception as seed_err:
+                print(f"[DB Init Warning] Seeding failed: {seed_err}")
+            finally:
+                db.close()
+            _tables_initialized = True
+        except Exception as e:
+            print(f"[DB Init Warning] Table creation failed: {e}")
+
+
 def get_db():
+    init_db_tables()
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        db.close()
