@@ -1,0 +1,44 @@
+:root {
+  /* ===============================
+     COLORS
+  =============================== */
+
+  --background: #030406;
+  --background-secondary: #070a0e;
+  --surface: rgba(255,255,255,0.04);
+
+  --foreground: #fafafa;
+  --muted: #a1a1aa;
+
+  --blue: #3b82f6;
+  --violet: #7c3aed;
+  --gold: #e7c873;
+
+  /* ===============================
+     DEEP GLASS
+  =============================== */
+
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-border-hover: rgba(255,255,255,0.18);
+  --glass-highlight: rgba(255,255,255,0.06);
+
+  --glass-shadow:
+    0 25px 50px -12px rgba(0,0,0,0.5);
+  --glass-shadow-hover:
+    0 45px 80px -20px rgba(0,0,0,0.6);
+
+  /* ===============================
+     BORDER RADIUS
+  =============================== */
+
+  --radius-lg: 28px;
+  --radius-xl: 32px;
+
+  /* ===============================
+     TRANSITION
+  =============================== */
+
+  --transition: 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+

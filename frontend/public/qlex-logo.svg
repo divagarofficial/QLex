@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <linearGradient id="qg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E7C873"/>
+      <stop offset="50%" stop-color="#F5D98E"/>
+      <stop offset="100%" stop-color="#C9A544"/>
+    </linearGradient>
+    <linearGradient id="qgb" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E7C873" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#E7C873" stop-opacity="0.02"/>
+    </linearGradient>
+    <filter id="qglow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Outer ring -->
+  <circle cx="200" cy="200" r="170" stroke="url(#qg)" stroke-width="2" opacity="0.2" fill="url(#qgb)"/>
+  <circle cx="200" cy="200" r="145" stroke="url(#qg)" stroke-width="1" opacity="0.1"/>
+  <!-- Q letter -->
+  <text x="200" y="248" font-family="system-ui, sans-serif" font-size="180" font-weight="900" fill="url(#qg)" text-anchor="middle" filter="url(#qglow)">Q</text>
+  <!-- Accent dots -->
+  <circle cx="300" cy="120" r="8" fill="#E7C873" opacity="0.3"/>
+  <circle cx="330" cy="280" r="5" fill="#E7C873" opacity="0.2"/>
+  <circle cx="80" cy="290" r="6" fill="#E7C873" opacity="0.25"/>
+  <circle cx="100" cy="110" r="4" fill="#E7C873" opacity="0.15"/>
+</svg>
+

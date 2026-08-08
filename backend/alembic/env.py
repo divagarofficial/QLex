@@ -5,6 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 from app.db.base import Base
+#-------------------PAYMENT-------------------------------------
+from app.models.payment import Payment
 
 #-------------------DATABASE URL--------------------------------
 from app.db.database import DATABASE_URL

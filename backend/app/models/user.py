@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import BaseModel
 from app.enums.user_role import UserRole
+from uuid import UUID
 
 
 class User(BaseModel):
@@ -70,3 +71,9 @@ class User(BaseModel):
     department = relationship("Department")
     year = relationship("Year")
     section = relationship("Section")
+
+    orders = relationship(
+    "Order",
+    back_populates="student",
+    cascade="all, delete-orphan",
+)

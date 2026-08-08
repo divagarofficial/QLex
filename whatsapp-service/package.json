@@ -1,0 +1,17 @@
+{
+  "name": "qlex-whatsapp-service",
+  "version": "1.0.0",
+  "description": "Free Background WhatsApp Web Bot for QLex Order Status Updates and Receipts",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "qrcode": "^1.5.3",
+    "whatsapp-web.js": "^1.26.0"
+  }
+}

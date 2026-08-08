@@ -1,0 +1,241 @@
+import type {
+  TodayOrderItem,
+  ShopOrderDetails,
+  TodayRevenue,
+  SettlementItem,
+  LiveQueueSummary,
+  QueueStateResponse,
+  ActiveShopOrder,
+} from "@/types/shop";
+import type { OrderSummaryResponse } from "@/types/orders";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+function getAuthHeaders(): Record<string, string> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("qlex_token") : null;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({
+      detail: `Request failed with status ${res.status}`,
+    }));
+    throw new Error(errorBody.detail || errorBody.message || "Network request failed.");
+  }
+  return res.json();
+}
+
+/**
+ * Fetch today's queued orders for the shop
+ */
+export async function fetchTodaysOrders(): Promise<TodayOrderItem[]> {
+  const res = await fetch(`${API_BASE}/shop/orders/today`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<TodayOrderItem[]>(res);
+}
+
+/**
+ * Fetch detailed specification for a specific order
+ */
+export async function fetchOrderDetails(orderId: string): Promise<ShopOrderDetails> {
+  const res = await fetch(`${API_BASE}/shop/orders/${orderId}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<ShopOrderDetails>(res);
+}
+
+/**
+ * Mark order as PRINTING / Trigger document print
+ */
+export async function printShopOrder(orderId: string): Promise<QueueStateResponse> {
+  const res = await fetch(`${API_BASE}/shop/orders/${orderId}/print`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<QueueStateResponse>(res);
+}
+
+/**
+ * Mark order as READY (Ready for Pickup)
+ */
+export async function markOrderReady(orderId: string): Promise<QueueStateResponse> {
+  const res = await fetch(`${API_BASE}/shop/orders/${orderId}/ready`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<QueueStateResponse>(res);
+}
+
+/**
+ * Mark order as SERVED (completed)
+ */
+export async function serveShopOrder(orderId: string): Promise<QueueStateResponse> {
+  const res = await fetch(`${API_BASE}/shop/orders/${orderId}/serve`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<QueueStateResponse>(res);
+}
+
+/**
+ * Mark order as SERVED directly from any active state (WAITING/PRINTING/READY).
+ * Called when operator clicks Print — order exits queue immediately.
+ */
+export async function markOrderServed(orderId: string): Promise<QueueStateResponse> {
+  const res = await fetch(`${API_BASE}/shop/orders/${orderId}/mark-served`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<QueueStateResponse>(res);
+}
+
+/**
+ * Reject order
+ */
+export async function rejectShopOrder(orderId: string): Promise<QueueStateResponse> {
+  const res = await fetch(`${API_BASE}/shop/orders/${orderId}/reject`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<QueueStateResponse>(res);
+}
+
+/**
+ * Fetch today's shop revenue summary
+ */
+export async function fetchTodayRevenue(): Promise<TodayRevenue> {
+  const res = await fetch(`${API_BASE}/shop/revenue/today`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<TodayRevenue>(res);
+}
+
+/**
+ * Fetch pending settlements for the shop
+ */
+export async function fetchPendingSettlements(): Promise<SettlementItem[]> {
+  const res = await fetch(`${API_BASE}/settlements/pending`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<SettlementItem[]>(res);
+}
+
+/**
+ * Fetch historical settlements for the shop
+ */
+export async function fetchSettlementHistory(): Promise<SettlementItem[]> {
+  const res = await fetch(`${API_BASE}/settlements/history`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<SettlementItem[]>(res);
+}
+
+/**
+ * Fetch a specific settlement by ID
+ */
+export async function fetchSettlementById(settlementId: string): Promise<SettlementItem> {
+  const res = await fetch(`${API_BASE}/settlements/${settlementId}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<SettlementItem>(res);
+}
+
+/**
+ * Generate today's settlement
+ */
+export async function generateTodaySettlement(): Promise<SettlementItem> {
+  const res = await fetch(`${API_BASE}/settlements/generate`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<SettlementItem>(res);
+}
+
+/**
+ * Generate UPI payment details for a settlement
+ */
+export async function generateUpiPayment(settlementId: string): Promise<{
+  upi_id: string;
+  payee_name: string;
+  amount: number;
+  reference: string;
+}> {
+  const res = await fetch(`${API_BASE}/settlements/${settlementId}/generate-upi`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<{
+    upi_id: string;
+    payee_name: string;
+    amount: number;
+    reference: string;
+  }>(res);
+}
+
+/**
+ * Complete a settlement
+ */
+export async function completeSettlement(settlementId: string): Promise<SettlementItem> {
+  const res = await fetch(`${API_BASE}/settlements/${settlementId}/complete`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse<SettlementItem>(res);
+}
+
+/**
+ * Fetch live queue summary (currently printing, priority queue, regular queue)
+ */
+export async function fetchLiveQueueSummary(): Promise<LiveQueueSummary> {
+  const res = await fetch(`${API_BASE}/student/live-queue`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<LiveQueueSummary>(res);
+}
+
+/**
+ * Fetch all active shop orders
+ */
+export async function fetchActiveShopOrders(): Promise<ActiveShopOrder[]> {
+  const res = await fetch(`${API_BASE}/shop/orders`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<ActiveShopOrder[]>(res);
+}
+
+/**
+ * Fetch complete order summary (including documents, totals, statuses)
+ */
+export async function fetchOrderSummary(orderId: string): Promise<OrderSummaryResponse> {
+  const res = await fetch(`${API_BASE}/orders/${orderId}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<OrderSummaryResponse>(res);
+}
+

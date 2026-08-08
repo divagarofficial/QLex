@@ -1,0 +1,366 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Bell, Mail, MessageSquare, Smartphone, Send, AlertTriangle, AlertCircle, Store, FileX, RefreshCw, CheckCircle2, QrCode } from "lucide-react";
+import { NotificationSettingsState } from "./types";
+import { cn } from "@/lib/utils";
+
+interface NotificationSettingsTabProps {
+  data: NotificationSettingsState;
+  onChange: (updated: Partial<NotificationSettingsState>) => void;
+}
+
+export default function NotificationSettingsTab({ data, onChange }: NotificationSettingsTabProps) {
+  const [waStatus, setWaStatus] = useState<string>("INITIALIZING");
+  const [waQr, setWaQr] = useState<string | null>(null);
+  const [waUser, setWaUser] = useState<string | null>(null);
+  const [loadingWa, setLoadingWa] = useState<boolean>(false);
+
+  const fetchWaBotInfo = async () => {
+    setLoadingWa(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const [statusRes, qrRes] = await Promise.all([
+        fetch(`${apiBase}/admin/whatsapp/status`).then((r) => r.json()).catch(() => null),
+        fetch(`${apiBase}/admin/whatsapp/qr`).then((r) => r.json()).catch(() => null),
+      ]);
+
+      if (statusRes?.status) {
+        setWaStatus(statusRes.status);
+        if (statusRes.info?.wid) {
+          setWaUser(statusRes.info.wid);
+        }
+      } else {
+        setWaStatus("DISCONNECTED");
+      }
+
+      if (qrRes?.qr) {
+        setWaQr(qrRes.qr);
+      } else {
+        setWaQr(null);
+      }
+    } catch {
+      setWaStatus("DISCONNECTED");
+    } finally {
+      setLoadingWa(false);
+    }
+  };
+
+  useEffect(() => {
+    if (data.whatsappNotifications) {
+      fetchWaBotInfo();
+      const interval = setInterval(fetchWaBotInfo, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [data.whatsappNotifications]);
+
+  return (
+    <div className="space-y-6">
+      {/* Channels Card */}
+      <div className="p-6 rounded-2xl bg-[#070a0e]/60 border border-white/10 backdrop-blur-xl space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <Bell className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-white">Notification Communication Channels</h2>
+            <p className="text-xs text-zinc-400">Configure multi-channel dispatch engines for students and vendors</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Email Notifications */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="space-y-0.5 pr-2">
+              <div className="text-xs font-semibold text-white flex items-center gap-2">
+                <Mail className="h-4 w-4 text-blue-400" />
+                <span>SMTP Email Notifications</span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Transactional receipts and account alerts via email</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.emailNotifications}
+              onClick={() => onChange({ emailNotifications: !data.emailNotifications })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                data.emailNotifications ? "bg-blue-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                  data.emailNotifications ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          {/* WhatsApp Notifications */}
+          <div className="flex flex-col gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5 pr-2">
+                <div className="text-xs font-semibold text-white flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-emerald-400" />
+                  <span>Free WhatsApp Web Bot</span>
+                </div>
+                <p className="text-[11px] text-zinc-400">Instant order receipts & status updates on WhatsApp</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={data.whatsappNotifications}
+                onClick={() => onChange({ whatsappNotifications: !data.whatsappNotifications })}
+                className={cn(
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                  data.whatsappNotifications ? "bg-emerald-500" : "bg-zinc-700"
+                )}
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                    data.whatsappNotifications ? "translate-x-5" : "translate-x-0"
+                  )}
+                />
+              </button>
+            </div>
+
+            {/* WhatsApp Web Bot Pairing Sub-card */}
+            {data.whatsappNotifications && (
+              <div className="mt-2 p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/20 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-emerald-400 flex items-center gap-1.5">
+                    {waStatus === "READY" ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                        <span>Connected {waUser ? `(${waUser})` : ""}</span>
+                      </>
+                    ) : waStatus === "QR_READY" ? (
+                      <>
+                        <QrCode className="h-4 w-4 text-amber-400" />
+                        <span className="text-amber-400">Scan QR Code to Pair</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="h-4 w-4 text-zinc-400" />
+                        <span className="text-zinc-400">Status: {waStatus}</span>
+                      </>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={fetchWaBotInfo}
+                    disabled={loadingWa}
+                    className="p-1 text-zinc-400 hover:text-white transition-colors"
+                    title="Refresh WhatsApp Bot Status"
+                  >
+                    <RefreshCw className={cn("h-3.5 w-3.5", loadingWa && "animate-spin")} />
+                  </button>
+                </div>
+
+                {waStatus === "QR_READY" && waQr && (
+                  <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
+                    <img src={waQr} alt="WhatsApp QR Code" className="w-44 h-44 rounded-lg shadow-md border border-white/20" />
+                    <p className="text-[11px] text-zinc-300 text-center font-mono">
+                      Open WhatsApp on phone &gt; Linked Devices &gt; Scan QR Code
+                    </p>
+                  </div>
+                )}
+
+                {waStatus === "DISCONNECTED" && (
+                  <p className="text-[11px] text-zinc-400">
+                    Microservice offline. Run <code className="text-emerald-300 bg-white/5 px-1 py-0.5 rounded">npm start</code> in <code className="text-emerald-300 bg-white/5 px-1 py-0.5 rounded">whatsapp-service/</code> to start bot.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Push Notifications */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="space-y-0.5 pr-2">
+              <div className="text-xs font-semibold text-white flex items-center gap-2">
+                <Send className="h-4 w-4 text-violet-400" />
+                <span>PWA Web Push Notifications</span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Real-time desktop/mobile push alerts for queue progress</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.pushNotifications}
+              onClick={() => onChange({ pushNotifications: !data.pushNotifications })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                data.pushNotifications ? "bg-violet-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                  data.pushNotifications ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          {/* SMS Notifications */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="space-y-0.5 pr-2">
+              <div className="text-xs font-semibold text-white flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-amber-400" />
+                <span>SMS Gateway</span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Fallback SMS alerts for high-priority security OTPs</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.smsNotifications}
+              onClick={() => onChange({ smsNotifications: !data.smsNotifications })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                data.smsNotifications ? "bg-amber-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                  data.smsNotifications ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin System Alerts Card */}
+      <div className="p-6 rounded-2xl bg-[#070a0e]/60 border border-white/10 backdrop-blur-xl space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-white">Administrator Trigger Alerts</h2>
+            <p className="text-xs text-zinc-400">Automated event triggers delivered to central admin dashboard</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Low Settlement Alert */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="space-y-0.5 pr-2">
+              <div className="text-xs font-semibold text-white flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-400" />
+                <span>Low Settlement Balance Alert</span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Triggers when shop pending settlement surpasses threshold</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.lowSettlementAlert}
+              onClick={() => onChange({ lowSettlementAlert: !data.lowSettlementAlert })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                data.lowSettlementAlert ? "bg-amber-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                  data.lowSettlementAlert ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          {/* Payment Failure Alert */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="space-y-0.5 pr-2">
+              <div className="text-xs font-semibold text-white flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-rose-400" />
+                <span>Razorpay Gateway Payment Failure Alert</span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Immediate alert when razorpay webhook reports failed payment</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.paymentFailureAlert}
+              onClick={() => onChange({ paymentFailureAlert: !data.paymentFailureAlert })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                data.paymentFailureAlert ? "bg-rose-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                  data.paymentFailureAlert ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          {/* New Shop Alert */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="space-y-0.5 pr-2">
+              <div className="text-xs font-semibold text-white flex items-center gap-2">
+                <Store className="h-4 w-4 text-cyan-400" />
+                <span>New Shop Onboarding Alert</span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Notifies when new print shop requests admin approval</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.newShopAlert}
+              onClick={() => onChange({ newShopAlert: !data.newShopAlert })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                data.newShopAlert ? "bg-cyan-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                  data.newShopAlert ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          {/* Order Failure Alert */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/20 transition-all">
+            <div className="space-y-0.5 pr-2">
+              <div className="text-xs font-semibold text-white flex items-center gap-2">
+                <FileX className="h-4 w-4 text-orange-400" />
+                <span>Print Job Execution Failure Alert</span>
+              </div>
+              <p className="text-[11px] text-zinc-400">Alerts when print shop terminal reports printer or paper stall</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.orderFailureAlert}
+              onClick={() => onChange({ orderFailureAlert: !data.orderFailureAlert })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                data.orderFailureAlert ? "bg-orange-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                  data.orderFailureAlert ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

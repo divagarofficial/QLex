@@ -1,7 +1,11 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PaymentStatus(str, Enum):
+class PaymentStatus(StrEnum):
     PENDING = "pending"
+
     PAID = "paid"
+
     FAILED = "failed"
+
+    REFUNDED = "refunded"

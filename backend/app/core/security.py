@@ -18,9 +18,12 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(
-    subject: str,
+    data: dict[str, Any],
     expires_delta: timedelta | None = None,
 ) -> str:
+
+    to_encode = data.copy()
+
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -28,13 +31,10 @@ def create_access_token(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
 
-    payload: dict[str, Any] = {
-        "sub": subject,
-        "exp": expire,
-    }
+    to_encode.update({"exp": expire})
 
     return jwt.encode(
-        payload,
+        to_encode,
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
