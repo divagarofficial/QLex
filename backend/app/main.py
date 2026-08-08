@@ -67,6 +67,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.on_event("startup")
+def auto_migrate_and_seed():
+    try:
+        from app.db.base import Base
+        from app.db.database import engine, SessionLocal
+        import app.models  # Ensure all models are registered
+
+        Base.metadata.create_all(bind=engine)
+
+        db = SessionLocal()
+        try:
+            from app.seeds.departments import seed_departments
+            from app.seeds.years import seed_years
+            from app.seeds.sections import seed_sections
+            from app.seeds.seed_services import seed_services
+            from app.seeds.seed_platform_settings import seed_platform_settings
+            from app.seeds.seed_pricing import seed_pricing
+
+            seed_departments(db)
+            seed_years(db)
+            seed_sections(db)
+            seed_services(db)
+            seed_platform_settings(db)
+            seed_pricing(db)
+            print("[Startup] Database tables auto-created & seeded successfully!")
+        except Exception as seed_err:
+            print(f"[Startup Warning] Seeding failed: {seed_err}")
+        finally:
+            db.close()
+    except Exception as err:
+        print(f"[Startup Warning] Table auto-creation failed: {err}")
+
 app.include_router(auth_router)
 app.include_router(order_router)
 app.include_router(

@@ -25,7 +25,7 @@ def main():
         seed_platform_settings(db)
         seed_pricing(db)
 
-        print("✅ Database Seeded Successfully!")
+        print("[OK] Database Seeded Successfully!")
 
     finally:
         db.close()
