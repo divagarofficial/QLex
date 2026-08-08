@@ -1,4 +1,7 @@
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 from app.waiting_room.repository import (
     WaitingRoomRepository,
@@ -23,6 +26,8 @@ class LoadService:
         )
 
     def cpu_usage(self):
+        if not psutil:
+            return 10.0
         try:
             return psutil.cpu_percent(
                 interval=0.01
@@ -31,6 +36,8 @@ class LoadService:
             return 0.0
 
     def memory_usage(self):
+        if not psutil:
+            return 10.0
         try:
             return psutil.virtual_memory().percent
         except Exception:
