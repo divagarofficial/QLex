@@ -47,21 +47,21 @@ except Exception as e:
 
 register_exception_handlers(app)
 
-# CORS — allow origins from environment variable + dev defaults
+# CORS — allow all origins (local dev + all Vercel frontend deployments)
 raw_origins = os.getenv("ALLOWED_ORIGINS", "")
 custom_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 default_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3000",
-    "http://192.168.27.188:3000",
-    "http://192.168.244.18:3000",
+    "https://qlexmindtech.vercel.app",
 ]
-allowed_origins = list(set(default_origins + custom_origins)) if "*" not in raw_origins else ["*"]
+allowed_origins = list(set(default_origins + custom_origins))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=allowed_origins if "*" not in raw_origins else ["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
