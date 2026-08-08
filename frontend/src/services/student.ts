@@ -11,7 +11,7 @@ import type {
   OrderDetailsResponse,
 } from "@/types/student";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
 
 // ── Waiting Room Session (stored in memory) ──────────────────────
 let waitingRoomSession: string | null = null;
