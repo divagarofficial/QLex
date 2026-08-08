@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime, date
