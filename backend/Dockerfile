@@ -23,8 +23,8 @@ COPY . .
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
-# Hugging Face Spaces default port is 7860
-EXPOSE 7860
+# Default port for Northflank / standard Docker deployment
+EXPOSE 8000
 
-# Run uvicorn server on port 7860
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Run uvicorn server binding to dynamic PORT or fallback 8000
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

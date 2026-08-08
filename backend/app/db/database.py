@@ -26,6 +26,9 @@ engine = create_engine(
     DATABASE_URL,
     echo=settings.DEBUG,
     pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
+    pool_recycle=300,
 )
 
 SessionLocal = sessionmaker(
@@ -72,7 +75,6 @@ def init_db_tables():
 
 
 def get_db():
-    init_db_tables()
     db = SessionLocal()
     try:
         yield db
