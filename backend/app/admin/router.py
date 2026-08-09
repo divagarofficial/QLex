@@ -398,6 +398,27 @@ def toggle_student_status(
     return service.toggle_student_status(student_id, is_active=is_active)
 
 
+@router.get("/whatsapp/status")
+def get_whatsapp_bot_status():
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
+    try:
+        res = requests.get(f"{bot_url}/status", timeout=5)
+        return res.json()
+    except Exception as e:
+        return {"success": False, "status": "DISCONNECTED", "error": str(e)}
+
+
+@router.get("/whatsapp/qr")
+def get_whatsapp_bot_qr():
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
+    try:
+        res = requests.get(f"{bot_url}/qr", timeout=5)
+        return res.json()
+    except Exception as e:
+        return {"success": False, "status": "DISCONNECTED", "qr": None, "error": str(e)}
+
+
+
 
 
 
