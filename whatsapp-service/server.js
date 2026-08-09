@@ -10,67 +10,89 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5001;
 
+// Ultra-lightweight endpoint for cron-job / pinger keep-alive
+app.get("/ping", (req, res) => {
+  res.status(200).send("pong");
+});
+
 let botStatus = "INITIALIZING"; // INITIALIZING, QR_READY, AUTHENTICATED, READY, DISCONNECTED
 let currentQrCodeDataUrl = null;
 let clientInfo = null;
 
-const client = new Client({
-  authStrategy: new LocalAuth({ dataPath: "./.wwebjs_auth" }),
-  puppeteer: {
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--no-first-run",
-      "--no-zygote",
-      "--disable-gpu"
-    ]
-  }
-});
+function createClientInstance() {
+  return new Client({
+    authStrategy: new LocalAuth({ dataPath: "./.wwebjs_auth" }),
+    webVersionCache: {
+      type: "remote",
+      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1014111620-alpha.html"
+    },
+    puppeteer: {
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--disable-gpu"
+      ]
+    }
+  });
+}
 
-client.on("qr", async (qr) => {
-  console.log("[WhatsApp Bot] New QR Code generated.");
-  botStatus = "QR_READY";
-  try {
-    currentQrCodeDataUrl = await QRCode.toDataURL(qr);
-  } catch (err) {
-    console.error("[WhatsApp Bot] Error converting QR code:", err);
-  }
-});
+let client = createClientInstance();
 
-client.on("authenticated", () => {
-  console.log("[WhatsApp Bot] Authenticated successfully.");
-  botStatus = "AUTHENTICATED";
-  currentQrCodeDataUrl = null;
-});
+function registerClientListeners(cli) {
+  cli.on("qr", async (qr) => {
+    console.log("[WhatsApp Bot] New QR Code generated.");
+    botStatus = "QR_READY";
+    try {
+      currentQrCodeDataUrl = await QRCode.toDataURL(qr);
+    } catch (err) {
+      console.error("[WhatsApp Bot] Error converting QR code:", err);
+    }
+  });
 
-client.on("auth_failure", (msg) => {
-  console.error("[WhatsApp Bot] Authentication failure:", msg);
-  botStatus = "DISCONNECTED";
-  currentQrCodeDataUrl = null;
-});
+  cli.on("authenticated", () => {
+    console.log("[WhatsApp Bot] Authenticated successfully.");
+    botStatus = "AUTHENTICATED";
+    currentQrCodeDataUrl = null;
+  });
 
-client.on("ready", () => {
-  console.log("[WhatsApp Bot] Client is READY and connected to WhatsApp!");
-  botStatus = "READY";
-  currentQrCodeDataUrl = null;
-  clientInfo = client.info ? { wid: client.info.wid.user, pushname: client.info.pushname } : null;
-});
+  cli.on("auth_failure", (msg) => {
+    console.error("[WhatsApp Bot] Authentication failure:", msg);
+    botStatus = "DISCONNECTED";
+    currentQrCodeDataUrl = null;
+  });
 
-client.on("disconnected", (reason) => {
-  console.log("[WhatsApp Bot] Client disconnected:", reason);
-  botStatus = "DISCONNECTED";
-  currentQrCodeDataUrl = null;
-  clientInfo = null;
-});
+  cli.on("ready", () => {
+    console.log("[WhatsApp Bot] Client is READY and connected to WhatsApp!");
+    botStatus = "READY";
+    currentQrCodeDataUrl = null;
+    clientInfo = cli.info ? { wid: cli.info.wid.user, pushname: cli.info.pushname } : null;
+  });
+
+  cli.on("disconnected", (reason) => {
+    console.log("[WhatsApp Bot] Client disconnected:", reason);
+    botStatus = "DISCONNECTED";
+    currentQrCodeDataUrl = null;
+    clientInfo = null;
+  });
+}
+
+registerClientListeners(client);
 
 // Initialise client
-client.initialize().catch((err) => {
-  console.error("[WhatsApp Bot] Failed to initialize client:", err);
-  botStatus = "DISCONNECTED";
-});
+function startBotEngine() {
+  botStatus = "INITIALIZING";
+  client.initialize().catch((err) => {
+    console.error("[WhatsApp Bot] Failed to initialize client:", err);
+    botStatus = "DISCONNECTED";
+  });
+}
+
+startBotEngine();
 
 // REST API Endpoints
 
