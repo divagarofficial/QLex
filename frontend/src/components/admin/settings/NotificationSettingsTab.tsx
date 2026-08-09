@@ -302,7 +302,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                     </p>
                     <div className="flex gap-2">
                       <a
-                        href={waBotUrl || "http://localhost:5001"}
+                        href={`${getApiBase()}/admin/whatsapp/pairing-page`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all shadow-sm"

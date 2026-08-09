@@ -1,6 +1,7 @@
 from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, BackgroundTasks
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -193,6 +194,16 @@ def get_whatsapp_bot_qr():
             return {"success": False, "status": "DISCONNECTED", "qr": None, "error": f"Invalid response: {res.text[:100]}", "bot_url": bot_url}
     except Exception as e:
         return {"success": False, "status": "DISCONNECTED", "qr": None, "error": f"Bot offline: {str(e)}", "bot_url": bot_url}
+
+@router.get("/whatsapp/pairing-page", response_class=HTMLResponse)
+def get_whatsapp_pairing_page():
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "http://127.0.0.1:5001"
+    bot_url = bot_url.rstrip("/")
+    try:
+        res = requests.get(f"{bot_url}/", timeout=5)
+        return HTMLResponse(content=res.text)
+    except Exception as e:
+        return HTMLResponse(content=f"<div style='font-family:sans-serif; text-align:center; padding:50px; background:#111b21; color:#e9edef;'><h2>WhatsApp Engine Starting on Cloud...</h2><p style='color:#8696a0;'>Please wait 10 seconds and refresh this page to view QR Code.</p></div>")
 
 @router.post("/whatsapp/start")
 def start_whatsapp_bot():
