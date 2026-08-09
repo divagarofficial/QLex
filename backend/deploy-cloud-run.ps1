@@ -15,7 +15,7 @@ $ServiceName = "qlex-backend"
 $ImageName = "gcr.io/${ProjectId}/${ServiceName}:latest"
 
 Write-Host "Building and submitting container image to GCP Cloud Build..." -ForegroundColor Cyan
-gcloud builds submit --tag $ImageName .
+gcloud builds submit --tag $ImageName --suppress-logs .
 
 Write-Host "Deploying container to Google Cloud Run..." -ForegroundColor Cyan
 gcloud run deploy $ServiceName `
