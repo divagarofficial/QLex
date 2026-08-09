@@ -15,6 +15,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   const [waQr, setWaQr] = useState<string | null>(null);
   const [waUser, setWaUser] = useState<string | null>(null);
   const [loadingWa, setLoadingWa] = useState<boolean>(false);
+  const [startingBot, setStartingBot] = useState<boolean>(false);
 
   const fetchWaBotInfo = async () => {
     setLoadingWa(true);
@@ -46,10 +47,37 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
     }
   };
 
+  const handleStartBot = async () => {
+    setStartingBot(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      await fetch(`${apiBase}/admin/whatsapp/start`, { method: "POST" });
+      setWaStatus("INITIALIZING");
+      setTimeout(fetchWaBotInfo, 2000);
+    } catch {
+      // Ignore error
+    } finally {
+      setStartingBot(false);
+    }
+  };
+
+  const handleLogoutBot = async () => {
+    setLoadingWa(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      await fetch(`${apiBase}/admin/whatsapp/logout`, { method: "POST" });
+      fetchWaBotInfo();
+    } catch {
+      // Ignore error
+    } finally {
+      setLoadingWa(false);
+    }
+  };
+
   useEffect(() => {
     if (data.whatsappNotifications) {
       fetchWaBotInfo();
-      const interval = setInterval(fetchWaBotInfo, 10000);
+      const interval = setInterval(fetchWaBotInfo, 5000);
       return () => clearInterval(interval);
     }
   }, [data.whatsappNotifications]);
@@ -139,24 +167,42 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                     ) : waStatus === "QR_READY" ? (
                       <>
                         <QrCode className="h-4 w-4 text-amber-400" />
-                        <span className="text-amber-400">Scan QR Code to Pair</span>
+                        <span className="text-amber-400 font-semibold">Scan QR Code to Pair</span>
+                      </>
+                    ) : waStatus === "INITIALIZING" ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 text-emerald-400 animate-spin" />
+                        <span className="text-emerald-400">Initializing Engine...</span>
                       </>
                     ) : (
                       <>
-                        <AlertCircle className="h-4 w-4 text-zinc-400" />
-                        <span className="text-zinc-400">Status: {waStatus}</span>
+                        <AlertCircle className="h-4 w-4 text-amber-400" />
+                        <span className="text-amber-400">Status: DISCONNECTED</span>
                       </>
                     )}
                   </span>
-                  <button
-                    type="button"
-                    onClick={fetchWaBotInfo}
-                    disabled={loadingWa}
-                    className="p-1 text-zinc-400 hover:text-white transition-colors"
-                    title="Refresh WhatsApp Bot Status"
-                  >
-                    <RefreshCw className={cn("h-3.5 w-3.5", loadingWa && "animate-spin")} />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    {waStatus === "READY" && (
+                      <button
+                        type="button"
+                        onClick={handleLogoutBot}
+                        disabled={loadingWa}
+                        className="px-2 py-0.5 text-[11px] text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded transition-colors"
+                        title="Unlink WhatsApp session"
+                      >
+                        Unlink
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={fetchWaBotInfo}
+                      disabled={loadingWa}
+                      className="p-1 text-zinc-400 hover:text-white transition-colors"
+                      title="Refresh WhatsApp Bot Status"
+                    >
+                      <RefreshCw className={cn("h-3.5 w-3.5", loadingWa && "animate-spin")} />
+                    </button>
+                  </div>
                 </div>
 
                 {waStatus === "QR_READY" && waQr && (
@@ -168,10 +214,32 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                   </div>
                 )}
 
+                {waStatus === "INITIALIZING" && (
+                  <div className="p-2.5 rounded-lg bg-white/5 border border-white/10 text-center space-y-1">
+                    <p className="text-[11px] text-emerald-300 animate-pulse font-medium">
+                      Launching Headless Engine &amp; fetching QR pairing code...
+                    </p>
+                    <p className="text-[10px] text-zinc-400">Please wait 5-15 seconds.</p>
+                  </div>
+                )}
+
                 {waStatus === "DISCONNECTED" && (
-                  <p className="text-[11px] text-zinc-400">
-                    Microservice offline. Run <code className="text-emerald-300 bg-white/5 px-1 py-0.5 rounded">npm start</code> in <code className="text-emerald-300 bg-white/5 px-1 py-0.5 rounded">whatsapp-service/</code> to start bot.
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-zinc-400">
+                      Microservice status: <span className="text-amber-400 font-semibold">Disconnected</span>. Open the pairing webpage below to view status or scan QR code.
+                    </p>
+                    <div className="flex gap-2">
+                      <a
+                        href="https://qlex-whatsapp-bot.onrender.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs font-medium transition-all shadow-sm"
+                      >
+                        <QrCode className="h-3.5 w-3.5" />
+                        <span>Open WhatsApp Pairing Page</span>
+                      </a>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
