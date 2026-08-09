@@ -17,6 +17,9 @@ app.get("/ping", (req, res) => {
 });
 
 let botStatus = "INITIALIZING"; // INITIALIZING, QR_READY, AUTHENTICATED, READY, DISCONNECTED
+let currentQrCodeDataUrl = null;
+let clientInfo = null;
+
 process.on("unhandledRejection", (reason, p) => {
   console.log("[WhatsApp Bot] Process Warning (Unhandled Rejection):", reason ? (reason.message || reason) : reason);
 });
