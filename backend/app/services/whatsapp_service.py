@@ -29,15 +29,16 @@ class WhatsAppService:
             settings = service.get_settings()
             if isinstance(settings, dict):
                 notifications = settings.get("notifications", {}) or {}
-                return bool(notifications.get("whatsappNotifications", False))
+                if "whatsappNotifications" in notifications:
+                    return bool(notifications.get("whatsappNotifications"))
             elif hasattr(settings, "notifications"):
                 notifications = getattr(settings, "notifications", {}) or {}
-                if isinstance(notifications, dict):
-                    return bool(notifications.get("whatsappNotifications", False))
-            return False
+                if isinstance(notifications, dict) and "whatsappNotifications" in notifications:
+                    return bool(notifications.get("whatsappNotifications"))
+            return True
         except Exception as e:
             logger.warning(f"[WhatsAppService] Could not check platform settings: {e}")
-            return False
+            return True
 
     def send_message(self, phone: str, message: str, pdf_path: Optional[str] = None) -> dict:
         """Send a WhatsApp message (with optional PDF attachment) via local whatsapp-web.js microservice."""
