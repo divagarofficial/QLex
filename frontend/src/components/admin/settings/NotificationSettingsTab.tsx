@@ -41,6 +41,16 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
         } catch {}
       }
 
+      // If status is QR_READY but backend proxy didn't return qr string, fallback to querying Render directly
+      if (finalStatus === "QR_READY" && !finalQr) {
+        try {
+          const directQrRes = await fetch("https://qlex-whatsapp-bot.onrender.com/qr", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
+          if (directQrRes?.qr) {
+            finalQr = directQrRes.qr;
+          }
+        } catch {}
+      }
+
       setWaStatus(finalStatus);
       if (finalInfo?.wid) {
         setWaUser(finalInfo.wid);
@@ -213,9 +223,20 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                   </div>
                 </div>
 
-                {waStatus === "QR_READY" && waQr && (
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
-                    <img src={waQr} alt="WhatsApp QR Code" className="w-44 h-44 rounded-lg shadow-md border border-white/20" />
+                {waStatus === "QR_READY" && (
+                  <div className="flex flex-col items-center gap-3 p-3.5 rounded-lg bg-white/5 border border-white/10">
+                    {waQr ? (
+                      <img src={waQr} alt="WhatsApp QR Code" className="w-44 h-44 rounded-lg shadow-md border border-white/20 bg-white p-1" />
+                    ) : null}
+                    <a
+                      href="https://qlex-whatsapp-bot.onrender.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      <span>Click Here to View &amp; Scan QR Code</span>
+                    </a>
                     <p className="text-[11px] text-zinc-300 text-center font-mono">
                       Open WhatsApp on phone &gt; Linked Devices &gt; Scan QR Code
                     </p>
