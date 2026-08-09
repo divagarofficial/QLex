@@ -164,20 +164,7 @@ app.post("/send", async (req, res) => {
 
     let cleanPhone = phone.toString().replace(/[^0-9]/g, "");
     if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`;
-
-    // Resolve exact WhatsApp contact ID
-    let chatId = `${cleanPhone}@c.us`;
-    try {
-      const numberId = await client.getNumberId(cleanPhone);
-      if (numberId && numberId._serialized) {
-        chatId = numberId._serialized;
-        console.log(`[WhatsApp Bot] Resolved WhatsApp contact ID: ${chatId}`);
-      } else {
-        console.warn(`[WhatsApp Bot] Number ${cleanPhone} check returned null. Attempting direct send to ${chatId}`);
-      }
-    } catch (e) {
-      console.warn(`[WhatsApp Bot] getNumberId error: ${e.message}`);
-    }
+    const chatId = `${cleanPhone}@c.us`;
 
     // Handle PDF / Media attachment
     if (pdfPath && fs.existsSync(pdfPath)) {
