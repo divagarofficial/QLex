@@ -22,12 +22,11 @@ let clientInfo = null;
 function createClientInstance() {
   return new Client({
     authStrategy: new LocalAuth({ dataPath: "./.wwebjs_auth" }),
-    webVersionCache: {
-      type: "remote",
-      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1014111620-alpha.html"
-    },
     puppeteer: {
       headless: true,
+      handleSIGINT: false,
+      handleSIGTERM: false,
+      handleSIGHUP: false,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -35,7 +34,10 @@ function createClientInstance() {
         "--disable-accelerated-2d-canvas",
         "--no-first-run",
         "--no-zygote",
-        "--disable-gpu"
+        "--disable-gpu",
+        "--single-process",
+        "--no-default-browser-check",
+        "--disable-extensions"
       ]
     }
   });
@@ -83,12 +85,26 @@ function registerClientListeners(cli) {
 
 registerClientListeners(client);
 
-// Initialise client
+// Initialise client with auto-retry for Puppeteer container cold-start
+let initRetryTimer = null;
 function startBotEngine() {
   botStatus = "INITIALIZING";
+  console.log("[WhatsApp Bot] Initializing Puppeteer Chromium engine...");
+  
   client.initialize().catch((err) => {
-    console.error("[WhatsApp Bot] Failed to initialize client:", err);
+    console.error("[WhatsApp Bot] Initialization error:", err ? err.message : err);
     botStatus = "DISCONNECTED";
+    
+    if (initRetryTimer) clearTimeout(initRetryTimer);
+    initRetryTimer = setTimeout(() => {
+      console.log("[WhatsApp Bot] Auto-re-attempting Chromium initialization...");
+      try {
+        client.destroy().catch(() => {});
+      } catch (e) {}
+      client = createClientInstance();
+      registerClientListeners(client);
+      startBotEngine();
+    }, 4000);
   });
 }
 
