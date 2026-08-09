@@ -53,7 +53,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
       // 2. Direct fallback to active tunnel service
       if (!sent) {
         try {
-          const directRes = await fetch("https://qlex-whatsapp-bot.loca.lt/send", {
+          const directRes = await fetch("https://fuzzy-views-serve.loca.lt/send", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -122,14 +122,14 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
       // Fail-safe direct tunnel/local checks if backend status returns DISCONNECTED/error
       if (finalStatus === "DISCONNECTED") {
         try {
-          const tunnelRes = await fetch("https://qlex-whatsapp-bot.loca.lt/status", {
+          const tunnelRes = await fetch("https://fuzzy-views-serve.loca.lt/status", {
             cache: "no-store",
             headers: { "Bypass-Tunnel-Reminder": "true" }
           }).then((r) => r.json()).catch(() => null);
           if (tunnelRes?.status && tunnelRes.status !== "DISCONNECTED") {
             finalStatus = tunnelRes.status;
             finalInfo = tunnelRes.info;
-            setWaBotUrl("https://qlex-whatsapp-bot.loca.lt");
+            setWaBotUrl("https://fuzzy-views-serve.loca.lt");
           }
         } catch {}
       }
@@ -147,7 +147,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
 
       if (finalStatus === "QR_READY" && !finalQr) {
         try {
-          const tunnelQrRes = await fetch("https://qlex-whatsapp-bot.loca.lt/qr", {
+          const tunnelQrRes = await fetch("https://fuzzy-views-serve.loca.lt/qr", {
             cache: "no-store",
             headers: { "Bypass-Tunnel-Reminder": "true" }
           }).then((r) => r.json()).catch(() => null);
