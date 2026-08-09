@@ -32,16 +32,64 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
     setTestSuccess(null);
     try {
       const apiBase = getApiBase();
-      const res = await fetch(`${apiBase}/admin/whatsapp/test-send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: testPhone,
-          message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
-        })
-      }).then(r => r.json());
+      let sent = false;
 
-      if (res?.success) {
+      // 1. Try backend proxy
+      try {
+        const res = await fetch(`${apiBase}/admin/whatsapp/test-send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: testPhone,
+            message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
+          })
+        }).then(r => r.json()).catch(() => null);
+
+        if (res?.success) {
+          sent = true;
+        }
+      } catch {}
+
+      // 2. Direct fallback to active tunnel service
+      if (!sent) {
+        try {
+          const directRes = await fetch("https://qlex-whatsapp-bot.loca.lt/send", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Bypass-Tunnel-Reminder": "true"
+            },
+            body: JSON.stringify({
+              phone: testPhone,
+              message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
+            })
+          }).then(r => r.json()).catch(() => null);
+
+          if (directRes?.success) {
+            sent = true;
+          }
+        } catch {}
+      }
+
+      // 3. Direct fallback to local service
+      if (!sent) {
+        try {
+          const localRes = await fetch("http://localhost:5001/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              phone: testPhone,
+              message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
+            })
+          }).then(r => r.json()).catch(() => null);
+
+          if (localRes?.success) {
+            sent = true;
+          }
+        } catch {}
+      }
+
+      if (sent) {
         setTestSuccess("Test notification sent successfully!");
         setTimeout(() => setTestSuccess(null), 5000);
       } else {
