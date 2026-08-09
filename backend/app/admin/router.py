@@ -1,6 +1,7 @@
 from uuid import UUID
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, BackgroundTasks
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
