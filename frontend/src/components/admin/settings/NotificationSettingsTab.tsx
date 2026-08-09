@@ -14,6 +14,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   const [waStatus, setWaStatus] = useState<string>("INITIALIZING");
   const [waQr, setWaQr] = useState<string | null>(null);
   const [waUser, setWaUser] = useState<string | null>(null);
+  const [waBotUrl, setWaBotUrl] = useState<string>("http://localhost:5001");
   const [loadingWa, setLoadingWa] = useState<boolean>(false);
   const [startingBot, setStartingBot] = useState<boolean>(false);
   const [testPhone, setTestPhone] = useState<string>("");
@@ -65,6 +66,10 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
       const finalStatus = statusRes?.status || "DISCONNECTED";
       const finalInfo = statusRes?.info;
       const finalQr = qrRes?.qr || null;
+
+      if (statusRes?.bot_url) {
+        setWaBotUrl(statusRes.bot_url);
+      }
 
       setWaStatus(finalStatus);
       if (finalInfo?.wid) {
@@ -269,7 +274,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                       <img src={waQr} alt="WhatsApp QR Code" className="w-44 h-44 rounded-lg shadow-md border border-white/20 bg-white p-1" />
                     ) : null}
                     <a
-                      href="https://qlex-whatsapp-service-ybnb435gbq-el.a.run.app/"
+                      href={waBotUrl || "http://localhost:5001"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all"
@@ -299,7 +304,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                     </p>
                     <div className="flex gap-2">
                       <a
-                        href="https://qlex-whatsapp-service-ybnb435gbq-el.a.run.app/"
+                        href={waBotUrl || "http://localhost:5001"}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all shadow-sm"
