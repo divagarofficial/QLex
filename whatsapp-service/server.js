@@ -3,58 +3,45 @@ const express = require("express");
 const cors = require("cors");
 const QRCode = require("qrcode");
 const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
-const { restoreSessionFromDB, backupSessionToDB } = require("./session_manager");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "25mb" }));
 
 const PORT = process.env.PORT || 5001;
 
-// Ultra-lightweight endpoint for cron-job / pinger keep-alive
-app.get("/ping", (req, res) => {
-  res.status(200).send("pong");
-});
+// 1. Health & Keep-Alive Endpoints
+app.get("/health", (req, res) => res.json({ status: "healthy", service: "whatsapp-bot" }));
+app.get("/ping", (req, res) => res.status(200).send("pong"));
 
+// 2. Global Bot State
 let botStatus = "INITIALIZING"; // INITIALIZING, QR_READY, AUTHENTICATED, READY, DISCONNECTED
 let currentQrCodeDataUrl = null;
 let clientInfo = null;
 
-process.on("unhandledRejection", (reason, p) => {
-  console.log("[WhatsApp Bot] Process Warning (Unhandled Rejection):", reason ? (reason.message || reason) : reason);
-});
+// 3. Low-RAM Puppeteer Configuration for Docker / Render 512MB RAM Cap
+function createClient() {
+  const args = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-accelerated-2d-canvas",
+    "--no-first-run",
+    "--no-zygote",
+    "--disable-gpu",
+    "--no-default-browser-check",
+    "--disable-extensions",
+    "--js-flags=--max-old-space-size=128",
+    "--disable-background-networking",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-breakpad",
+    "--disable-renderer-backgrounding",
+    "--mute-audio",
+    "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+  ];
 
-process.on("uncaughtException", (err) => {
-  console.log("[WhatsApp Bot] Process Warning (Uncaught Exception):", err ? (err.message || err) : err);
-});
-
-function createClientInstance() {
-  const puppeteerOpts = {
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--no-first-run",
-      "--no-zygote",
-      "--disable-gpu",
-      "--no-default-browser-check",
-      "--disable-extensions",
-      "--js-flags=--max-old-space-size=128",
-      "--disable-background-networking",
-      "--disable-background-timer-throttling",
-      "--disable-backgrounding-occluded-windows",
-      "--disable-breakpad",
-      "--disable-component-extensions-with-background-pages",
-      "--disable-features=Translate,BackForwardCache,AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync",
-      "--disable-ipc-flooding-protection",
-      "--disable-renderer-backgrounding",
-      "--mute-audio",
-      "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    ]
-  };
-
+  const puppeteerOpts = { headless: true, args };
   if (fs.existsSync("/usr/bin/chromium")) {
     puppeteerOpts.executablePath = "/usr/bin/chromium";
   } else if (process.env.PUPPETEER_EXECUTABLE_PATH) {
@@ -67,81 +54,63 @@ function createClientInstance() {
   });
 }
 
-let client = createClientInstance();
+let client = createClient();
 
-function registerClientListeners(cli) {
+function bindClientEvents(cli) {
   cli.on("qr", async (qr) => {
     console.log("[WhatsApp Bot] New QR Code generated.");
     botStatus = "QR_READY";
     try {
       currentQrCodeDataUrl = await QRCode.toDataURL(qr);
     } catch (err) {
-      console.error("[WhatsApp Bot] Error converting QR code:", err);
+      console.error("[WhatsApp Bot] Error rendering QR Code:", err);
     }
   });
 
   cli.on("authenticated", () => {
-    console.log("[WhatsApp Bot] Authenticated successfully.");
+    console.log("[WhatsApp Bot] Authenticated successfully!");
     botStatus = "AUTHENTICATED";
     currentQrCodeDataUrl = null;
-    setTimeout(() => backupSessionToDB(), 2000);
   });
 
   cli.on("auth_failure", (msg) => {
-    console.error("[WhatsApp Bot] Authentication failure:", msg);
+    console.error("[WhatsApp Bot] Auth Failure:", msg);
     botStatus = "DISCONNECTED";
     currentQrCodeDataUrl = null;
   });
 
   cli.on("ready", () => {
-    console.log("[WhatsApp Bot] Client is READY and connected to WhatsApp!");
+    console.log("[WhatsApp Bot] Client is READY & Connected to WhatsApp!");
     botStatus = "READY";
     currentQrCodeDataUrl = null;
     clientInfo = cli.info ? { wid: cli.info.wid.user, pushname: cli.info.pushname } : null;
-    setTimeout(() => backupSessionToDB(), 3000);
   });
 
   cli.on("disconnected", (reason) => {
-    console.log("[WhatsApp Bot] Client disconnected:", reason);
+    console.log("[WhatsApp Bot] Disconnected:", reason);
     botStatus = "DISCONNECTED";
     currentQrCodeDataUrl = null;
     clientInfo = null;
   });
 }
 
-registerClientListeners(client);
+bindClientEvents(client);
 
-// Initialise client with auto-retry for Puppeteer container cold-start
-let initRetryTimer = null;
-async function startBotEngine() {
+// Safe Initialization
+function initBot() {
   botStatus = "INITIALIZING";
-  console.log("[WhatsApp Bot] Restoring persistent session from DB...");
-  await restoreSessionFromDB();
-
-  console.log("[WhatsApp Bot] Initializing Puppeteer Chromium engine...");
-  
+  console.log("[WhatsApp Bot] Launching WhatsApp Web Engine...");
   client.initialize().catch((err) => {
-    console.error("[WhatsApp Bot] Initialization error:", err ? err.message : err);
+    console.error("[WhatsApp Bot] Init Error:", err ? err.message : err);
     botStatus = "DISCONNECTED";
-    
-    if (initRetryTimer) clearTimeout(initRetryTimer);
-    initRetryTimer = setTimeout(() => {
-      console.log("[WhatsApp Bot] Auto-re-attempting Chromium initialization...");
-      try {
-        client.destroy().catch(() => {});
-      } catch (e) {}
-      client = createClientInstance();
-      registerClientListeners(client);
-      startBotEngine();
-    }, 4000);
   });
 }
 
-startBotEngine();
+initBot();
 
-// REST API Endpoints
+// 4. REST Endpoints
 
-// 1. Get bot status
+// GET /status
 app.get("/status", (req, res) => {
   return res.json({
     success: true,
@@ -151,7 +120,7 @@ app.get("/status", (req, res) => {
   });
 });
 
-// 2. Get QR Code for pairing
+// GET /qr
 app.get("/qr", (req, res) => {
   return res.json({
     success: true,
@@ -160,7 +129,42 @@ app.get("/qr", (req, res) => {
   });
 });
 
-// 2b. Visual HTML Page for QR Code Pairing (No Page Reloads)
+// POST /send
+app.post("/send", async (req, res) => {
+  try {
+    const { phone, message, pdfPath, mediaBase64, filename } = req.body;
+
+    if (!phone || !message) {
+      return res.status(400).json({ success: false, error: "Phone and message are required." });
+    }
+
+    if (botStatus !== "READY") {
+      return res.status(503).json({ success: false, error: `Bot not ready (Status: ${botStatus})`, status: botStatus });
+    }
+
+    let cleanPhone = phone.toString().replace(/[^0-9]/g, "");
+    if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`;
+    const chatId = `${cleanPhone}@c.us`;
+
+    // Handle PDF / Media attachment
+    if (pdfPath && fs.existsSync(pdfPath)) {
+      const media = MessageMedia.fromFilePath(pdfPath);
+      await client.sendMessage(chatId, media, { caption: message });
+    } else if (mediaBase64 && filename) {
+      const media = new MessageMedia("application/pdf", mediaBase64, filename);
+      await client.sendMessage(chatId, media, { caption: message });
+    } else {
+      await client.sendMessage(chatId, message);
+    }
+
+    return res.json({ success: true, message: `Message sent to ${cleanPhone}` });
+  } catch (err) {
+    console.error("[WhatsApp Bot] Error sending message:", err);
+    return res.status(500).json({ success: false, error: err.message || "Failed to send message" });
+  }
+});
+
+// GET / - Pairing Page (Zero Browser Reloads)
 app.get(["/", "/qr-page"], (req, res) => {
   return res.send(`
     <!DOCTYPE html>
@@ -245,91 +249,7 @@ app.get(["/", "/qr-page"], (req, res) => {
   `);
 });
 
-// 3. Send WhatsApp message (supporting text and PDF file attachments)
-app.post("/send", async (req, res) => {
-  try {
-    const { phone, message, pdfPath, mediaBase64, filename } = req.body;
-
-    if (!phone || !message) {
-      return res.status(400).json({
-        success: false,
-        error: "Missing required fields: 'phone' and 'message'."
-      });
-    }
-
-    if (botStatus !== "READY") {
-      return res.status(503).json({
-        success: false,
-        error: `WhatsApp bot is not ready. Current status: ${botStatus}`,
-        status: botStatus
-      });
-    }
-
-    // Clean phone number format
-    let cleanPhone = phone.toString().replace(/[^0-9]/g, "");
-
-    // Default to India country code 91 if 10 digits
-    if (cleanPhone.length === 10) {
-      cleanPhone = `91${cleanPhone}`;
-    }
-
-    const chatId = `${cleanPhone}@c.us`;
-    let sentMessage;
-
-    if (pdfPath && fs.existsSync(pdfPath)) {
-      console.log(`[WhatsApp Bot] Dispatching PDF attachment (${pdfPath}) to ${chatId}...`);
-      const media = MessageMedia.fromFilePath(pdfPath);
-      sentMessage = await client.sendMessage(chatId, media, { caption: message });
-    } else if (mediaBase64) {
-      console.log(`[WhatsApp Bot] Dispatching base64 PDF to ${chatId}...`);
-      const media = new MessageMedia("application/pdf", mediaBase64, filename || "receipt.pdf");
-      sentMessage = await client.sendMessage(chatId, media, { caption: message });
-    } else {
-      console.log(`[WhatsApp Bot] Dispatching text message to ${chatId}...`);
-      sentMessage = await client.sendMessage(chatId, message);
-    }
-
-    const messageId = sentMessage?.id?._serialized || sentMessage?.id?.id || "sent_ok";
-
-    return res.json({
-      success: true,
-      messageId: messageId,
-      recipient: cleanPhone,
-      timestamp: new Date().toISOString()
-    });
-  } catch (err) {
-    console.error("[WhatsApp Bot] Failed to send message:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Failed to send WhatsApp message"
-    });
-  }
-});
-
-// 4. Logout / Reset session
-app.post("/logout", async (req, res) => {
-  try {
-    await client.logout();
-    botStatus = "DISCONNECTED";
-    clientInfo = null;
-    currentQrCodeDataUrl = null;
-
-    // Re-initialize for new QR
-    client.initialize().catch(console.error);
-
-    return res.json({
-      success: true,
-      message: "Logged out from WhatsApp Web. Re-initializing for new QR pairing."
-    });
-  } catch (err) {
-    console.error("[WhatsApp Bot] Error during logout:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Failed to logout"
-    });
-  }
-});
-
+// Start Express HTTP Server
 app.listen(PORT, () => {
-  console.log(`[WhatsApp Bot Microservice] Running on http://localhost:${PORT}`);
+  console.log(`[WhatsApp Bot Microservice] Running on port ${PORT}`);
 });

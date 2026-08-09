@@ -13,12 +13,10 @@ from .shop_queue import ShopQueue
 from .daily_queue_counter import DailyQueueCounter
 from .settlement import Settlement
 from .waiting_room import WaitingRoom
-from .whatsapp_session import WhatsAppSession
 
 __all__ = [
     "Department",
     "Section",
     "User",
     "Year",
-    "WhatsAppSession",
 ]
