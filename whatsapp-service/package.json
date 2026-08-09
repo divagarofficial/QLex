@@ -4,8 +4,8 @@
   "description": "Free Background WhatsApp Web Bot for QLex Order Status Updates and Receipts",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node --max-old-space-size=256 server.js",
+    "dev": "node --max-old-space-size=256 server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

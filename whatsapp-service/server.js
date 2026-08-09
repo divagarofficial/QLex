@@ -41,6 +41,16 @@ function createClientInstance() {
       "--disable-gpu",
       "--no-default-browser-check",
       "--disable-extensions",
+      "--js-flags=--max-old-space-size=128",
+      "--disable-background-networking",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-breakpad",
+      "--disable-component-extensions-with-background-pages",
+      "--disable-features=Translate,BackForwardCache,AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync",
+      "--disable-ipc-flooding-protection",
+      "--disable-renderer-backgrounding",
+      "--mute-audio",
       "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     ]
   };
