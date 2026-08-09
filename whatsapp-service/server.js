@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const QRCode = require("qrcode");
 const { Client, LocalAuth, MessageMedia } = require("whatsapp-web.js");
+const { restoreSessionFromDB, backupSessionToDB } = require("./session_manager");
 
 const app = express();
 app.use(cors());
@@ -55,8 +56,6 @@ function registerClientListeners(cli) {
       console.error("[WhatsApp Bot] Error converting QR code:", err);
     }
   });
-
-const { restoreSessionFromDB, backupSessionToDB } = require("./session_manager");
 
   cli.on("authenticated", () => {
     console.log("[WhatsApp Bot] Authenticated successfully.");
