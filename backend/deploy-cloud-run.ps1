@@ -28,7 +28,7 @@ gcloud run deploy $ServiceName `
     --cpu 1 `
     --min-instances 0 `
     --max-instances 10 `
-    --set-env-vars "APP_NAME=QLex API,APP_VERSION=1.0.0,DEBUG=False,ACCESS_TOKEN_EXPIRE_MINUTES=525600,DATABASE_URL=postgresql+psycopg2://postgres:DivaThiru1012@db.fdkkjqvmdnfmqvmsexar.supabase.co:5432/postgres,SECRET_KEY=qlex_super_secret_key_change_this_before_production_2026,ALLOWED_ORIGINS=https://qlexmindtech.vercel.app,RAZORPAY_KEY_ID=rzp_test_TC5tGEdBuuCBLm,RAZORPAY_KEY_SECRET=ppBTFvxKCcCOiHYfrH2yJu9e,RAZORPAY_WEBHOOK_SECRET=DivaThiru@0810,WHATSAPP_BOT_URL=https://slick-pumas-jump.loca.lt"
+    --set-env-vars "APP_NAME=QLex API,APP_VERSION=1.0.0,DEBUG=False,ACCESS_TOKEN_EXPIRE_MINUTES=525600,DATABASE_URL=postgresql+psycopg2://postgres:DivaThiru1012@db.fdkkjqvmdnfmqvmsexar.supabase.co:5432/postgres,SECRET_KEY=qlex_super_secret_key_change_this_before_production_2026,ALLOWED_ORIGINS=https://qlexmindtech.vercel.app,RAZORPAY_KEY_ID=rzp_test_TC5tGEdBuuCBLm,RAZORPAY_KEY_SECRET=ppBTFvxKCcCOiHYfrH2yJu9e,RAZORPAY_WEBHOOK_SECRET=DivaThiru@0810,WHATSAPP_BOT_URL=https://qlex-whatsapp-bot.loca.lt"
 
 Write-Host "Deployment completed successfully!" -ForegroundColor Green
 Write-Host "Service URL:" -ForegroundColor Yellow
