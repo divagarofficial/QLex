@@ -251,5 +251,5 @@ app.get(["/", "/qr-page"], (req, res) => {
 
 // Start Express HTTP Server
 app.listen(PORT, () => {
-  console.log(`[WhatsApp Bot Microservice] Running on port ${PORT}`);
+  console.log(`[WhatsApp Bot Microservice] Listening on internal container port ${PORT}. (Public URL: https://qlex-whatsapp-bot.onrender.com)`);
 });
