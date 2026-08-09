@@ -16,7 +16,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.WHATSAPP_PORT || (process.env.PORT && process.env.PORT !== "8080" ? process.env.PORT : 5001);
 
 // 1. Health & Keep-Alive Endpoints
 app.get("/health", (req, res) => res.json({ status: "healthy", service: "whatsapp-bot" }));

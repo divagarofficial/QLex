@@ -2,7 +2,7 @@
 set -e
 
 echo "[QLex Unified Server] Starting Node.js WhatsApp Engine on port 5001 in background..."
-node /app/whatsapp-service/server.js &
+PORT=5001 node /app/whatsapp-service/server.js &
 
 sleep 2
 
