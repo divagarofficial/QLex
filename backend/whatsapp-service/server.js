@@ -276,19 +276,20 @@ app.get(["/", "/qr-page"], (req, res) => {
         <script>
           async function pollStatus() {
             try {
-              const res = await fetch('/status');
+              const basePath = window.location.pathname.includes('/admin/whatsapp') ? '/admin/whatsapp' : '';
+              const res = await fetch(basePath + '/status');
               const data = await res.json();
               const badge = document.getElementById('status-badge');
               const card = document.getElementById('main-card');
               
               if (data.status === 'READY') {
-                card.innerHTML = \`
+                card.innerHTML = `
                   <div class="connected-icon">✅</div>
                   <h1 style="color:#00a884;">WhatsApp Connected!</h1>
                   <p style="color:#e9edef; font-weight:bold; margin-top:10px;">Status: READY</p>
-                  <p style="color:#8696a0;">Connected as: \${data.info ? (data.info.pushname || data.info.wid) : 'WhatsApp Web'}</p>
+                  <p style="color:#8696a0;">Connected as: ${data.info ? (data.info.pushname || data.info.wid) : 'WhatsApp Web'}</p>
                   <p style="font-size:12px; color:#00a884; margin-top:20px;">Your QLex print receipts & updates will now send automatically 24/7!</p>
-                \`;
+                `;
                 return;
               } else if (data.status === 'AUTHENTICATED') {
                 badge.innerText = 'Finishing Authentication...';
@@ -297,11 +298,11 @@ app.get(["/", "/qr-page"], (req, res) => {
                 badge.innerText = 'Scan QR Code to Link Device';
                 badge.style.color = '#f7a600';
               } else {
-                badge.innerText = 'Status: ' + data.status;
+                badge.innerText = 'Status: ' + (data.status || 'INITIALIZING');
               }
 
               if (data.status !== 'READY') {
-                const qrRes = await fetch('/qr');
+                const qrRes = await fetch(basePath + '/qr');
                 const qrData = await qrRes.json();
                 const qrImg = document.getElementById('qr-img');
                 const spinner = document.getElementById('loading-spinner');
