@@ -17,15 +17,17 @@ app.get("/ping", (req, res) => {
 });
 
 let botStatus = "INITIALIZING"; // INITIALIZING, QR_READY, AUTHENTICATED, READY, DISCONNECTED
-let currentQrCodeDataUrl = null;
-let clientInfo = null;
+process.on("unhandledRejection", (reason, p) => {
+  console.log("[WhatsApp Bot] Process Warning (Unhandled Rejection):", reason ? (reason.message || reason) : reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.log("[WhatsApp Bot] Process Warning (Uncaught Exception):", err ? (err.message || err) : err);
+});
 
 function createClientInstance() {
   const puppeteerOpts = {
     headless: true,
-    handleSIGINT: false,
-    handleSIGTERM: false,
-    handleSIGHUP: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -48,10 +50,6 @@ function createClientInstance() {
 
   return new Client({
     authStrategy: new LocalAuth({ dataPath: "./.wwebjs_auth" }),
-    webVersionCache: {
-      type: "remote",
-      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1014111620-alpha.html"
-    },
     puppeteer: puppeteerOpts
   });
 }

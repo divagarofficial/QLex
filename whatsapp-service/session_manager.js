@@ -71,13 +71,17 @@ async function restoreSessionFromDB(authDir = "./.wwebjs_auth") {
 
   console.log("[SessionManager] Checking Supabase DB for remote session backup...");
   try {
-    const res = await fetch(`${BACKEND_URL}/admin/whatsapp/session-data`);
-    const data = await res.json();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(`${BACKEND_URL}/admin/whatsapp/session-data`, { signal: controller.signal }).catch(() => null);
+    clearTimeout(timeoutId);
+    if (!res) return false;
+    const data = await res.json().catch(() => null);
     if (data?.success && data?.session_data) {
       return unpackAuthFolder(data.session_data, authDir);
     }
   } catch (err) {
-    console.error("[SessionManager] Error fetching remote session backup:", err.message);
+    console.log("[SessionManager] No remote session restored:", err.message || err);
   }
   return false;
 }
