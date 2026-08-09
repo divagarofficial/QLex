@@ -47,9 +47,15 @@ class WhatsAppService:
         try:
             url = f"{self.bot_url}/send"
             payload = {"phone": phone, "message": message}
-            if pdf_path:
+            if pdf_path and os.path.exists(pdf_path):
+                import base64
+                with open(pdf_path, "rb") as f:
+                    payload["mediaBase64"] = base64.b64encode(f.read()).decode("utf-8")
+                    payload["filename"] = os.path.basename(pdf_path)
+            elif pdf_path:
                 payload["pdfPath"] = pdf_path
-            response = requests.post(url, json=payload, timeout=8)
+
+            response = requests.post(url, json=payload, timeout=12)
             data = response.json()
             if response.status_code == 200 and data.get("success"):
                 logger.info(f"[WhatsAppService] Message sent to {phone}")

@@ -20,12 +20,17 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   const [sendingTest, setSendingTest] = useState<boolean>(false);
   const [testSuccess, setTestSuccess] = useState<string | null>(null);
 
+  const getApiBase = () => {
+    const base = process.env.NEXT_PUBLIC_API_URL || "";
+    return base.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
+  };
+
   const handleSendTestMessage = async () => {
     if (!testPhone) return;
     setSendingTest(true);
     setTestSuccess(null);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const apiBase = getApiBase();
       const res = await fetch(`${apiBase}/admin/whatsapp/test-send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,36 +56,15 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   const fetchWaBotInfo = async () => {
     setLoadingWa(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const apiBase = getApiBase();
       const [statusRes, qrRes] = await Promise.all([
-        fetch(`${apiBase}/admin/whatsapp/status`).then((r) => r.json()).catch(() => null),
-        fetch(`${apiBase}/admin/whatsapp/qr`).then((r) => r.json()).catch(() => null),
+        fetch(`${apiBase}/admin/whatsapp/status`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+        fetch(`${apiBase}/admin/whatsapp/qr`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       ]);
 
-      let finalStatus = statusRes?.status || "DISCONNECTED";
-      let finalInfo = statusRes?.info;
-      let finalQr = qrRes?.qr || null;
-
-      // If backend proxy fails or returns DISCONNECTED, fallback to querying live Render service directly
-      if (finalStatus === "DISCONNECTED") {
-        try {
-          const directRes = await fetch("https://qlex-whatsapp-bot.onrender.com/status", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
-          if (directRes?.status) {
-            finalStatus = directRes.status;
-            finalInfo = directRes.info;
-          }
-        } catch {}
-      }
-
-      // If status is QR_READY but backend proxy didn't return qr string, fallback to querying Render directly
-      if (finalStatus === "QR_READY" && !finalQr) {
-        try {
-          const directQrRes = await fetch("https://qlex-whatsapp-bot.onrender.com/qr", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
-          if (directQrRes?.qr) {
-            finalQr = directQrRes.qr;
-          }
-        } catch {}
-      }
+      const finalStatus = statusRes?.status || "DISCONNECTED";
+      const finalInfo = statusRes?.info;
+      const finalQr = qrRes?.qr || null;
 
       setWaStatus(finalStatus);
       if (finalInfo?.wid) {
@@ -97,7 +81,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   const handleStartBot = async () => {
     setStartingBot(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const apiBase = getApiBase();
       await fetch(`${apiBase}/admin/whatsapp/start`, { method: "POST" });
       setWaStatus("INITIALIZING");
       setTimeout(fetchWaBotInfo, 2000);
@@ -111,7 +95,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   const handleLogoutBot = async () => {
     setLoadingWa(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const apiBase = getApiBase();
       await fetch(`${apiBase}/admin/whatsapp/logout`, { method: "POST" });
       fetchWaBotInfo();
     } catch {
@@ -180,7 +164,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
               <div className="space-y-0.5 pr-2">
                 <div className="text-xs font-semibold text-white flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-emerald-400" />
-                  <span>Free WhatsApp Web Bot</span>
+                  <span>WhatsApp Cloud Bot (Google Cloud Run)</span>
                 </div>
                 <p className="text-[11px] text-zinc-400">Instant order receipts & status updates on WhatsApp</p>
               </div>
@@ -285,7 +269,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                       <img src={waQr} alt="WhatsApp QR Code" className="w-44 h-44 rounded-lg shadow-md border border-white/20 bg-white p-1" />
                     ) : null}
                     <a
-                      href="https://qlex-whatsapp-bot.onrender.com/"
+                      href="https://qlex-whatsapp-service-ybnb435gbq-el.a.run.app/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all"
@@ -315,10 +299,10 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                     </p>
                     <div className="flex gap-2">
                       <a
-                        href="https://qlex-whatsapp-bot.onrender.com/"
+                        href="https://qlex-whatsapp-service-ybnb435gbq-el.a.run.app/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs font-medium transition-all shadow-sm"
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all shadow-sm"
                       >
                         <QrCode className="h-3.5 w-3.5" />
                         <span>Open WhatsApp Pairing Page</span>

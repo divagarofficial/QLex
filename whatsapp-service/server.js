@@ -19,7 +19,6 @@ let botStatus = "INITIALIZING"; // INITIALIZING, QR_READY, AUTHENTICATED, READY,
 let currentQrCodeDataUrl = null;
 let clientInfo = null;
 
-// 3. Low-RAM Puppeteer Configuration for Docker / Render 512MB RAM Cap
 function createClient() {
   const args = [
     "--no-sandbox",
@@ -31,14 +30,8 @@ function createClient() {
     "--disable-gpu",
     "--no-default-browser-check",
     "--disable-extensions",
-    "--js-flags=--max-old-space-size=128",
-    "--disable-background-networking",
-    "--disable-background-timer-throttling",
-    "--disable-backgrounding-occluded-windows",
-    "--disable-breakpad",
-    "--disable-renderer-backgrounding",
-    "--mute-audio",
-    "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    "--disable-blink-features=AutomationControlled",
+    "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   ];
 
   const puppeteerOpts = { headless: true, args };
@@ -49,7 +42,11 @@ function createClient() {
   }
 
   return new Client({
-    authStrategy: new LocalAuth({ dataPath: "./.wwebjs_auth" }),
+    authStrategy: new LocalAuth({ clientId: "qlex-bot-session", dataPath: "./.wwebjs_auth" }),
+    webVersionCache: {
+      type: "remote",
+      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1014587000-alpha.html"
+    },
     puppeteer: puppeteerOpts
   });
 }
@@ -77,6 +74,18 @@ function bindClientEvents(cli) {
     console.error("[WhatsApp Bot] Auth Failure:", msg);
     botStatus = "DISCONNECTED";
     currentQrCodeDataUrl = null;
+    clientInfo = null;
+    setTimeout(() => {
+      console.log("[WhatsApp Bot] Resetting session after Auth Failure...");
+      try {
+        cli.destroy().catch(() => null);
+        client = createClient();
+        bindClientEvents(client);
+        initBot();
+      } catch (e) {
+        console.error("[WhatsApp Bot] Re-init error:", e);
+      }
+    }, 3000);
   });
 
   cli.on("ready", () => {
@@ -91,6 +100,17 @@ function bindClientEvents(cli) {
     botStatus = "DISCONNECTED";
     currentQrCodeDataUrl = null;
     clientInfo = null;
+    setTimeout(() => {
+      console.log("[WhatsApp Bot] Auto-reinitializing engine after disconnect...");
+      try {
+        cli.destroy().catch(() => null);
+        client = createClient();
+        bindClientEvents(client);
+        initBot();
+      } catch (e) {
+        console.error("[WhatsApp Bot] Re-init error:", e);
+      }
+    }, 3000);
   });
 }
 
@@ -161,6 +181,30 @@ app.post("/send", async (req, res) => {
   } catch (err) {
     console.error("[WhatsApp Bot] Error sending message:", err);
     return res.status(500).json({ success: false, error: err.message || "Failed to send message" });
+  }
+});
+
+// POST /logout
+app.post("/logout", async (req, res) => {
+  try {
+    botStatus = "DISCONNECTED";
+    currentQrCodeDataUrl = null;
+    clientInfo = null;
+    if (client) {
+      await client.logout().catch(() => null);
+      await client.destroy().catch(() => null);
+    }
+    const authFolder = "./.wwebjs_auth";
+    if (fs.existsSync(authFolder)) {
+      fs.rmSync(authFolder, { recursive: true, force: true });
+    }
+    client = createClient();
+    bindClientEvents(client);
+    initBot();
+    return res.json({ success: true, message: "Logged out and reset session successfully." });
+  } catch (err) {
+    console.error("[WhatsApp Bot] Error logging out:", err);
+    return res.status(500).json({ success: false, error: err.message || "Failed to logout" });
   }
 });
 
@@ -251,5 +295,5 @@ app.get(["/", "/qr-page"], (req, res) => {
 
 // Start Express HTTP Server
 app.listen(PORT, () => {
-  console.log(`[WhatsApp Bot Microservice] Listening on internal container port ${PORT}. (Public URL: https://qlex-whatsapp-bot.onrender.com)`);
+  console.log(`[WhatsApp Bot Microservice] Running locally on http://localhost:${PORT}`);
 });
