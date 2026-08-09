@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_SECRET: str = ""
     RAZORPAY_WEBHOOK_SECRET: str = ""
 
+    # WHATSAPP MICROSERVICE
+    WHATSAPP_BOT_URL: str = "http://localhost:5001"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore"

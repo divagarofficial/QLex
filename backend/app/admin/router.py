@@ -398,24 +398,31 @@ def toggle_student_status(
     return service.toggle_student_status(student_id, is_active=is_active)
 
 
+def get_target_bot_url() -> str:
+    raw_url = getattr(settings, "WHATSAPP_BOT_URL", "") or os.getenv("WHATSAPP_BOT_URL", "") or "http://localhost:5001"
+    return raw_url.rstrip("/")
+
+
 @router.get("/whatsapp/status")
 def get_whatsapp_bot_status():
-    bot_url = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
+    bot_url = get_target_bot_url()
     try:
         res = requests.get(f"{bot_url}/status", timeout=5)
-        return res.json()
+        data = res.json()
+        data["bot_url"] = bot_url
+        return data
     except Exception as e:
-        return {"success": False, "status": "DISCONNECTED", "error": str(e)}
+        return {"success": False, "status": "DISCONNECTED", "error": str(e), "bot_url": bot_url}
 
 
 @router.get("/whatsapp/qr")
 def get_whatsapp_bot_qr():
-    bot_url = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
+    bot_url = get_target_bot_url()
     try:
         res = requests.get(f"{bot_url}/qr", timeout=5)
         return res.json()
     except Exception as e:
-        return {"success": False, "status": "DISCONNECTED", "qr": None, "error": str(e)}
+        return {"success": False, "status": "DISCONNECTED", "qr": None, "error": str(e), "bot_url": bot_url}
 
 
 

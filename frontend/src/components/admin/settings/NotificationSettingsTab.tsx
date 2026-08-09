@@ -26,20 +26,26 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
         fetch(`${apiBase}/admin/whatsapp/qr`).then((r) => r.json()).catch(() => null),
       ]);
 
-      if (statusRes?.status) {
-        setWaStatus(statusRes.status);
-        if (statusRes.info?.wid) {
-          setWaUser(statusRes.info.wid);
-        }
-      } else {
-        setWaStatus("DISCONNECTED");
+      let finalStatus = statusRes?.status || "DISCONNECTED";
+      let finalInfo = statusRes?.info;
+      let finalQr = qrRes?.qr || null;
+
+      // If backend proxy fails or returns DISCONNECTED, fallback to querying live Render service directly
+      if (finalStatus === "DISCONNECTED") {
+        try {
+          const directRes = await fetch("https://qlex-whatsapp-bot.onrender.com/status", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
+          if (directRes?.status) {
+            finalStatus = directRes.status;
+            finalInfo = directRes.info;
+          }
+        } catch {}
       }
 
-      if (qrRes?.qr) {
-        setWaQr(qrRes.qr);
-      } else {
-        setWaQr(null);
+      setWaStatus(finalStatus);
+      if (finalInfo?.wid) {
+        setWaUser(finalInfo.wid);
       }
+      setWaQr(finalQr);
     } catch {
       setWaStatus("DISCONNECTED");
     } finally {
