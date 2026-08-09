@@ -8,6 +8,14 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "25mb" }));
 
+// Global middleware for localtunnel bypass and CORS
+app.use((req, res, next) => {
+  res.setHeader("Bypass-Tunnel-Reminder", "true");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+  next();
+});
+
 const PORT = process.env.PORT || 5001;
 
 // 1. Health & Keep-Alive Endpoints
