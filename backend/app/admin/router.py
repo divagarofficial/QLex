@@ -166,7 +166,7 @@ def test_integration_connection(
 
 @router.get("/whatsapp/status")
 def get_whatsapp_bot_status():
-    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "https://qlex-whatsapp-bot.loca.lt"
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "http://127.0.0.1:5001"
     bot_url = bot_url.rstrip("/")
     try:
         headers = {"Bypass-Tunnel-Reminder": "true", "User-Agent": "QLexBackend/1.0"}
@@ -182,7 +182,7 @@ def get_whatsapp_bot_status():
 
 @router.get("/whatsapp/qr")
 def get_whatsapp_bot_qr():
-    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "https://qlex-whatsapp-bot.loca.lt"
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "http://127.0.0.1:5001"
     bot_url = bot_url.rstrip("/")
     try:
         headers = {"Bypass-Tunnel-Reminder": "true", "User-Agent": "QLexBackend/1.0"}
@@ -205,7 +205,7 @@ def start_whatsapp_bot():
 
 @router.post("/whatsapp/logout")
 def logout_whatsapp_bot():
-    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "https://qlex-whatsapp-bot.loca.lt"
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "http://127.0.0.1:5001"
     bot_url = bot_url.rstrip("/")
     try:
         headers = {"Bypass-Tunnel-Reminder": "true", "User-Agent": "QLexBackend/1.0"}

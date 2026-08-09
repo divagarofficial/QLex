@@ -32,68 +32,20 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
     setTestSuccess(null);
     try {
       const apiBase = getApiBase();
-      let sent = false;
+      const res = await fetch(`${apiBase}/admin/whatsapp/test-send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: testPhone,
+          message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
+        })
+      }).then(r => r.json()).catch(() => null);
 
-      // 1. Try backend proxy
-      try {
-        const res = await fetch(`${apiBase}/admin/whatsapp/test-send`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phone: testPhone,
-            message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
-          })
-        }).then(r => r.json()).catch(() => null);
-
-        if (res?.success) {
-          sent = true;
-        }
-      } catch {}
-
-      // 2. Direct fallback to active tunnel service
-      if (!sent) {
-        try {
-          const directRes = await fetch("https://family-jimmy-forever-fur.trycloudflare.com/send", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Bypass-Tunnel-Reminder": "true"
-            },
-            body: JSON.stringify({
-              phone: testPhone,
-              message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
-            })
-          }).then(r => r.json()).catch(() => null);
-
-          if (directRes?.success) {
-            sent = true;
-          }
-        } catch {}
-      }
-
-      // 3. Direct fallback to local service
-      if (!sent) {
-        try {
-          const localRes = await fetch("http://localhost:5001/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              phone: testPhone,
-              message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
-            })
-          }).then(r => r.json()).catch(() => null);
-
-          if (localRes?.success) {
-            sent = true;
-          }
-        } catch {}
-      }
-
-      if (sent) {
+      if (res?.success) {
         setTestSuccess("Test notification sent successfully!");
         setTimeout(() => setTestSuccess(null), 5000);
       } else {
-        setTestSuccess("Failed to send test message. Check bot status.");
+        setTestSuccess(res?.error || "Failed to send test message. Check bot status.");
       }
     } catch {
       setTestSuccess("Network error sending test message.");
@@ -111,58 +63,18 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
         fetch(`${apiBase}/admin/whatsapp/qr`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       ]);
 
-      let finalStatus = statusRes?.status || "DISCONNECTED";
-      let finalInfo = statusRes?.info;
-      let finalQr = qrRes?.qr || null;
+      const finalStatus = statusRes?.status || "DISCONNECTED";
+      const finalInfo = statusRes?.info;
+      const finalQr = qrRes?.qr || null;
 
       if (statusRes?.bot_url) {
         setWaBotUrl(statusRes.bot_url);
       }
 
-      // Fail-safe direct tunnel/local checks if backend status returns DISCONNECTED/error
-      if (finalStatus === "DISCONNECTED") {
-        try {
-          const tunnelRes = await fetch("https://family-jimmy-forever-fur.trycloudflare.com/status", {
-            cache: "no-store",
-            headers: { "Bypass-Tunnel-Reminder": "true" }
-          }).then((r) => r.json()).catch(() => null);
-          if (tunnelRes?.status && tunnelRes.status !== "DISCONNECTED") {
-            finalStatus = tunnelRes.status;
-            finalInfo = tunnelRes.info;
-            setWaBotUrl("https://family-jimmy-forever-fur.trycloudflare.com");
-          }
-        } catch {}
-      }
-
-      if (finalStatus === "DISCONNECTED") {
-        try {
-          const localRes = await fetch("http://localhost:5001/status", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
-          if (localRes?.status && localRes.status !== "DISCONNECTED") {
-            finalStatus = localRes.status;
-            finalInfo = localRes.info;
-            setWaBotUrl("http://localhost:5001");
-          }
-        } catch {}
-      }
-
-      if (finalStatus === "QR_READY" && !finalQr) {
-        try {
-          const tunnelQrRes = await fetch("https://family-jimmy-forever-fur.trycloudflare.com/qr", {
-            cache: "no-store",
-            headers: { "Bypass-Tunnel-Reminder": "true" }
-          }).then((r) => r.json()).catch(() => null);
-          if (tunnelQrRes?.qr) {
-            finalQr = tunnelQrRes.qr;
-          }
-        } catch {}
-      }
-
       setWaStatus(finalStatus);
-      if (finalInfo?.wid) {
-        setWaUser(finalInfo.wid);
-      }
+      setWaUser(finalInfo ? (finalInfo.pushname || finalInfo.wid || "Connected Device") : null);
       setWaQr(finalQr);
-    } catch {
+    } catch (e) {
       setWaStatus("DISCONNECTED");
     } finally {
       setLoadingWa(false);
