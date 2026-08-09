@@ -137,40 +137,86 @@ app.get("/qr", (req, res) => {
   });
 });
 
-// 2b. Visual HTML Page for QR Code Pairing
+// 2b. Visual HTML Page for QR Code Pairing (No Page Reloads)
 app.get(["/", "/qr-page"], (req, res) => {
-  if (botStatus === "READY") {
-    return res.send(`
-      <html>
-        <body style="font-family:sans-serif; text-align:center; padding:50px; background:#f0f2f5;">
-          <h1 style="color:#128c7e;">WhatsApp Bot is Connected! ✅</h1>
-          <p>Status: <strong>READY</strong></p>
-          <p>Connected as: <strong>${clientInfo ? clientInfo.pushname || clientInfo.wid : 'WhatsApp Web'}</strong></p>
-        </body>
-      </html>
-    `);
-  }
-  if (!currentQrCodeDataUrl) {
-    return res.send(`
-      <html>
-        <head><meta http-equiv="refresh" content="8"></head>
-        <body style="font-family:sans-serif; text-align:center; padding:50px; background:#f0f2f5;">
-          <h1>WhatsApp Bot Status: ${botStatus}</h1>
-          <p>Generating QR Code... Page will auto-refresh in 8 seconds.</p>
-        </body>
-      </html>
-    `);
-  }
   return res.send(`
+    <!DOCTYPE html>
     <html>
-      <head><meta http-equiv="refresh" content="25"></head>
-      <body style="font-family:sans-serif; text-align:center; padding:40px; background:#f0f2f5;">
-        <h1 style="color:#075e54;">Scan WhatsApp QR Code</h1>
-        <p>Open WhatsApp on your phone &rarr; Linked Devices &rarr; Link a Device</p>
-        <div style="margin:20px auto; background:white; display:inline-block; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-          <img src="${currentQrCodeDataUrl}" alt="WhatsApp QR Code" style="width:280px; height:280px;" />
+      <head>
+        <title>QLex WhatsApp Bot Pairing</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b141a; color: #e9edef; text-align: center; padding: 40px 20px; margin: 0; }
+          .card { max-width: 420px; margin: 0 auto; background: #111b21; border: 1px solid #222d34; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+          h1 { font-size: 22px; margin-bottom: 8px; color: #00a884; }
+          p { font-size: 14px; color: #8696a0; line-height: 1.5; }
+          .qr-box { background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; margin: 20px 0; min-width: 250px; min-height: 250px; }
+          img { width: 250px; height: 250px; display: block; border-radius: 4px; }
+          .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #202c33; color: #00a884; margin-bottom: 15px; }
+          .connected-icon { font-size: 64px; margin-bottom: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="card" id="main-card">
+          <h1>QLex WhatsApp Bot</h1>
+          <div class="status-badge" id="status-badge">Checking status...</div>
+          
+          <div id="qr-container">
+            <p>Open WhatsApp on phone &rarr; <strong>Linked Devices</strong> &rarr; <strong>Link a Device</strong></p>
+            <div class="qr-box">
+              <img id="qr-img" src="${currentQrCodeDataUrl || ''}" style="${currentQrCodeDataUrl ? 'display:block;' : 'display:none;'}" alt="WhatsApp QR Code" />
+              <div id="loading-spinner" style="${currentQrCodeDataUrl ? 'display:none;' : 'display:block; padding-top:100px; color:#111;'}">Generating QR Code...</div>
+            </div>
+            <p style="font-size:12px; color:#667781;">Page stays static &mdash; scan whenever ready!</p>
+          </div>
         </div>
-        <p>Page auto-refreshes every 25 seconds.</p>
+
+        <script>
+          async function pollStatus() {
+            try {
+              const res = await fetch('/status');
+              const data = await res.json();
+              const badge = document.getElementById('status-badge');
+              const card = document.getElementById('main-card');
+              
+              if (data.status === 'READY') {
+                card.innerHTML = \`
+                  <div class="connected-icon">✅</div>
+                  <h1 style="color:#00a884;">WhatsApp Connected!</h1>
+                  <p style="color:#e9edef; font-weight:bold; margin-top:10px;">Status: READY</p>
+                  <p style="color:#8696a0;">Connected as: \${data.info ? (data.info.pushname || data.info.wid) : 'WhatsApp Web'}</p>
+                  <p style="font-size:12px; color:#00a884; margin-top:20px;">Your QLex print receipts & updates will now send automatically 24/7!</p>
+                \`;
+                return;
+              } else if (data.status === 'AUTHENTICATED') {
+                badge.innerText = 'Finishing Authentication...';
+                badge.style.color = '#34b7f1';
+              } else if (data.status === 'QR_READY') {
+                badge.innerText = 'Scan QR Code to Link Device';
+                badge.style.color = '#f7a600';
+              } else {
+                badge.innerText = 'Status: ' + data.status;
+              }
+
+              if (data.status !== 'READY') {
+                const qrRes = await fetch('/qr');
+                const qrData = await qrRes.json();
+                const qrImg = document.getElementById('qr-img');
+                const spinner = document.getElementById('loading-spinner');
+                if (qrData.qr && qrImg) {
+                  if (qrImg.src !== qrData.qr) {
+                    qrImg.src = qrData.qr;
+                  }
+                  qrImg.style.display = 'block';
+                  if (spinner) spinner.style.display = 'none';
+                }
+              }
+            } catch (e) {}
+          }
+
+          pollStatus();
+          setInterval(pollStatus, 3000);
+        </script>
       </body>
     </html>
   `);
