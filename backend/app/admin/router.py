@@ -5,6 +5,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.core.config import settings
+import os
+import requests
 
 from .schemas import DashboardResponse
 from .service import AdminService
@@ -163,43 +166,54 @@ def test_integration_connection(
 
 @router.get("/whatsapp/status")
 def get_whatsapp_bot_status():
-    bot_url = getattr(settings, "WHATSAPP_BOT_URL", "") or os.getenv("WHATSAPP_BOT_URL", "") or "http://localhost:5001"
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "https://qlex-whatsapp-bot.loca.lt"
     bot_url = bot_url.rstrip("/")
     try:
-        import requests
         headers = {"Bypass-Tunnel-Reminder": "true", "User-Agent": "QLexBackend/1.0"}
         res = requests.get(f"{bot_url}/status", headers=headers, timeout=5)
-        return res.json()
+        try:
+            data = res.json()
+            data["bot_url"] = bot_url
+            return data
+        except Exception:
+            return {"success": False, "status": "DISCONNECTED", "error": f"Invalid response: {res.text[:100]}", "bot_url": bot_url}
     except Exception as e:
         return {"success": False, "status": "DISCONNECTED", "error": f"Bot offline: {str(e)}", "bot_url": bot_url}
 
 @router.get("/whatsapp/qr")
 def get_whatsapp_bot_qr():
-    bot_url = getattr(settings, "WHATSAPP_BOT_URL", "") or os.getenv("WHATSAPP_BOT_URL", "") or "http://localhost:5001"
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "https://qlex-whatsapp-bot.loca.lt"
     bot_url = bot_url.rstrip("/")
     try:
-        import requests
         headers = {"Bypass-Tunnel-Reminder": "true", "User-Agent": "QLexBackend/1.0"}
         res = requests.get(f"{bot_url}/qr", headers=headers, timeout=5)
-        return res.json()
+        try:
+            return res.json()
+        except Exception:
+            return {"success": False, "status": "DISCONNECTED", "qr": None, "error": f"Invalid response: {res.text[:100]}", "bot_url": bot_url}
     except Exception as e:
         return {"success": False, "status": "DISCONNECTED", "qr": None, "error": f"Bot offline: {str(e)}", "bot_url": bot_url}
 
 @router.post("/whatsapp/start")
 def start_whatsapp_bot():
-    from app.main import ensure_whatsapp_bot_running
-    spawned = ensure_whatsapp_bot_running()
-    return {"success": True, "message": "WhatsApp microservice start requested", "status": "INITIALIZING" if spawned else "DISCONNECTED"}
+    try:
+        from app.main import ensure_whatsapp_bot_running
+        spawned = ensure_whatsapp_bot_running()
+        return {"success": True, "message": "WhatsApp microservice start requested", "status": "INITIALIZING" if spawned else "DISCONNECTED"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 @router.post("/whatsapp/logout")
 def logout_whatsapp_bot():
-    bot_url = getattr(settings, "WHATSAPP_BOT_URL", "") or os.getenv("WHATSAPP_BOT_URL", "") or "http://localhost:5001"
+    bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "https://qlex-whatsapp-bot.loca.lt"
     bot_url = bot_url.rstrip("/")
     try:
-        import requests
         headers = {"Bypass-Tunnel-Reminder": "true", "User-Agent": "QLexBackend/1.0"}
         res = requests.post(f"{bot_url}/logout", headers=headers, timeout=5)
-        return res.json()
+        try:
+            return res.json()
+        except Exception:
+            return {"success": False, "error": "Invalid response from bot"}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
