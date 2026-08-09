@@ -34,10 +34,12 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     // Silently validate token in background
     getCurrentUser(storedToken)
       .then((user) => setUser(user))
-      .catch(() => {
-        // Token expired — logout silently
-        logout();
-        router.replace("/student/login");
+      .catch((err: any) => {
+        // Only logout if backend explicitly responds with 401 (token expired/invalid)
+        if (err?.response?.status === 401 || err?.status === 401) {
+          logout();
+          router.replace("/student/login");
+        }
       });
   }, []); // intentionally only run once on mount
 

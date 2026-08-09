@@ -106,7 +106,8 @@ from app.settlements.repository import SettlementRepository
 
 def ensure_whatsapp_bot_running():
     """Checks if WhatsApp microservice is running on port 5001, auto-spawns it if offline."""
-    if os.getenv("VERCEL"):
+    # Skip local subprocess spawn if running on Cloud Run, Vercel, or container environments
+    if os.getenv("VERCEL") or os.getenv("K_SERVICE") or os.getenv("CLOUD_RUN_JOB") or os.getenv("DISABLE_LOCAL_BOT"):
         return
     try:
         res = requests.get("http://localhost:5001/status", timeout=2)
@@ -157,14 +158,24 @@ async def auto_settlement_scheduler():
 
 @app.on_event("startup")
 async def startup_event():
-    if not os.getenv("VERCEL"):
+    is_serverless = bool(os.getenv("VERCEL") or os.getenv("K_SERVICE") or os.getenv("CLOUD_RUN_JOB"))
+    if not is_serverless:
         ensure_whatsapp_bot_running()
-        asyncio.create_task(auto_settlement_scheduler())
         asyncio.create_task(whatsapp_bot_health_monitor())
+    asyncio.create_task(auto_settlement_scheduler())
 
 @app.get("/")
 def root():
     return {
         "success": True,
         "message": "Welcome to QLex API 🚀",
+    }
+
+@app.get("/health")
+def health_check():
+    """Liveness & Readiness probe endpoint for Google Cloud Run."""
+    return {
+        "status": "healthy",
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION,
     }

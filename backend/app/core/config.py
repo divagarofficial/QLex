@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # JWT
     SECRET_KEY: str = "qlex_super_secret_jwt_key_2026"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 525600  # 1 Year persistent sessions
 
     # RAZORPAY
     RAZORPAY_KEY_ID: str = ""

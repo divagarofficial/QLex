@@ -1,3 +1,4 @@
+import os
 import logging
 import requests
 from typing import Optional, Any
@@ -5,12 +6,12 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-WHATSAPP_BOT_URL = "http://localhost:5001"
+WHATSAPP_BOT_URL = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
 
 
 class WhatsAppService:
-    def __init__(self, bot_url: str = WHATSAPP_BOT_URL):
-        self.bot_url = bot_url
+    def __init__(self, bot_url: str = None):
+        self.bot_url = bot_url or os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
 
     def is_enabled(self, db: Session) -> bool:
         """Check if WhatsApp notifications are enabled in Admin Platform Settings."""

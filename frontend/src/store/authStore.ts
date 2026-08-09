@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { UserResponse } from "@/components/auth/types";
 
 const TOKEN_KEY = "qlex_token";
+const USER_KEY = "qlex_user";
 
 interface AuthState {
   token: string | null;
@@ -32,19 +33,32 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   setUser: (user: UserResponse) => {
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } catch {}
     set({ user });
   },
 
   logout: () => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     set({ token: null, user: null, isAuthenticated: false });
   },
 
   hydrate: () => {
-    const stored = localStorage.getItem(TOKEN_KEY);
-    if (stored) {
-      set({ token: stored, isAuthenticated: true });
-      return stored;
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    const storedUserStr = localStorage.getItem(USER_KEY);
+    let parsedUser = null;
+
+    if (storedUserStr) {
+      try {
+        parsedUser = JSON.parse(storedUserStr);
+      } catch {}
+    }
+
+    if (storedToken) {
+      set({ token: storedToken, user: parsedUser, isAuthenticated: true });
+      return storedToken;
     }
     return null;
   },
