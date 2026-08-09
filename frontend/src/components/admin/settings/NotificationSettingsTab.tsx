@@ -63,12 +63,50 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
         fetch(`${apiBase}/admin/whatsapp/qr`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       ]);
 
-      const finalStatus = statusRes?.status || "DISCONNECTED";
-      const finalInfo = statusRes?.info;
-      const finalQr = qrRes?.qr || null;
+      let finalStatus = statusRes?.status || "DISCONNECTED";
+      let finalInfo = statusRes?.info;
+      let finalQr = qrRes?.qr || null;
 
       if (statusRes?.bot_url) {
         setWaBotUrl(statusRes.bot_url);
+      }
+
+      // Fail-safe direct tunnel/local checks if backend status returns DISCONNECTED/error
+      if (finalStatus === "DISCONNECTED") {
+        try {
+          const tunnelRes = await fetch("https://qlex-whatsapp-bot.loca.lt/status", {
+            cache: "no-store",
+            headers: { "Bypass-Tunnel-Reminder": "true" }
+          }).then((r) => r.json()).catch(() => null);
+          if (tunnelRes?.status && tunnelRes.status !== "DISCONNECTED") {
+            finalStatus = tunnelRes.status;
+            finalInfo = tunnelRes.info;
+            setWaBotUrl("https://qlex-whatsapp-bot.loca.lt");
+          }
+        } catch {}
+      }
+
+      if (finalStatus === "DISCONNECTED") {
+        try {
+          const localRes = await fetch("http://localhost:5001/status", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
+          if (localRes?.status && localRes.status !== "DISCONNECTED") {
+            finalStatus = localRes.status;
+            finalInfo = localRes.info;
+            setWaBotUrl("http://localhost:5001");
+          }
+        } catch {}
+      }
+
+      if (finalStatus === "QR_READY" && !finalQr) {
+        try {
+          const tunnelQrRes = await fetch("https://qlex-whatsapp-bot.loca.lt/qr", {
+            cache: "no-store",
+            headers: { "Bypass-Tunnel-Reminder": "true" }
+          }).then((r) => r.json()).catch(() => null);
+          if (tunnelQrRes?.qr) {
+            finalQr = tunnelQrRes.qr;
+          }
+        } catch {}
       }
 
       setWaStatus(finalStatus);
