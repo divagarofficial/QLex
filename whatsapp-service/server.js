@@ -157,8 +157,38 @@ app.get("/qr", (req, res) => {
   });
 });
 
+// Background Message Queue Processor for 10ms Instant HTTP Responses
+const sendQueue = [];
+let isProcessingQueue = false;
+
+async function processSendQueue() {
+  if (isProcessingQueue || sendQueue.length === 0) return;
+  isProcessingQueue = true;
+
+  while (sendQueue.length > 0) {
+    const item = sendQueue.shift();
+    const { chatId, message, pdfPath, mediaBase64, filename, cleanPhone } = item;
+    try {
+      if (pdfPath && fs.existsSync(pdfPath)) {
+        const media = MessageMedia.fromFilePath(pdfPath);
+        await client.sendMessage(chatId, media, { caption: message });
+      } else if (mediaBase64 && filename) {
+        const media = new MessageMedia("application/pdf", mediaBase64, filename);
+        await client.sendMessage(chatId, media, { caption: message });
+      } else {
+        await client.sendMessage(chatId, message);
+      }
+      console.log(`[WhatsApp Bot] Successfully dispatched message to ${cleanPhone}`);
+    } catch (err) {
+      console.error(`[WhatsApp Bot] Error sending message to ${cleanPhone}:`, err.message || err);
+    }
+  }
+
+  isProcessingQueue = false;
+}
+
 // POST /send
-app.post("/send", async (req, res) => {
+app.post("/send", (req, res) => {
   try {
     const { phone, message, pdfPath, mediaBase64, filename } = req.body;
 
@@ -174,21 +204,13 @@ app.post("/send", async (req, res) => {
     if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`;
     const chatId = `${cleanPhone}@c.us`;
 
-    // Handle PDF / Media attachment
-    if (pdfPath && fs.existsSync(pdfPath)) {
-      const media = MessageMedia.fromFilePath(pdfPath);
-      await client.sendMessage(chatId, media, { caption: message });
-    } else if (mediaBase64 && filename) {
-      const media = new MessageMedia("application/pdf", mediaBase64, filename);
-      await client.sendMessage(chatId, media, { caption: message });
-    } else {
-      await client.sendMessage(chatId, message);
-    }
+    // Return IMMEDIATELY in 10ms so Cloud Run / Localtunnel never wait or timeout
+    sendQueue.push({ chatId, message, pdfPath, mediaBase64, filename, cleanPhone });
+    processSendQueue();
 
-    console.log(`[WhatsApp Bot] Successfully dispatched message to ${cleanPhone}`);
-    return res.json({ success: true, message: `Message sent to ${cleanPhone}` });
+    return res.json({ success: true, status: "QUEUED", message: `Message queued for ${cleanPhone}` });
   } catch (err) {
-    console.error("[WhatsApp Bot] Error sending message:", err);
+    console.error("[WhatsApp Bot] Error queueing message:", err);
     return res.status(500).json({ success: false, error: err.message || "Failed to send message" });
   }
 });
