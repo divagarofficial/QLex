@@ -425,6 +425,45 @@ def get_whatsapp_bot_qr():
         return {"success": False, "status": "DISCONNECTED", "qr": None, "error": str(e), "bot_url": bot_url}
 
 
+class WhatsAppTestSendRequest(BaseModel):
+    phone: str
+    message: str
+
+
+class WhatsAppSessionPayload(BaseModel):
+    session_data: str
+
+
+@router.get("/whatsapp/session-data")
+def get_whatsapp_session_data(db: Session = Depends(get_db)):
+    from app.models.whatsapp_session import WhatsAppSession
+    record = db.query(WhatsAppSession).filter(WhatsAppSession.session_id == "default").first()
+    if not record:
+        return {"success": False, "session_data": None}
+    return {"success": True, "session_data": record.session_data}
+
+
+@router.post("/whatsapp/session-data")
+def save_whatsapp_session_data(payload: WhatsAppSessionPayload, db: Session = Depends(get_db)):
+    from app.models.whatsapp_session import WhatsAppSession
+    record = db.query(WhatsAppSession).filter(WhatsAppSession.session_id == "default").first()
+    if not record:
+        record = WhatsAppSession(session_id="default", session_data=payload.session_data)
+        db.add(record)
+    else:
+        record.session_data = payload.session_data
+    db.commit()
+    return {"success": True}
+
+
+@router.post("/whatsapp/test-send")
+def test_send_whatsapp(payload: WhatsAppTestSendRequest, background_tasks: BackgroundTasks):
+    from app.services.whatsapp_service import whatsapp_service
+    background_tasks.add_task(whatsapp_service.send_message, payload.phone, payload.message)
+    return {"success": True, "message": f"Queued test WhatsApp notification to {payload.phone}"}
+
+
+
 
 
 

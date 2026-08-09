@@ -11,7 +11,15 @@ WHATSAPP_BOT_URL = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
 
 class WhatsAppService:
     def __init__(self, bot_url: str = None):
-        self.bot_url = bot_url or os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
+        self._custom_bot_url = bot_url
+
+    @property
+    def bot_url(self) -> str:
+        if self._custom_bot_url:
+            return self._custom_bot_url.rstrip("/")
+        from app.core.config import settings
+        url = getattr(settings, "WHATSAPP_BOT_URL", "") or os.getenv("WHATSAPP_BOT_URL", "") or "http://localhost:5001"
+        return url.rstrip("/")
 
     def is_enabled(self, db: Session) -> bool:
         """Check if WhatsApp notifications are enabled in Admin Platform Settings."""

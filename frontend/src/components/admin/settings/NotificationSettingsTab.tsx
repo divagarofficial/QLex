@@ -16,6 +16,37 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   const [waUser, setWaUser] = useState<string | null>(null);
   const [loadingWa, setLoadingWa] = useState<boolean>(false);
   const [startingBot, setStartingBot] = useState<boolean>(false);
+  const [testPhone, setTestPhone] = useState<string>("");
+  const [sendingTest, setSendingTest] = useState<boolean>(false);
+  const [testSuccess, setTestSuccess] = useState<string | null>(null);
+
+  const handleSendTestMessage = async () => {
+    if (!testPhone) return;
+    setSendingTest(true);
+    setTestSuccess(null);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const res = await fetch(`${apiBase}/admin/whatsapp/test-send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: testPhone,
+          message: "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
+        })
+      }).then(r => r.json());
+
+      if (res?.success) {
+        setTestSuccess("Test notification sent successfully!");
+        setTimeout(() => setTestSuccess(null), 5000);
+      } else {
+        setTestSuccess("Failed to send test message. Check bot status.");
+      }
+    } catch {
+      setTestSuccess("Network error sending test message.");
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   const fetchWaBotInfo = async () => {
     setLoadingWa(true);
@@ -222,6 +253,31 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                     </button>
                   </div>
                 </div>
+
+                {waStatus === "READY" && (
+                  <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/30 space-y-2">
+                    <p className="text-[11px] font-medium text-emerald-300">Test Live WhatsApp Notification</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        placeholder="Enter 10-digit Phone #"
+                        value={testPhone}
+                        onChange={(e) => setTestPhone(e.target.value)}
+                        className="px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/10 text-xs text-white placeholder-zinc-500 flex-1 focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendTestMessage}
+                        disabled={sendingTest || !testPhone}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        <span>{sendingTest ? "Sending..." : "Send Test"}</span>
+                      </button>
+                    </div>
+                    {testSuccess && <p className="text-[11px] text-emerald-400 font-medium">{testSuccess}</p>}
+                  </div>
+                )}
 
                 {waStatus === "QR_READY" && (
                   <div className="flex flex-col items-center gap-3 p-3.5 rounded-lg bg-white/5 border border-white/10">

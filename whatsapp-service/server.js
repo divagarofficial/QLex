@@ -56,10 +56,13 @@ function registerClientListeners(cli) {
     }
   });
 
+const { restoreSessionFromDB, backupSessionToDB } = require("./session_manager");
+
   cli.on("authenticated", () => {
     console.log("[WhatsApp Bot] Authenticated successfully.");
     botStatus = "AUTHENTICATED";
     currentQrCodeDataUrl = null;
+    setTimeout(() => backupSessionToDB(), 2000);
   });
 
   cli.on("auth_failure", (msg) => {
@@ -73,6 +76,7 @@ function registerClientListeners(cli) {
     botStatus = "READY";
     currentQrCodeDataUrl = null;
     clientInfo = cli.info ? { wid: cli.info.wid.user, pushname: cli.info.pushname } : null;
+    setTimeout(() => backupSessionToDB(), 3000);
   });
 
   cli.on("disconnected", (reason) => {
@@ -87,8 +91,11 @@ registerClientListeners(client);
 
 // Initialise client with auto-retry for Puppeteer container cold-start
 let initRetryTimer = null;
-function startBotEngine() {
+async function startBotEngine() {
   botStatus = "INITIALIZING";
+  console.log("[WhatsApp Bot] Restoring persistent session from DB...");
+  await restoreSessionFromDB();
+
   console.log("[WhatsApp Bot] Initializing Puppeteer Chromium engine...");
   
   client.initialize().catch((err) => {
