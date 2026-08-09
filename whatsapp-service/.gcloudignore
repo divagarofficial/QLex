@@ -1,0 +1,7 @@
+.gcloudignore
+.git
+.gitignore
+node_modules/
+.wwebjs_auth/
+.wwebjs_cache/
+*.log

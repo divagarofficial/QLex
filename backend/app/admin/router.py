@@ -167,7 +167,9 @@ def get_whatsapp_bot_status():
         res = requests.get("http://localhost:5001/status", timeout=3)
         return res.json()
     except Exception as e:
-        return {"success": False, "status": "DISCONNECTED", "error": f"Bot offline: {str(e)}"}
+        from app.main import ensure_whatsapp_bot_running
+        spawned = ensure_whatsapp_bot_running()
+        return {"success": False, "status": "INITIALIZING" if spawned else "DISCONNECTED", "error": f"Bot offline: {str(e)}"}
 
 @router.get("/whatsapp/qr")
 def get_whatsapp_bot_qr():
@@ -177,6 +179,21 @@ def get_whatsapp_bot_qr():
         return res.json()
     except Exception as e:
         return {"success": False, "status": "DISCONNECTED", "qr": None, "error": f"Bot offline: {str(e)}"}
+
+@router.post("/whatsapp/start")
+def start_whatsapp_bot():
+    from app.main import ensure_whatsapp_bot_running
+    spawned = ensure_whatsapp_bot_running()
+    return {"success": True, "message": "WhatsApp microservice start requested", "status": "INITIALIZING" if spawned else "DISCONNECTED"}
+
+@router.post("/whatsapp/logout")
+def logout_whatsapp_bot():
+    try:
+        import requests
+        res = requests.post("http://localhost:5001/logout", timeout=5)
+        return res.json()
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 @router.get(

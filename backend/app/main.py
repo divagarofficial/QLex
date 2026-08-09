@@ -104,34 +104,39 @@ import requests
 from app.db.database import SessionLocal
 from app.settlements.repository import SettlementRepository
 
-def ensure_whatsapp_bot_running():
+import shutil
+
+def ensure_whatsapp_bot_running() -> bool:
     """Checks if WhatsApp microservice is running on port 5001, auto-spawns it if offline."""
     # Skip local subprocess spawn if running on Cloud Run, Vercel, or container environments
     if os.getenv("VERCEL") or os.getenv("K_SERVICE") or os.getenv("CLOUD_RUN_JOB") or os.getenv("DISABLE_LOCAL_BOT"):
-        return
+        return False
     try:
         res = requests.get("http://localhost:5001/status", timeout=2)
         if res.status_code == 200:
-            return
+            return True
     except Exception:
         pass
 
     try:
         service_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "whatsapp-service"))
         server_file = os.path.join(service_dir, "server.js")
+        node_cmd = shutil.which("node") or "node"
         if os.path.exists(server_file):
             print("[WhatsApp Bot Manager] WhatsApp bot offline. Auto-spawning background service on port 5001...")
             creation_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             subprocess.Popen(
-                ["node", "server.js"],
+                [node_cmd, "server.js"],
                 cwd=service_dir,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=creation_flags
             )
             print("[WhatsApp Bot Manager] Successfully auto-launched whatsapp-service background daemon.")
+            return True
     except Exception as e:
         print(f"[WhatsApp Bot Manager] Failed to auto-launch whatsapp-service: {e}")
+    return False
 
 async def whatsapp_bot_health_monitor():
     """Background loop keeping WhatsApp bot microservice alive and healthy."""
