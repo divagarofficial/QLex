@@ -116,7 +116,7 @@ app.get("/qr", (req, res) => {
 });
 
 // 2b. Visual HTML Page for QR Code Pairing
-app.get("/qr-page", (req, res) => {
+app.get(["/", "/qr-page"], (req, res) => {
   if (botStatus === "READY") {
     return res.send(`
       <html>
