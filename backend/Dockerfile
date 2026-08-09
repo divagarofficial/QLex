@@ -18,11 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     chromium \
-    chromium-sandbox \
-    fonts-ipafont-gothic \
-    fonts-wqy-zenhei \
-    fonts-thai-tlwg \
-    fonts-kacst \
     fonts-freefont-ttf \
     libxss1 \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
