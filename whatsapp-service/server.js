@@ -147,24 +147,24 @@ app.get(["/", "/qr-page"], (req, res) => {
   if (!currentQrCodeDataUrl) {
     return res.send(`
       <html>
-        <head><meta http-equiv="refresh" content="3"></head>
+        <head><meta http-equiv="refresh" content="8"></head>
         <body style="font-family:sans-serif; text-align:center; padding:50px; background:#f0f2f5;">
           <h1>WhatsApp Bot Status: ${botStatus}</h1>
-          <p>Generating QR Code... Page will auto-refresh in 3 seconds.</p>
+          <p>Generating QR Code... Page will auto-refresh in 8 seconds.</p>
         </body>
       </html>
     `);
   }
   return res.send(`
     <html>
-      <head><meta http-equiv="refresh" content="10"></head>
+      <head><meta http-equiv="refresh" content="25"></head>
       <body style="font-family:sans-serif; text-align:center; padding:40px; background:#f0f2f5;">
         <h1 style="color:#075e54;">Scan WhatsApp QR Code</h1>
         <p>Open WhatsApp on your phone &rarr; Linked Devices &rarr; Link a Device</p>
         <div style="margin:20px auto; background:white; display:inline-block; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
           <img src="${currentQrCodeDataUrl}" alt="WhatsApp QR Code" style="width:280px; height:280px;" />
         </div>
-        <p>Page auto-refreshes every 10 seconds.</p>
+        <p>Page auto-refreshes every 25 seconds.</p>
       </body>
     </html>
   `);

@@ -77,10 +77,12 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
   useEffect(() => {
     if (data.whatsappNotifications) {
       fetchWaBotInfo();
-      const interval = setInterval(fetchWaBotInfo, 5000);
+      // Poll less frequently (every 60s when READY, every 15s when pairing) to save resources
+      const pollInterval = waStatus === "READY" ? 60000 : 15000;
+      const interval = setInterval(fetchWaBotInfo, pollInterval);
       return () => clearInterval(interval);
     }
-  }, [data.whatsappNotifications]);
+  }, [data.whatsappNotifications, waStatus]);
 
   return (
     <div className="space-y-6">
