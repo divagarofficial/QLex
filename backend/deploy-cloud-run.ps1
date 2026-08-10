@@ -3,6 +3,8 @@
 # =====================================================================
 
 $ErrorActionPreference = "Stop"
+Set-Location $PSScriptRoot
+
 
 if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
     $GCloudBin = "C:\Users\ediva\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin"
