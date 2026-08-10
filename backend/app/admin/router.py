@@ -214,7 +214,12 @@ def start_whatsapp_bot():
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+class WhatsAppTestSendRequest(BaseModel):
+    phone: str
+    message: Optional[str] = None
+
 @router.post("/whatsapp/logout")
+@router.post("/whatsapp/reset")
 def logout_whatsapp_bot():
     bot_url = os.getenv("WHATSAPP_BOT_URL", "") or getattr(settings, "WHATSAPP_BOT_URL", "") or "http://127.0.0.1:5001"
     bot_url = bot_url.rstrip("/")
@@ -225,6 +230,17 @@ def logout_whatsapp_bot():
             return res.json()
         except Exception:
             return {"success": False, "error": "Invalid response from bot"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@router.post("/whatsapp/test-send")
+def send_whatsapp_test_notification(payload: WhatsAppTestSendRequest):
+    try:
+        from app.services.whatsapp_service import whatsapp_service
+        phone = payload.phone
+        msg = payload.message or "🧪 *QLex WhatsApp Test Alert*\n\nYour QLex WhatsApp notification service is working perfectly! 🚀"
+        res = whatsapp_service.send_message(phone, msg)
+        return res
     except Exception as e:
         return {"success": False, "error": str(e)}
 

@@ -4,6 +4,8 @@ import requests
 from typing import Optional, Any
 from sqlalchemy.orm import Session
 
+import threading
+
 logger = logging.getLogger(__name__)
 
 WHATSAPP_BOT_URL = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
@@ -12,6 +14,8 @@ WHATSAPP_BOT_URL = os.getenv("WHATSAPP_BOT_URL", "http://localhost:5001")
 class WhatsAppService:
     def __init__(self, bot_url: str = None):
         self._custom_bot_url = bot_url
+        self._sent_order_receipts = set()
+        self._receipt_lock = threading.Lock()
 
     @property
     def bot_url(self) -> str:
@@ -81,6 +85,17 @@ class WhatsAppService:
         if not self.is_enabled(db):
             logger.info("[WhatsAppService] WhatsApp notifications disabled in platform settings.")
             return
+
+        order_id_full = str(getattr(order, "id", ""))
+        if not order_id_full:
+            return
+
+        # Atomic deduplication check
+        with self._receipt_lock:
+            if order_id_full in self._sent_order_receipts:
+                logger.info(f"[WhatsAppService] Order receipt WhatsApp alert already dispatched for order {order_id_full}. Skipping duplicate.")
+                return
+            self._sent_order_receipts.add(order_id_full)
 
         try:
             order_id = str(getattr(order, "id", ""))[:8].upper()

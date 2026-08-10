@@ -11,6 +11,7 @@ import {
 import type { DetailedOrderDocument } from "@/types/shop";
 import { printShopOrder } from "@/services/shop";
 import { cn } from "@/lib/utils";
+import { getFileUrl } from "@/utils/fileUrl";
 
 interface FilePreviewerProps {
   documents: DetailedOrderDocument[];
@@ -46,11 +47,11 @@ export default function FilePreviewer({
   }
 
   const activeDoc = documents[selectedDocIndex] || documents[0];
-  const pdfUrl =
-    activeDoc.url ||
-    (activeDoc.stored_filename
-      ? `http://localhost:8000/uploads/drafts/${orderId}/${activeDoc.stored_filename}`
-      : `http://localhost:8000/uploads/drafts/${orderId}/${activeDoc.original_filename}`);
+  const pdfUrl = getFileUrl(
+    activeDoc.url,
+    orderId,
+    activeDoc.stored_filename || activeDoc.original_filename
+  );
 
   const isCurrentDocPrinted = printedDocs.includes(selectedDocIndex);
   const totalDocs = documents.length;

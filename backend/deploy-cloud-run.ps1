@@ -4,6 +4,13 @@
 
 $ErrorActionPreference = "Stop"
 
+if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
+    $GCloudBin = "C:\Users\ediva\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin"
+    if (Test-Path $GCloudBin) {
+        $env:PATH = "$GCloudBin;$env:PATH"
+    }
+}
+
 $ProjectId = (gcloud config get-value project 2>$null)
 if (-not $ProjectId) {
     Write-Host "Error: GCP Project ID not set. Run 'gcloud config set project YOUR_PROJECT_ID' first." -ForegroundColor Red
@@ -26,9 +33,10 @@ gcloud run deploy $ServiceName `
     --port 8080 `
     --memory 2Gi `
     --cpu 1 `
-    --min-instances 0 `
+    --min-instances 1 `
     --max-instances 10 `
-    --set-env-vars "APP_NAME=QLex API,APP_VERSION=1.0.0,DEBUG=False,ACCESS_TOKEN_EXPIRE_MINUTES=525600,DATABASE_URL=postgresql+psycopg2://postgres:DivaThiru1012@db.fdkkjqvmdnfmqvmsexar.supabase.co:5432/postgres,SECRET_KEY=qlex_super_secret_key_change_this_before_production_2026,ALLOWED_ORIGINS=https://qlexmindtech.vercel.app,RAZORPAY_KEY_ID=rzp_test_TC5tGEdBuuCBLm,RAZORPAY_KEY_SECRET=ppBTFvxKCcCOiHYfrH2yJu9e,RAZORPAY_WEBHOOK_SECRET=DivaThiru@0810,WHATSAPP_BOT_URL=http://127.0.0.1:5001"
+    --no-cpu-throttling `
+    --set-env-vars "APP_NAME=QLex API,APP_VERSION=1.0.0,DEBUG=False,ACCESS_TOKEN_EXPIRE_MINUTES=525600,DATABASE_URL=postgresql+psycopg2://postgres:DivaThiru1012@db.fdkkjqvmdnfmqvmsexar.supabase.co:5432/postgres,SECRET_KEY=qlex_super_secret_key_change_this_before_production_2026,ALLOWED_ORIGINS=https://qlexmindtech.vercel.app,RAZORPAY_KEY_ID=rzp_test_TC5tGEdBuuCBLm,RAZORPAY_KEY_SECRET=ppBTFvxKCcCOiHYfrH2yJu9e,RAZORPAY_WEBHOOK_SECRET=DivaThiru@0810,WHATSAPP_BOT_URL=http://127.0.0.1:5001,BACKEND_URL=https://qlex-backend-ybnb435gbq-el.a.run.app"
 
 Write-Host "Deployment completed successfully!" -ForegroundColor Green
 Write-Host "Service URL:" -ForegroundColor Yellow

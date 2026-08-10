@@ -10,6 +10,7 @@ import type {
   TodayRevenue,
   DetailedOrderDocument,
 } from "@/types/shop";
+import { getFileUrl } from "@/utils/fileUrl";
 import {
   fetchTodaysOrders,
   fetchActiveShopOrders,
@@ -164,7 +165,7 @@ export default function ShopOrdersPage() {
               paper_size: d.paper_size || "A4",
               print_side: d.print_side || "single",
               document_total: d.document_total || 0,
-              url: d.url || (d.stored_filename ? `http://localhost:8000/uploads/drafts/${orderId}/${d.stored_filename}` : null),
+              url: getFileUrl(d.url, orderId, d.stored_filename || d.original_filename),
               services: d.services || [],
             }))
           : [];

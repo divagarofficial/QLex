@@ -19,4 +19,7 @@ tests/
 .vscode/
 .idea/
 vercel.json
+whatsapp-service/node_modules/
+.wwebjs_auth/
+.wwebjs_cache/
 *.log

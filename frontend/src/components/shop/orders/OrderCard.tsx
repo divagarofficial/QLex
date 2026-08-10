@@ -21,6 +21,7 @@ import type { EnrichedShopOrder } from "@/types/shop";
 import StatusChip from "./StatusChip";
 import PaymentBadge from "./PaymentBadge";
 import { cn } from "@/lib/utils";
+import { getFileUrl } from "@/utils/fileUrl";
 
 interface OrderCardProps {
   order: EnrichedShopOrder;
@@ -79,7 +80,7 @@ export default function OrderCard({
     try {
       if (order.documents && order.documents.length > 0) {
         order.documents.forEach((doc) => {
-          const fileUrl = doc.url || `http://localhost:8000/uploads/drafts/${order.order_id}/${doc.original_filename}`;
+          const fileUrl = getFileUrl(doc.url, order.order_id, doc.stored_filename || doc.original_filename);
           const link = document.createElement("a");
           link.href = fileUrl;
           link.download = doc.original_filename || `document_${doc.id}.pdf`;
@@ -90,7 +91,7 @@ export default function OrderCard({
         });
       } else {
         // Fallback draft download path
-        const fallbackUrl = `http://localhost:8000/uploads/drafts/${order.order_id}`;
+        const fallbackUrl = getFileUrl(null, order.order_id);
         window.open(fallbackUrl, "_blank");
       }
     } catch (err) {

@@ -12,8 +12,7 @@ htmlcov/
 .env
 .env.*
 !.env.example
-uploads/*
-!uploads/.gitkeep
+# uploads directory preserved for seed/draft files
 tests/
 .vscode/
 .idea/

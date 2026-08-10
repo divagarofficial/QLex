@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { ShopOrderDetails, DetailedOrderDocument } from "@/types/shop";
+import { getFileUrl } from "@/utils/fileUrl";
 import {
   fetchOrderDetails,
   fetchOrderSummary,
@@ -237,7 +238,7 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
         paper_size: d.paper_size || "A4",
         print_side: d.print_side || "single",
         document_total: d.document_total || 0,
-        url: d.url || (d.stored_filename ? `http://localhost:8000/uploads/drafts/${orderId}/${d.stored_filename}` : null),
+        url: getFileUrl(d.url, orderId, d.stored_filename || d.original_filename),
         services: d.services || [],
       }))
     : summaryData?.documents
@@ -251,22 +252,22 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
         paper_size: d.paper_size || "A4",
         print_side: d.print_side || "single",
         document_total: d.document_total || 0,
-        url: d.url || (d.stored_filename ? `http://localhost:8000/uploads/drafts/${orderId}/${d.stored_filename}` : null),
+        url: getFileUrl(d.url, orderId, d.stored_filename || d.original_filename),
         services: d.services || [],
       }))
     : [];
 
   const activeDoc = documents[selectedDocIndex] || documents[0];
   const activePdfUrl = activeDoc
-    ? activeDoc.url || (activeDoc.stored_filename ? `http://localhost:8000/uploads/drafts/${orderId}/${activeDoc.stored_filename}` : `http://localhost:8000/uploads/drafts/${orderId}/${activeDoc.original_filename}`)
-    : `http://localhost:8000/uploads/drafts/${orderId}`;
+    ? getFileUrl(activeDoc.url, orderId, activeDoc.stored_filename || activeDoc.original_filename)
+    : getFileUrl(null, orderId);
 
   // Download All Files Handler
   const handleDownloadAll = () => {
     setDownloadingAll(true);
     try {
       documents.forEach((doc) => {
-        const fileUrl = doc.url || `http://localhost:8000/uploads/drafts/${orderId}/${doc.original_filename}`;
+        const fileUrl = getFileUrl(doc.url, orderId, doc.stored_filename || doc.original_filename);
         const link = document.createElement("a");
         link.href = fileUrl;
         link.download = doc.original_filename || `document_${doc.id}.pdf`;

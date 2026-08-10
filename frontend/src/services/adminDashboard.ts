@@ -3,7 +3,7 @@
  * Interacts with FastAPI backend `/admin/*` endpoints.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
 
 export interface AdminOverview {
   total_students: number;

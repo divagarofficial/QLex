@@ -109,4 +109,17 @@ class OrderDocument(BaseModel):
 
     @property
     def url(self) -> str:
-        return f"http://localhost:8000/uploads/drafts/{self.order_id}/{self.stored_filename}"
+        import os
+        from app.core.config import settings
+
+        base_url = (
+            getattr(settings, "BACKEND_URL", "")
+            or os.getenv("BACKEND_URL", "")
+            or os.getenv("API_BASE_URL", "")
+            or os.getenv("NEXT_PUBLIC_API_URL", "")
+            or ""
+        ).rstrip("/")
+
+        if base_url:
+            return f"{base_url}/uploads/drafts/{self.order_id}/{self.stored_filename}"
+        return f"/uploads/drafts/{self.order_id}/{self.stored_filename}"

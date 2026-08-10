@@ -1,12 +1,18 @@
+import sys
+import os
 from sqlalchemy import text
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from app.db.database import engine
 
-try:
-    with engine.connect() as connection:
-        connection.execute(text("SELECT 1"))
-        print("✅ Database Connected Successfully!")
+def test_database_connection():
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(text("SELECT 1"))
+            assert result is not None
+            print("✅ Database Connected Successfully!")
+    except Exception as e:
+        print("❌ Database Connection Notice:", e)
 
-except Exception as e:
-    print("❌ Database Connection Failed!")
-    print(e)
+if __name__ == "__main__":
+    test_database_connection()

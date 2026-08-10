@@ -272,7 +272,7 @@ export default function NotificationSettingsTab({ data, onChange }: Notification
                       <img src={waQr} alt="WhatsApp QR Code" className="w-44 h-44 rounded-lg shadow-md border border-white/20 bg-white p-1" />
                     ) : null}
                     <a
-                      href={waBotUrl || "http://localhost:5001"}
+                      href={`${getApiBase()}/admin/whatsapp/pairing-page`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all"

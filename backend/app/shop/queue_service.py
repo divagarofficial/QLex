@@ -40,7 +40,6 @@ class ShopQueueService:
             self.db.query(ShopQueue)
             .filter(
                 ShopQueue.order_id == order.id,
-                ShopQueue.queue_date == date.today(),
             )
             .first()
         )

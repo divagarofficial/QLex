@@ -1,6 +1,6 @@
 import type { PricingConfig, ServiceConfig } from "@/types/orders";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
 
 export interface PlatformSettings {
   platform_fee: number;

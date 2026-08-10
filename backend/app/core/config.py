@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "QLex API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
+    BACKEND_URL: str = ""
 
     # Database
     DB_HOST: str = "localhost"

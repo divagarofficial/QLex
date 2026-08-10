@@ -21,14 +21,20 @@ dist/
 
 # WhatsApp Web session authentication cache
 .wwebjs_auth/
+.wwebjs_auth*/
 .wwebjs_cache/
 
 # Uploaded files
 uploads/
 backend/uploads/
 
+# Binaries & Scratch files
+cloudflared.exe
+backend_routes.txt
+
 # System / IDE files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+

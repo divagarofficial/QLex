@@ -278,25 +278,7 @@ class PaymentService:
 
             self.db.refresh(queue)
 
-            # -----------------------------
-            # Dispatch WhatsApp Order Receipt
-            # -----------------------------
-            try:
-                from app.services.whatsapp_service import whatsapp_service
-                student_name = order.student.full_name if order and order.student else "Student"
-                phone = order.student.phone if order and order.student else ""
-                token_str = queue.token if queue else None
-                whatsapp_service.send_order_placed_receipt(
-                    db=self.db,
-                    order=order,
-                    student_name=student_name,
-                    phone=phone,
-                    shop_name="Print Hub",
-                    token_number=token_str
-                )
-            except Exception as whatsapp_err:
-                import logging
-                logging.getLogger(__name__).warning(f"[PaymentService] Failed to dispatch WhatsApp order receipt: {whatsapp_err}")
+            # Queue service handles WhatsApp order receipt dispatch during queue token creation.
 
         except Exception:
 

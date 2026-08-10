@@ -6,6 +6,7 @@ import { Upload, FileText, X, Loader2, Eye, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Popup from "@/components/popup/Popup";
 import type { UploadedDocumentResponse } from "@/types/orders";
+import { getFileUrl } from "@/utils/fileUrl";
 
 interface UploadSectionProps {
   files: UploadedDocumentResponse[];
@@ -295,7 +296,7 @@ export default function UploadSection({
             {previewFile.url ? (
               <div className="w-full h-[450px] rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
                 <iframe
-                  src={previewFile.url}
+                  src={getFileUrl(previewFile.url)}
                   className="w-full h-full"
                   title={previewFile.original_filename}
                 />

@@ -10,7 +10,7 @@ import {
   AboutSectionState,
 } from "@/components/admin/settings/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
 
 export interface BackendPlatformSettings {
   platform_fee: number;

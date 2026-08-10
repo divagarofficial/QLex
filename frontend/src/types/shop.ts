@@ -23,12 +23,14 @@ export interface ShopDocumentService {
 export interface ShopDocumentItem {
   id: string;
   original_filename: string;
+  stored_filename?: string | null;
   page_count: number;
   copies: number;
   print_type: "BLACK_AND_WHITE" | "COLOR" | "BLACK_WHITE";
   paper_size: "A4" | "A3" | string;
   print_side: "SINGLE" | "DOUBLE" | string;
   document_total: number;
+  url?: string | null;
   services?: ShopDocumentService[];
 }
 

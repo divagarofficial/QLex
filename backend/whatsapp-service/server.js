@@ -27,7 +27,38 @@ let botStatus = "INITIALIZING"; // INITIALIZING, QR_READY, AUTHENTICATED, READY,
 let currentQrCodeDataUrl = null;
 let clientInfo = null;
 
+function removeChromeLocks(dir) {
+  if (!fs.existsSync(dir)) return;
+  try {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      const fullPath = `${dir}/${file}`;
+      try {
+        if (file.startsWith("Singleton")) {
+          fs.unlinkSync(fullPath);
+        } else if (fs.statSync(fullPath).isDirectory()) {
+          removeChromeLocks(fullPath);
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+}
+
+function wipeSessionData() {
+  const authFolder = "./.wwebjs_auth";
+  try {
+    removeChromeLocks(authFolder);
+    if (fs.existsSync(authFolder)) {
+      fs.rmSync(authFolder, { recursive: true, force: true });
+      console.log("[WhatsApp Bot] Session directory wiped successfully.");
+    }
+  } catch (e) {
+    console.error("[WhatsApp Bot] Failed to wipe session folder:", e.message);
+  }
+}
+
 function createClient() {
+  removeChromeLocks("./.wwebjs_auth");
   const args = [
     "--no-sandbox",
     "--disable-setuid-sandbox",
@@ -51,10 +82,6 @@ function createClient() {
 
   return new Client({
     authStrategy: new LocalAuth({ clientId: "qlex-bot-session", dataPath: "./.wwebjs_auth" }),
-    webVersionCache: {
-      type: "remote",
-      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1014587000-alpha.html"
-    },
     puppeteer: puppeteerOpts
   });
 }
@@ -87,13 +114,14 @@ function bindClientEvents(cli) {
       console.log("[WhatsApp Bot] Resetting session after Auth Failure...");
       try {
         cli.destroy().catch(() => null);
+        wipeSessionData();
         client = createClient();
         bindClientEvents(client);
         initBot();
       } catch (e) {
         console.error("[WhatsApp Bot] Re-init error:", e);
       }
-    }, 3000);
+    }, 2000);
   });
 
   cli.on("ready", () => {
@@ -112,13 +140,14 @@ function bindClientEvents(cli) {
       console.log("[WhatsApp Bot] Auto-reinitializing engine after disconnect...");
       try {
         cli.destroy().catch(() => null);
+        wipeSessionData();
         client = createClient();
         bindClientEvents(client);
         initBot();
       } catch (e) {
         console.error("[WhatsApp Bot] Re-init error:", e);
       }
-    }, 3000);
+    }, 2000);
   });
 }
 
@@ -128,10 +157,12 @@ bindClientEvents(client);
 function initBot() {
   botStatus = "INITIALIZING";
   console.log("[WhatsApp Bot] Launching WhatsApp Web Engine...");
-  client.initialize().catch((err) => {
-    console.error("[WhatsApp Bot] Init Error:", err ? err.message : err);
-    botStatus = "DISCONNECTED";
-  });
+  client.initialize()
+    .then(() => console.log("[WhatsApp Bot] Engine initialization promise resolved successfully."))
+    .catch((err) => {
+      console.error("[WhatsApp Bot] Init Error:", err ? (err.stack || err.message || err) : err);
+      botStatus = "DISCONNECTED";
+    });
 }
 
 initBot();
@@ -187,6 +218,9 @@ async function processSendQueue() {
   isProcessingQueue = false;
 }
 
+// Deduplication cache: phone + message snippet -> timestamp
+const recentSentMap = new Map();
+
 // POST /send
 app.post("/send", (req, res) => {
   try {
@@ -204,7 +238,21 @@ app.post("/send", (req, res) => {
     if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`;
     const chatId = `${cleanPhone}@c.us`;
 
-    // Return IMMEDIATELY in 10ms so Cloud Run / Localtunnel never wait or timeout
+    // 30-second deduplication filter for identical messages
+    const msgSnippet = String(message).slice(0, 80);
+    const dedupKey = `${cleanPhone}:${msgSnippet}`;
+    const now = Date.now();
+    if (recentSentMap.has(dedupKey) && (now - recentSentMap.get(dedupKey)) < 30000) {
+      console.log(`[WhatsApp Bot] Suppressed duplicate message request to ${cleanPhone}`);
+      return res.json({ success: true, status: "SKIPPED_DUPLICATE", message: `Duplicate message suppressed for ${cleanPhone}` });
+    }
+    recentSentMap.set(dedupKey, now);
+    if (recentSentMap.size > 500) {
+      for (const [k, t] of recentSentMap.entries()) {
+        if (now - t > 60000) recentSentMap.delete(k);
+      }
+    }
+
     sendQueue.push({ chatId, message, pdfPath, mediaBase64, filename, cleanPhone });
     processSendQueue();
 
@@ -215,31 +263,29 @@ app.post("/send", (req, res) => {
   }
 });
 
-// POST /logout
-app.post("/logout", async (req, res) => {
+// POST /logout & /reset
+app.post(["/logout", "/reset"], async (req, res) => {
   try {
+    console.log("[WhatsApp Bot] Manual Session Reset / Logout requested.");
     botStatus = "DISCONNECTED";
     currentQrCodeDataUrl = null;
     clientInfo = null;
     if (client) {
-      await client.logout().catch(() => null);
-      await client.destroy().catch(() => null);
+      try { await client.logout(); } catch (e) {}
+      try { await client.destroy(); } catch (e) {}
     }
-    const authFolder = "./.wwebjs_auth";
-    if (fs.existsSync(authFolder)) {
-      fs.rmSync(authFolder, { recursive: true, force: true });
-    }
+    wipeSessionData();
     client = createClient();
     bindClientEvents(client);
     initBot();
-    return res.json({ success: true, message: "Logged out and reset session successfully." });
+    return res.json({ success: true, message: "Session wiped cleanly. Fresh QR code generating..." });
   } catch (err) {
-    console.error("[WhatsApp Bot] Error logging out:", err);
-    return res.status(500).json({ success: false, error: err.message || "Failed to logout" });
+    console.error("[WhatsApp Bot] Error resetting session:", err);
+    return res.status(500).json({ success: false, error: err.message || "Failed to reset session" });
   }
 });
 
-// GET / - Pairing Page (Zero Browser Reloads)
+// GET / - Pairing Page
 app.get(["/", "/qr-page"], (req, res) => {
   return res.send(`
     <!DOCTYPE html>
@@ -249,13 +295,17 @@ app.get(["/", "/qr-page"], (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b141a; color: #e9edef; text-align: center; padding: 40px 20px; margin: 0; }
-          .card { max-width: 420px; margin: 0 auto; background: #111b21; border: 1px solid #222d34; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+          .card { max-width: 440px; margin: 0 auto; background: #111b21; border: 1px solid #222d34; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
           h1 { font-size: 22px; margin-bottom: 8px; color: #00a884; }
           p { font-size: 14px; color: #8696a0; line-height: 1.5; }
           .qr-box { background: #ffffff; padding: 16px; border-radius: 12px; display: inline-block; margin: 20px 0; min-width: 250px; min-height: 250px; }
           img { width: 250px; height: 250px; display: block; border-radius: 4px; }
           .status-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #202c33; color: #00a884; margin-bottom: 15px; }
+          .btn-reset { display: inline-block; margin-top: 15px; background: #ea4335; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+          .btn-reset:hover { background: #d93025; }
           .connected-icon { font-size: 64px; margin-bottom: 10px; }
+          .spinner { border: 4px solid #222d34; border-top: 4px solid #00a884; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 60px auto 20px auto; }
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         </style>
       </head>
       <body>
@@ -263,17 +313,42 @@ app.get(["/", "/qr-page"], (req, res) => {
           <h1>QLex WhatsApp Bot</h1>
           <div class="status-badge" id="status-badge">Checking status...</div>
           
-          <div id="qr-container">
+          <div id="content-box">
             <p>Open WhatsApp on phone &rarr; <strong>Linked Devices</strong> &rarr; <strong>Link a Device</strong></p>
             <div class="qr-box">
               <img id="qr-img" src="${currentQrCodeDataUrl || ''}" style="${currentQrCodeDataUrl ? 'display:block;' : 'display:none;'}" alt="WhatsApp QR Code" />
-              <div id="loading-spinner" style="${currentQrCodeDataUrl ? 'display:none;' : 'display:block; padding-top:100px; color:#111;'}">Generating QR Code...</div>
+              <div id="loading-spinner" style="${currentQrCodeDataUrl ? 'display:none;' : 'display:block;'}">
+                <div class="spinner"></div>
+                <p style="color:#111; font-weight:bold; font-size:13px; margin-top:10px;">Generating QR Code...</p>
+              </div>
             </div>
             <p style="font-size:12px; color:#667781;">Page stays static &mdash; scan whenever ready!</p>
+          </div>
+
+          <div style="margin-top: 20px; border-top: 1px solid #222d34; padding-top: 15px;">
+            <button class="btn-reset" onclick="resetSession()">🔄 Reset & Link New Device</button>
           </div>
         </div>
 
         <script>
+          async function resetSession() {
+            if (!confirm("Are you sure you want to reset the WhatsApp session? This will generate a fresh QR code.")) return;
+            const badge = document.getElementById('status-badge');
+            const content = document.getElementById('content-box');
+            badge.innerText = 'Resetting Session...';
+            badge.style.color = '#ea4335';
+            if (content) {
+              content.innerHTML = '<div class="spinner"></div><p style="color:#8696a0;">Wiping session keys & starting fresh engine...</p>';
+            }
+            try {
+              const basePath = window.location.pathname.includes('/admin/whatsapp') ? '/admin/whatsapp' : '';
+              await fetch(basePath + '/logout', { method: 'POST' });
+              setTimeout(pollStatus, 1500);
+            } catch (e) {
+              alert('Error resetting session: ' + e.message);
+            }
+          }
+
           async function pollStatus() {
             try {
               const basePath = window.location.pathname.includes('/admin/whatsapp') ? '/admin/whatsapp' : '';
@@ -281,30 +356,46 @@ app.get(["/", "/qr-page"], (req, res) => {
               const data = await res.json();
               const badge = document.getElementById('status-badge');
               const card = document.getElementById('main-card');
+              const content = document.getElementById('content-box');
               
               if (data.status === 'READY') {
-                card.innerHTML = `
-                  <div class="connected-icon">✅</div>
-                  <h1 style="color:#00a884;">WhatsApp Connected!</h1>
-                  <p style="color:#e9edef; font-weight:bold; margin-top:10px;">Status: READY</p>
-                  <p style="color:#8696a0;">Connected as: ${data.info ? (data.info.pushname || data.info.wid) : 'WhatsApp Web'}</p>
-                  <p style="font-size:12px; color:#00a884; margin-top:20px;">Your QLex print receipts & updates will now send automatically 24/7!</p>
-                `;
+                const connName = (data.info && (data.info.pushname || data.info.wid)) ? (data.info.pushname || data.info.wid) : 'WhatsApp Web';
+                card.innerHTML = '<div class="connected-icon">✅</div>' +
+                  '<h1 style="color:#00a884;">WhatsApp Connected!</h1>' +
+                  '<p style="color:#e9edef; font-weight:bold; margin-top:10px;">Status: READY 🟢</p>' +
+                  '<p style="color:#8696a0;">Connected Account: ' + connName + '</p>' +
+                  '<p style="font-size:12px; color:#00a884; margin-top:20px;">Your QLex print receipts & updates will now send automatically 24/7!</p>' +
+                  '<div style="margin-top: 25px; border-top: 1px solid #222d34; padding-top: 15px;">' +
+                  '<button class="btn-reset" onclick="resetSession()">🔴 Disconnect & Unlink Device</button>' +
+                  '</div>';
                 return;
               } else if (data.status === 'AUTHENTICATED') {
                 badge.innerText = 'Finishing Authentication...';
                 badge.style.color = '#34b7f1';
+                if (content && !content.innerHTML.includes('Syncing chats')) {
+                  content.innerHTML = '<div class="spinner"></div><p style="color:#e9edef; font-weight:bold;">Authenticated! Syncing chats & session tokens...</p>';
+                }
               } else if (data.status === 'QR_READY') {
                 badge.innerText = 'Scan QR Code to Link Device';
                 badge.style.color = '#f7a600';
-              } else {
-                badge.innerText = 'Status: ' + (data.status || 'INITIALIZING');
-              }
 
-              if (data.status !== 'READY') {
+                // Restore QR DOM elements if content-box was overwritten during DISCONNECTED state
+                let qrImg = document.getElementById('qr-img');
+                if (!qrImg && content) {
+                  content.innerHTML = '<p>Open WhatsApp on phone &rarr; <strong>Linked Devices</strong> &rarr; <strong>Link a Device</strong></p>' +
+                    '<div class="qr-box">' +
+                    '  <img id="qr-img" src="" style="display:none;" alt="WhatsApp QR Code" />' +
+                    '  <div id="loading-spinner" style="display:block;">' +
+                    '    <div class="spinner"></div>' +
+                    '    <p style="color:#111; font-weight:bold; font-size:13px; margin-top:10px;">Rendering QR Code...</p>' +
+                    '  </div>' +
+                    '</div>' +
+                    '<p style="font-size:12px; color:#667781;">Page stays static &mdash; scan whenever ready!</p>';
+                  qrImg = document.getElementById('qr-img');
+                }
+
                 const qrRes = await fetch(basePath + '/qr');
                 const qrData = await qrRes.json();
-                const qrImg = document.getElementById('qr-img');
                 const spinner = document.getElementById('loading-spinner');
                 if (qrData.qr && qrImg) {
                   if (qrImg.src !== qrData.qr) {
@@ -313,12 +404,23 @@ app.get(["/", "/qr-page"], (req, res) => {
                   qrImg.style.display = 'block';
                   if (spinner) spinner.style.display = 'none';
                 }
+              } else if (data.status === 'DISCONNECTED') {
+                badge.innerText = 'Status: DISCONNECTED';
+                badge.style.color = '#ea4335';
+                if (content && !content.innerHTML.includes('WhatsApp Disconnected')) {
+                  content.innerHTML = '<div style="font-size:48px; margin:20px 0;">⚠️</div>' +
+                    '<p style="color:#ea4335; font-weight:bold;">WhatsApp Disconnected or Session Expired.</p>' +
+                    '<p style="color:#8696a0; font-size:13px;">Click the button below to generate a fresh QR Code.</p>';
+                }
+              } else {
+                badge.innerText = 'Status: ' + (data.status || 'INITIALIZING');
+                badge.style.color = '#8696a0';
               }
             } catch (e) {}
           }
 
           pollStatus();
-          setInterval(pollStatus, 3000);
+          setInterval(pollStatus, 2500);
         </script>
       </body>
     </html>

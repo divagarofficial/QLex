@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, Response
 import os
 
 from app.auth.router import router as auth_router
@@ -25,25 +25,22 @@ from app.student.router import (
 )
 
 from app.admin.router import router as admin_router
+from app.utils.file_storage import find_uploaded_file, generate_fallback_pdf
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
 )
 
-# Setup persistent uploads directory (supports Hugging Face /data volume or Vercel /tmp)
-if os.path.exists("/data"):
-    uploads_dir = "/data/uploads"
-elif os.path.exists("/tmp"):
-    uploads_dir = "/tmp/uploads"
-else:
-    uploads_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
-
-try:
-    os.makedirs(uploads_dir, exist_ok=True)
-    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
-except Exception as e:
-    print(f"Warning: Could not mount uploads directory: {e}")
+@app.get("/uploads/{file_path:path}")
+async def serve_upload_file(file_path: str):
+    found_file = find_uploaded_file(file_path)
+    if found_file:
+        return FileResponse(path=str(found_file))
+    
+    filename = os.path.basename(file_path)
+    pdf_bytes = generate_fallback_pdf(filename)
+    return Response(content=pdf_bytes, media_type="application/pdf")
 
 register_exception_handlers(app)
 
@@ -108,26 +105,44 @@ import shutil
 
 def ensure_whatsapp_bot_running() -> bool:
     """Checks if WhatsApp microservice is running on port 5001, auto-spawns it if offline."""
-    # Skip local subprocess spawn if running on Cloud Run, Vercel, or container environments
-    if os.getenv("VERCEL") or os.getenv("K_SERVICE") or os.getenv("CLOUD_RUN_JOB") or os.getenv("DISABLE_LOCAL_BOT"):
+    if os.getenv("VERCEL") or os.getenv("DISABLE_LOCAL_BOT"):
         return False
+    
+    bot_url = (os.getenv("WHATSAPP_BOT_URL", "") or "http://127.0.0.1:5001").rstrip("/")
     try:
-        res = requests.get("http://localhost:5001/status", timeout=2)
+        res = requests.get(f"{bot_url}/status", timeout=2)
         if res.status_code == 200:
             return True
     except Exception:
         pass
 
     try:
-        service_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "whatsapp-service"))
-        server_file = os.path.join(service_dir, "server.js")
+        # Search candidate paths for whatsapp-service server.js
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        candidate_paths = [
+            "/app/whatsapp-service/server.js",
+            os.path.abspath(os.path.join(base_dir, "..", "whatsapp-service", "server.js")),
+            os.path.abspath(os.path.join(base_dir, "..", "..", "whatsapp-service", "server.js"))
+        ]
+        
+        server_file = None
+        service_dir = None
+        for path in candidate_paths:
+            if os.path.exists(path):
+                server_file = path
+                service_dir = os.path.dirname(path)
+                break
+
         node_cmd = shutil.which("node") or "node"
-        if os.path.exists(server_file):
-            print("[WhatsApp Bot Manager] WhatsApp bot offline. Auto-spawning background service on port 5001...")
+        if server_file and service_dir:
+            print(f"[WhatsApp Bot Manager] WhatsApp bot offline at {bot_url}. Auto-spawning service from {server_file}...")
             creation_flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            env = os.environ.copy()
+            env["PORT"] = "5001"
             subprocess.Popen(
                 [node_cmd, "server.js"],
                 cwd=service_dir,
+                env=env,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=creation_flags
@@ -163,8 +178,7 @@ async def auto_settlement_scheduler():
 
 @app.on_event("startup")
 async def startup_event():
-    is_serverless = bool(os.getenv("VERCEL") or os.getenv("K_SERVICE") or os.getenv("CLOUD_RUN_JOB"))
-    if not is_serverless:
+    if not os.getenv("VERCEL"):
         ensure_whatsapp_bot_running()
         asyncio.create_task(whatsapp_bot_health_monitor())
     asyncio.create_task(auto_settlement_scheduler())

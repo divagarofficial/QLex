@@ -19,6 +19,7 @@ import {
 import type { TodayOrderItem, ShopOrderDetails } from "@/types/shop";
 import { fetchOrderDetails } from "@/services/shop";
 import { cn } from "@/lib/utils";
+import { getFileUrl } from "@/utils/fileUrl";
 
 interface NextOrderCardProps {
   orderItem: TodayOrderItem | null;
@@ -97,7 +98,7 @@ export default function NextOrderCard({
     if (documents.length > 0) {
       documents.forEach((doc) => {
         const link = document.createElement("a");
-        link.href = `http://localhost:8000/uploads/${doc.original_filename}`;
+        link.href = getFileUrl(doc.url, orderItem.order_id, doc.stored_filename || doc.original_filename);
         link.download = doc.original_filename;
         link.target = "_blank";
         document.body.appendChild(link);
