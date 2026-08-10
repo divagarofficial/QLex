@@ -77,6 +77,7 @@ export interface OrderDetailsResponse {
   platform_fee?: number;
   priority_fee?: number;
   is_priority: boolean;
+  shop_name?: string;
   created_at: string;
   documents: OrderDocumentResponse[];
 }

@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { fetchOrderDetails } from "@/services/student";
 import StatusBadge from "@/components/token/StatusBadge";
+import PaymentStatusChip from "@/components/payments/PaymentStatusChip";
 import ReceiptModal from "@/components/token/ReceiptModal";
 import SkeletonLoader from "@/components/token/SkeletonLoader";
 import Popup from "@/components/popup/Popup";
@@ -166,8 +167,8 @@ export default function StudentOrderDetailPage({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={order.order_status} type="order" />
-                  <StatusBadge status={order.payment_status} type="payment" />
+                  <StatusBadge status={order.status} />
+                  <PaymentStatusChip status={order.payment_status} />
                 </div>
               </div>
 
@@ -215,13 +216,13 @@ export default function StudentOrderDetailPage({
                         className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/[0.02] border border-white/10 p-4 text-xs"
                       >
                         <div>
-                          <div className="font-semibold text-white/90">{doc.original_filename}</div>
+                          <div className="font-semibold text-white/90">{doc.file_name}</div>
                           <div className="text-white/40 mt-0.5">
-                            {doc.print_type} • {doc.print_side} • {doc.paper_size} • {doc.copies} Copies ({doc.total_pages} pages)
+                            {doc.print_type} • {doc.print_side} • {doc.paper_size} • {doc.copies} Copies ({doc.page_count} pages)
                           </div>
                         </div>
                         <div className="font-mono font-bold text-emerald-400 text-sm">
-                          ₹{Number(doc.total_price || doc.document_price || 0).toFixed(2)}
+                          ₹{Number(doc.document_total || 0).toFixed(2)}
                         </div>
                       </div>
                     ))
@@ -256,24 +257,37 @@ export default function StudentOrderDetailPage({
 
       {/* Receipt Modal */}
       <ReceiptModal
-        open={receiptOpen}
+        isOpen={receiptOpen}
         onClose={() => setReceiptOpen(false)}
-        tokenData={{
+        data={{
+          token: order.token ? String(order.token) : "N/A",
           order_id: order.order_id,
-          token: order.token || 0,
-          queue_type: order.is_priority ? "priority" : "regular",
-          status: order.order_status,
-          user_id: "",
-          created_at: order.created_at,
-          total_pages: order.documents?.reduce((acc, d) => acc + (d.total_pages * d.copies), 0) || 1,
-          total_price: Number(order.total_amount),
+          status: (order.status || "WAITING").toUpperCase() as any,
+          payment_status: (order.payment_status || "PENDING").toUpperCase() as any,
+          total_amount: Number(order.total_amount || 0),
+          is_priority: Boolean(order.is_priority),
+          created_at: order.created_at || new Date().toISOString(),
+          estimated_wait_minutes: 5,
+          shop: {
+            name: order.shop_name || "QLex Central Print Hub",
+            location: "Main Campus Hub",
+            working_hours: "08:00 AM - 08:00 PM",
+            contact_number: "+91 98765 43210",
+          },
           documents: order.documents?.map(d => ({
-            name: d.original_filename,
-            pages: d.total_pages,
+            id: d.id,
+            file_name: d.file_name,
+            pages: d.page_count,
             copies: d.copies,
-            print_type: d.print_type,
-            side: d.print_side,
-          })) || []
+            is_color: (d.print_type || "").toUpperCase().includes("COL"),
+            paper_size: d.paper_size,
+            print_side: d.print_side,
+            document_total: d.document_total,
+          })) || [],
+          total_pages: order.documents?.reduce((acc, d) => acc + (d.page_count * d.copies), 0) || 1,
+          total_copies: order.documents?.reduce((acc, d) => acc + d.copies, 0) || 1,
+          color_pages_count: 0,
+          bw_pages_count: 0,
         }}
       />
 

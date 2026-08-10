@@ -190,3 +190,10 @@ export async function adminFlushExpiredSessions(): Promise<any> {
   return fetchAdminApi<any>("/waiting-room/admin/flush-expired", { method: "POST" });
 }
 
+// Alias exports for page compatibility
+export const fetchAdminOverview = getAdminOverview;
+export const fetchAdminRecentOrders = getRecentOrders;
+export const fetchAdminRecentPayments = getRecentPayments;
+export const fetchAdminShops = getAdminShops;
+
+

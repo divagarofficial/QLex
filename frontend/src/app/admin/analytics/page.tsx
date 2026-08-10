@@ -20,7 +20,7 @@ export default function AdminAnalyticsPage() {
 
     try {
       setIsLoading(true);
-      const data = await fetchAdminOverview(activeToken);
+      const data = await fetchAdminOverview();
       setMetrics(data);
     } catch (err) {
       console.error("Failed to load admin analytics:", err);

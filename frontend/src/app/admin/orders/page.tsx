@@ -24,7 +24,7 @@ export default function AdminOrdersPage() {
 
     try {
       setIsLoading(true);
-      const data = await fetchAdminRecentOrders(activeToken);
+      const data = await fetchAdminRecentOrders();
       setOrders(data || []);
     } catch (err) {
       console.error("Failed to load admin orders:", err);

@@ -21,7 +21,7 @@ export default function AdminPaymentsPage() {
 
     try {
       setIsLoading(true);
-      const data = await fetchAdminRecentPayments(activeToken);
+      const data = await fetchAdminRecentPayments();
       setPayments(data || []);
     } catch (err) {
       console.error("Failed to load admin payments:", err);

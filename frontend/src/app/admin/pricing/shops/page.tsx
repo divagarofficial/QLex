@@ -20,7 +20,7 @@ export default function AdminShopPricingPage() {
 
     try {
       setIsLoading(true);
-      const data = await fetchAdminPricing(activeToken);
+      const data = await fetchAdminPricing();
       setPricings(data || []);
     } catch (err) {
       console.error("Failed to load admin pricing:", err);

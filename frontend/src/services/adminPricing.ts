@@ -225,3 +225,7 @@ export async function updatePlatformSettings(
     maintenance_mode: Boolean(item.maintenance_mode),
   };
 }
+
+// Alias export for page compatibility
+export const fetchAdminPricing = getPricingRules;
+

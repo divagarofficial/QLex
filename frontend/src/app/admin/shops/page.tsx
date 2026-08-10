@@ -20,7 +20,7 @@ export default function AdminShopsPage() {
 
     try {
       setIsLoading(true);
-      const data = await fetchAdminShops(activeToken);
+      const data = await fetchAdminShops();
       setShops(data || []);
     } catch (err) {
       console.error("Failed to load admin shops:", err);
