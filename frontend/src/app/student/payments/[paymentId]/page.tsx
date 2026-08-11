@@ -131,9 +131,10 @@ export default function PaymentDetailPage({
   }
 
   const amount = Number(payment.amount);
-  const subtotal = orderDetails ? (amount * 0.85).toFixed(2) : (amount * 0.85).toFixed(2);
-  const fee = (amount * 0.10).toFixed(2);
-  const tax = (amount * 0.05).toFixed(2);
+  const printSubtotal = orderDetails?.subtotal ? Number(orderDetails.subtotal) : amount;
+  const convenienceFee = orderDetails?.convenience_fee ? Number(orderDetails.convenience_fee) : 0;
+  const platformFee = orderDetails?.platform_fee ? Number(orderDetails.platform_fee) : 0;
+  const priorityFee = orderDetails?.priority_fee ? Number(orderDetails.priority_fee) : 0;
 
   const formattedDate = payment.paid_at
     ? new Date(payment.paid_at).toLocaleString([], {
@@ -224,12 +225,26 @@ export default function PaymentDetailPage({
                 <div className="space-y-2 rounded-2xl bg-white/[0.02] border border-white/10 p-4 text-xs">
                   <div className="flex justify-between text-white/70">
                     <span>Print Subtotal</span>
-                    <span className="font-mono">₹{(Number(subtotal) + Number(fee)).toFixed(2)}</span>
+                    <span className="font-mono">₹{printSubtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-white/50">
-                    <span>GST / Taxes</span>
-                    <span className="font-mono">₹{tax}</span>
-                  </div>
+                  {convenienceFee > 0 && (
+                    <div className="flex justify-between text-white/50">
+                      <span>Convenience Fee</span>
+                      <span className="font-mono">₹{convenienceFee.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {platformFee > 0 && (
+                    <div className="flex justify-between text-white/50">
+                      <span>Platform Fee</span>
+                      <span className="font-mono">₹{platformFee.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {priorityFee > 0 && (
+                    <div className="flex justify-between text-amber-300 font-semibold">
+                      <span>Priority Fee</span>
+                      <span className="font-mono">₹{priorityFee.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t border-white/10 pt-2 font-bold text-sm text-white/95">
                     <span>Total Amount Charged</span>
                     <span className="font-mono text-emerald-400">₹{amount.toFixed(2)}</span>

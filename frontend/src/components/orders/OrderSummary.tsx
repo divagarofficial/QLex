@@ -106,14 +106,16 @@ export default function OrderSummary({
                   <>
                     <span className="text-white/40">Type</span>
                     <span className="text-white/70 text-right capitalize">
-                      {printType === "black_white" ? "Black & White" : "Colour"}
+                      {printType.toLowerCase().includes("black") || printType.toLowerCase().includes("b_w") ? "Black & White" : "Colour"}
                     </span>
                   </>
                 )}
                 {printSide && (
                   <>
                     <span className="text-white/40">Sides</span>
-                    <span className="text-white/70 text-right capitalize">{printSide}</span>
+                    <span className="text-white/70 text-right capitalize">
+                      {printSide.toLowerCase().includes("double") ? "Double-sided" : "Single-sided"}
+                    </span>
                   </>
                 )}
                 {paperSize && (

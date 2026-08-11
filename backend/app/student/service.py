@@ -251,26 +251,27 @@ class StudentService:
             )
         )
 
-        queue = (
-    self.repository.get_queue(
-        order.id
-    )
-)
+        queue = self.repository.get_queue(order.id)
+        if queue and queue.token:
+            token_str = queue.token
+        else:
+            from app.models.order import Order as OrderModel
+            from datetime import date
+            prefix = "P" if order.is_priority else "R"
+            seq_num = (
+                self.repository.db.query(OrderModel)
+                .filter(
+                    OrderModel.is_priority == order.is_priority,
+                    OrderModel.created_at >= (order.created_at.date() if order.created_at else date.today()),
+                    OrderModel.created_at <= order.created_at,
+                )
+                .count()
+            )
+            token_str = f"{prefix}-{max(1, seq_num)}"
 
         return {
-
             "order_id": order.id,
-
-            "token": (
-                queue.token
-                if queue and queue.token
-                else (
-                    lambda: (
-                        __import__("app.models.order", fromlist=["Order"]).Order
-                    )
-                )()
-                and f"{'P' if order.is_priority else 'R'}-{max(1, self.repository.db.query(__import__('app.models.order', fromlist=['Order']).Order).filter(__import__('app.models.order', fromlist=['Order']).Order.is_priority == order.is_priority, __import__('app.models.order', fromlist=['Order']).Order.created_at <= order.created_at).count())}"
-            ),
+            "token": token_str,
 
             "status": order.status.value,
 

@@ -13,13 +13,16 @@ import type {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
 
-// ── Waiting Room Session (stored in memory) ──────────────────────
+// ── Waiting Room Session (stored in memory & sessionStorage) ────────
 let waitingRoomSession: string | null = null;
 
 /**
  * Retrieve the current waiting room session token.
  */
 export function getWaitingRoomSession(): string | null {
+  if (!waitingRoomSession && typeof window !== "undefined") {
+    waitingRoomSession = sessionStorage.getItem("qlex_waiting_room_session");
+  }
   return waitingRoomSession;
 }
 
@@ -28,6 +31,13 @@ export function getWaitingRoomSession(): string | null {
  */
 export function setWaitingRoomSession(session: string | null) {
   waitingRoomSession = session;
+  if (typeof window !== "undefined") {
+    if (session) {
+      sessionStorage.setItem("qlex_waiting_room_session", session);
+    } else {
+      sessionStorage.removeItem("qlex_waiting_room_session");
+    }
+  }
 }
 
 /**
@@ -35,6 +45,9 @@ export function setWaitingRoomSession(session: string | null) {
  */
 export function clearWaitingRoomSession() {
   waitingRoomSession = null;
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("qlex_waiting_room_session");
+  }
 }
 
 /**

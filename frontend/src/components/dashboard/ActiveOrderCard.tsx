@@ -28,16 +28,22 @@ const PAYMENT_STYLES: Record<string, { label: string; color: string; bg: string 
 };
 
 function getStatusStyle(status: string) {
-  return STATUS_STYLES[status] || { label: status, color: "text-white/60", bg: "bg-white/[0.04]", border: "border-white/10" };
+  const norm = (status || "").toLowerCase();
+  if (norm === "served") return STATUS_STYLES.completed;
+  if (norm === "ready") return STATUS_STYLES.ready_for_pickup;
+  if (norm === "waiting" || norm === "queued") return STATUS_STYLES.accepted;
+  return STATUS_STYLES[norm] || { label: status, color: "text-white/60", bg: "bg-white/[0.04]", border: "border-white/10" };
 }
 
 function getPaymentStyle(status: string) {
-  return PAYMENT_STYLES[status] || { label: status, color: "text-white/60", bg: "bg-white/[0.04]" };
+  const norm = (status || "").toLowerCase();
+  return PAYMENT_STYLES[norm] || { label: status, color: "text-white/60", bg: "bg-white/[0.04]" };
 }
 
 function isActiveOrder(order: MyOrderItem): boolean {
-  const inactive = ["draft", "cancelled", "completed", "expired"];
-  return !inactive.includes(order.status);
+  const s = (order.status || "").toUpperCase();
+  const inactive = ["DRAFT", "CANCELLED", "COMPLETED", "SERVED", "EXPIRED", "REJECTED", "PAYMENT_FAILED"];
+  return !inactive.includes(s);
 }
 
 interface ActiveOrderCardProps {

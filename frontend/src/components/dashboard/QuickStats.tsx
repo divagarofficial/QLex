@@ -70,21 +70,25 @@ interface QuickStatsProps {
 export default function QuickStats({ orders, isLoading }: QuickStatsProps) {
   if (isLoading) return null;
 
-  const currentOrders = orders.filter(
-    (o) => !["draft", "completed", "cancelled", "expired"].includes(o.status)
-  ).length;
+  const currentOrders = orders.filter((o) => {
+    const s = (o.status || "").toUpperCase();
+    return !["DRAFT", "COMPLETED", "SERVED", "CANCELLED", "REJECTED", "EXPIRED", "PAYMENT_FAILED"].includes(s);
+  }).length;
 
-  const completedOrders = orders.filter(
-    (o) => o.status === "completed"
-  ).length;
+  const completedOrders = orders.filter((o) => {
+    const s = (o.status || "").toUpperCase();
+    return s === "COMPLETED" || s === "SERVED";
+  }).length;
 
-  const pendingPayments = orders.filter(
-    (o) => o.payment_status === "pending"
-  ).length;
+  const pendingPayments = orders.filter((o) => {
+    const p = (o.payment_status || "").toUpperCase();
+    return p === "PENDING" || p === "PENDING_PAYMENT";
+  }).length;
 
-  const readyForPickup = orders.filter(
-    (o) => o.status === "ready_for_pickup"
-  ).length;
+  const readyForPickup = orders.filter((o) => {
+    const s = (o.status || "").toUpperCase();
+    return s === "READY_FOR_PICKUP" || s === "READY";
+  }).length;
 
   const stats = [
     {

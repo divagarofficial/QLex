@@ -95,8 +95,10 @@ export default function RecentActivity({ orders, isLoading }: RecentActivityProp
 
         <div className="space-y-2">
           {recentOrders.map((order, index) => {
-            const IconComponent = STATUS_ICONS[order.status] || FileText;
-            const label = STATUS_LABELS[order.status] || order.status;
+            const normStatus = (order.status || "").toLowerCase();
+            const key = normStatus === "served" ? "completed" : normStatus === "ready" ? "ready_for_pickup" : (normStatus === "waiting" || normStatus === "queued") ? "accepted" : normStatus;
+            const IconComponent = STATUS_ICONS[key] || FileText;
+            const label = STATUS_LABELS[key] || order.status;
 
             return (
               <motion.div
