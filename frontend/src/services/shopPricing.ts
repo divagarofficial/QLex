@@ -16,6 +16,7 @@ export interface PlatformSettings {
 
 export interface UpdatePricingPayload {
   shop_price: number;
+  convenience_fee?: number;
   is_active: boolean;
 }
 

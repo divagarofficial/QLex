@@ -28,7 +28,7 @@ class UpdatePricingRequest(BaseModel):
 
     shop_price: Decimal
 
-    convenience_fee: Decimal
+    convenience_fee: Decimal | None = None
 
     is_active: bool
 

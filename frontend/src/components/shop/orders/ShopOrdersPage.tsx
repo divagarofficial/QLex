@@ -336,7 +336,7 @@ export default function ShopOrdersPage() {
     if (!rejectingOrder) return;
     setActionLoading(true);
     try {
-      await rejectShopOrder(rejectingOrder.order_id);
+      await rejectShopOrder(rejectingOrder.order_id, rejectReason);
       setRejectingOrder(null);
       setRejectReason("");
       setPopupState({

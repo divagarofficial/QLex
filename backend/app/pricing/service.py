@@ -38,9 +38,10 @@ class PricingService:
             request.shop_price
         )
 
-        pricing.convenience_fee = (
-            request.convenience_fee
-        )
+        if request.convenience_fee is not None:
+            pricing.convenience_fee = (
+                request.convenience_fee
+            )
 
         pricing.is_active = (
             request.is_active

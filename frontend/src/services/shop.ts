@@ -104,10 +104,11 @@ export async function markOrderServed(orderId: string): Promise<QueueStateRespon
 /**
  * Reject order
  */
-export async function rejectShopOrder(orderId: string): Promise<QueueStateResponse> {
+export async function rejectShopOrder(orderId: string, reason?: string): Promise<QueueStateResponse> {
   const res = await fetch(`${API_BASE}/shop/orders/${orderId}/reject`, {
     method: "POST",
     headers: getAuthHeaders(),
+    body: JSON.stringify({ reason: reason || null }),
   });
   return handleResponse<QueueStateResponse>(res);
 }

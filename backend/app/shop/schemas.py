@@ -44,6 +44,15 @@ class TodayOrderResponse(BaseModel):
 
     is_priority: bool
 
+    queue_state: str
+
+    is_current: bool = False
+
+class RejectOrderRequest(BaseModel):
+
+    reason: str | None = None
+
+
 class ShopDocumentServiceResponse(BaseModel):
 
     id: UUID

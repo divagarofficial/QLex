@@ -80,6 +80,7 @@ class ShopService:
         for queue in queues:
 
             order = queue.order
+            q_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
             results.append(
                 {
                     "token": queue.token,
@@ -87,7 +88,7 @@ class ShopService:
                     "student_id": order.student_id,
                     "documents": len(order.documents),
                     "is_priority": order.is_priority,
-                    "queue_state": queue.queue_state,
+                    "queue_state": q_state,
                     "is_current": queue.is_current,
                 }
             )
@@ -298,6 +299,7 @@ class ShopService:
                 "Order has been rejected and cannot be served."
             )
 
+        was_current = queue.is_current
         queue.queue_state = QueueState.SERVED
         if queue.order:
             queue.order.status = OrderStatus.COMPLETED
@@ -309,12 +311,16 @@ class ShopService:
         self.repository.save()
         self._notify_whatsapp_status(queue, "SERVED")
 
+        if was_current:
+            self.unlock_next_order()
+
         return queue
 
     def reject_order(
-    self,
-    order_id,
-):
+        self,
+        order_id,
+        reason: str = None,
+    ):
 
         queue = (
             self.repository
@@ -329,6 +335,7 @@ class ShopService:
                 "Queue entry not found."
             )
 
+        was_current = queue.is_current
         queue.queue_state = QueueState.REJECTED
         if queue.order:
             queue.order.status = OrderStatus.REJECTED
@@ -336,10 +343,11 @@ class ShopService:
         queue.rejected_at = datetime.utcnow()
 
         queue.is_current = False
-        self.unlock_next_order()
+        if was_current:
+            self.unlock_next_order()
 
         self.repository.save()
-        self._notify_whatsapp_status(queue, "REJECTED")
+        self._notify_whatsapp_status(queue, "REJECTED", reason=reason)
 
         return queue
     

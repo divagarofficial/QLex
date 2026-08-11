@@ -85,3 +85,14 @@ class YearsListResponse(BaseModel):
 
 class SectionsListResponse(BaseModel):
     sections: list[SectionResponse]
+
+
+class ShopLoginRequest(BaseModel):
+    pin: str
+
+
+class ShopLoginResponse(BaseModel):
+    success: bool = True
+    message: str
+    token: str | None = None
+

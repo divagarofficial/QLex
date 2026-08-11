@@ -90,13 +90,16 @@ def ready_order(
 )
 def reject_order(
     order_id: UUID,
+    request: RejectOrderRequest | None = None,
     db: Session = Depends(get_db),
 ):
 
     service = ShopService(db)
 
+    reason = request.reason if request else None
     return service.reject_order(
-        order_id
+        order_id,
+        reason=reason,
     )
 
 @router.post(

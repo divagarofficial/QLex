@@ -11,6 +11,8 @@ export interface ShopAuthResponse {
  * Currently verifies PIN against temporary config (0810).
  * Keep async interface for seamless backend integration later.
  */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
+
 export async function loginShop(pin: string): Promise<ShopAuthResponse> {
   const validation = validatePinFormat(pin);
   if (!validation.isValid) {
@@ -20,18 +22,40 @@ export async function loginShop(pin: string): Promise<ShopAuthResponse> {
     };
   }
 
-  // Simulate slight authentication network delay for smooth UI transition
-  await new Promise((resolve) => setTimeout(resolve, 550));
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/shop-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin }),
+    });
 
-  if (pin === SHOP_ACCESS_PIN) {
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ detail: "Incorrect PIN." }));
+      return {
+        success: false,
+        message: errData.detail || "Incorrect PIN. Please try again.",
+      };
+    }
+
+    const data = await res.json();
+    if (data.token) {
+      localStorage.setItem("qlex_shop_token", data.token);
+    }
     return {
       success: true,
-      message: "Access Granted",
+      message: data.message || "Access Granted",
+    };
+  } catch {
+    // Fallback to local check if network error occurs
+    if (pin === SHOP_ACCESS_PIN) {
+      return {
+        success: true,
+        message: "Access Granted (Offline Mode)",
+      };
+    }
+    return {
+      success: false,
+      message: "Incorrect PIN. Please try again.",
     };
   }
-
-  return {
-    success: false,
-    message: "Incorrect PIN. Please try again.",
-  };
 }

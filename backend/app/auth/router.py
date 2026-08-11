@@ -54,6 +54,26 @@ def login(
         password=request.password,
     )
 
+from app.auth.schemas import LoginRequest, LoginResponse, ShopLoginRequest, ShopLoginResponse
+import os
+from fastapi import HTTPException
+
+@router.post(
+    "/shop-login",
+    response_model=ShopLoginResponse,
+)
+def shop_login(
+    request: ShopLoginRequest,
+):
+    expected_pin = os.getenv("SHOP_ACCESS_PIN", "0810")
+    if request.pin == expected_pin:
+        return ShopLoginResponse(
+            success=True,
+            message="Access Granted",
+            token="shop-operator-session-token",
+        )
+    raise HTTPException(status_code=401, detail="Incorrect PIN. Access Denied.")
+
 @router.get(
     "/departments",
     response_model=DepartmentsListResponse,

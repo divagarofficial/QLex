@@ -179,7 +179,7 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
   const handleConfirmReject = async () => {
     setActionLoading(true);
     try {
-      await rejectShopOrder(orderId);
+      await rejectShopOrder(orderId, rejectReason);
       setShowRejectModal(false);
       setRejectReason("");
       setPopupState({
