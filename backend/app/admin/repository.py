@@ -607,6 +607,239 @@ class AdminRepository:
             })
         return {"payments": payments}
 
+    def admin_orders(
+        self,
+        search: str | None = None,
+        status: str | None = None,
+        page: int = 1,
+        page_size: int = 12,
+    ):
+        query = (
+            self.db.query(Order, ShopQueue, User)
+            .outerjoin(ShopQueue, ShopQueue.order_id == Order.id)
+            .outerjoin(User, User.id == Order.student_id)
+        )
+
+        if search and search.strip():
+            term = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    func.cast(Order.id, str).ilike(term),
+                    User.register_number.ilike(term),
+                    User.full_name.ilike(term),
+                    ShopQueue.token.ilike(term)
+                )
+            )
+
+        if status and status.strip() and status.lower() != "all":
+            st_val = status.strip().lower()
+            query = query.filter(func.lower(func.cast(Order.status, str)) == st_val)
+
+        query = query.order_by(Order.created_at.desc())
+        total_count = query.count()
+
+        page_size = max(1, page_size)
+        total_pages = max(1, (total_count + page_size - 1) // page_size)
+        page = min(max(1, page), total_pages)
+        start_idx = (page - 1) * page_size
+
+        rows = query.offset(start_idx).limit(page_size).all()
+
+        orders = []
+        for order, queue, user in rows:
+            orders.append({
+                "id": order.id,
+                "order_id": order.id,
+                "student_name": user.full_name if user else "Student",
+                "register_number": user.register_number if user else "N/A",
+                "token": queue.token if queue else None,
+                "shop_name": "QLex Central Print Hub",
+                "status": order.status.value if hasattr(order.status, "value") else str(order.status),
+                "payment_status": order.payment_status.value if hasattr(order.payment_status, "value") else str(order.payment_status),
+                "is_priority": order.is_priority,
+                "amount": order.subtotal or Decimal("0.00"),
+                "final_amount": order.grand_total or Decimal("0.00"),
+                "grand_total": order.grand_total or Decimal("0.00"),
+                "created_at": order.created_at,
+            })
+
+        return {
+            "orders": orders,
+            "total": total_count,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+        }
+
+    def admin_payments(
+        self,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 12,
+    ):
+        query = (
+            self.db.query(Payment, Order, User)
+            .outerjoin(Order, Order.id == Payment.order_id)
+            .outerjoin(User, User.id == Order.student_id)
+        )
+
+        if search and search.strip():
+            term = f"%{search.strip()}%"
+            query = query.filter(
+                or_(
+                    func.cast(Payment.id, str).ilike(term),
+                    func.cast(Payment.order_id, str).ilike(term),
+                    Payment.gateway_payment_id.ilike(term),
+                    Payment.gateway_order_id.ilike(term),
+                    User.register_number.ilike(term),
+                    User.full_name.ilike(term)
+                )
+            )
+
+        query = query.order_by(Payment.created_at.desc())
+        total_count = query.count()
+
+        page_size = max(1, page_size)
+        total_pages = max(1, (total_count + page_size - 1) // page_size)
+        page = min(max(1, page), total_pages)
+        start_idx = (page - 1) * page_size
+
+        rows = query.offset(start_idx).limit(page_size).all()
+
+        payments = []
+        for payment, order, user in rows:
+            tx_id = payment.gateway_payment_id or payment.gateway_order_id or str(payment.id)[:12]
+            payments.append({
+                "id": payment.id,
+                "transaction_id": tx_id,
+                "order_id": payment.order_id,
+                "user_name": user.full_name if user else "Student",
+                "register_number": user.register_number if user else "N/A",
+                "amount": payment.amount or Decimal("0.00"),
+                "gateway": payment.gateway or "Razorpay",
+                "status": payment.status.value if hasattr(payment.status, "value") else str(payment.status),
+                "created_at": payment.created_at,
+            })
+
+        return {
+            "payments": payments,
+            "total": total_count,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+        }
+
+    def export_report_csv(self, report_type: str = "settlements", date_range: str = "7d") -> str:
+        import io
+        import csv
+        from datetime import timedelta
+
+        today = date.today()
+        if date_range == "today":
+            start_date = today
+        elif date_range == "30d":
+            start_date = today - timedelta(days=30)
+        elif date_range == "mtd":
+            start_date = date(today.year, today.month, 1)
+        else:  # 7d
+            start_date = today - timedelta(days=7)
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        if report_type == "settlements":
+            writer.writerow(["Settlement ID", "Settlement Date", "Generated At", "Paid At", "UPI Reference", "Amount (INR)", "Status"])
+            rows = (
+                self.db.query(Settlement)
+                .filter(Settlement.settlement_date >= start_date)
+                .order_by(Settlement.settlement_date.desc())
+                .all()
+            )
+            for s in rows:
+                writer.writerow([
+                    str(s.id),
+                    str(s.settlement_date),
+                    str(s.generated_at or ""),
+                    str(s.paid_at or ""),
+                    s.upi_reference or "",
+                    f"{float(s.amount or 0):.2f}",
+                    str(s.status.value if hasattr(s.status, "value") else s.status),
+                ])
+
+        elif report_type == "orders":
+            writer.writerow(["Order ID", "Student Register No", "Token", "Status", "Payment Status", "Priority Pass", "Subtotal", "Grand Total", "Created At"])
+            rows = (
+                self.db.query(Order, ShopQueue, User)
+                .outerjoin(ShopQueue, ShopQueue.order_id == Order.id)
+                .outerjoin(User, User.id == Order.student_id)
+                .filter(func.date(Order.created_at) >= start_date)
+                .order_by(Order.created_at.desc())
+                .all()
+            )
+            for order, queue, user in rows:
+                writer.writerow([
+                    str(order.id),
+                    user.register_number if user else "N/A",
+                    queue.token if queue else "N/A",
+                    str(order.status.value if hasattr(order.status, "value") else order.status),
+                    str(order.payment_status.value if hasattr(order.payment_status, "value") else order.payment_status),
+                    "YES" if order.is_priority else "NO",
+                    f"{float(order.subtotal or 0):.2f}",
+                    f"{float(order.grand_total or 0):.2f}",
+                    str(order.created_at),
+                ])
+
+        elif report_type == "revenue":
+            writer.writerow(["Date", "Total Orders", "Convenience Fee (INR)", "Platform Fee (INR)", "Priority Fee (INR)", "Total Platform Revenue (INR)"])
+            rows = (
+                self.db.query(
+                    func.date(Order.created_at).label("date"),
+                    func.count(Order.id).label("total_orders"),
+                    func.sum(Order.convenience_fee).label("convenience_fee"),
+                    func.sum(Order.platform_fee).label("platform_fee"),
+                    func.sum(Order.priority_fee).label("priority_fee"),
+                )
+                .filter(func.date(Order.created_at) >= start_date)
+                .group_by(func.date(Order.created_at))
+                .order_by(func.date(Order.created_at).desc())
+                .all()
+            )
+            for r in rows:
+                c_fee = float(r.convenience_fee or 0)
+                p_fee = float(r.platform_fee or 0)
+                pr_fee = float(r.priority_fee or 0)
+                tot = c_fee + p_fee + pr_fee
+                writer.writerow([
+                    str(r.date),
+                    r.total_orders,
+                    f"{c_fee:.2f}",
+                    f"{p_fee:.2f}",
+                    f"{pr_fee:.2f}",
+                    f"{tot:.2f}",
+                ])
+
+        elif report_type == "students":
+            writer.writerow(["Student ID", "Register No", "Full Name", "Email", "Phone", "Status", "Created At"])
+            rows = (
+                self.db.query(User)
+                .filter(func.date(User.created_at) >= start_date)
+                .order_by(User.created_at.desc())
+                .all()
+            )
+            for u in rows:
+                writer.writerow([
+                    str(u.id),
+                    u.register_number,
+                    u.full_name,
+                    u.email or "",
+                    u.phone or "",
+                    "ACTIVE" if u.is_active else "BLOCKED",
+                    str(u.created_at),
+                ])
+
+        return output.getvalue()
+
+
     def admin_shops(self):
         today_rev = self.today_revenue()
         today_ord = self.today_orders()

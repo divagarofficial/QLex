@@ -2,26 +2,35 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, Download, Calendar, Filter, CheckCircle2 } from "lucide-react";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { ArrowLeft, Download, CheckCircle2, AlertCircle } from "lucide-react";
+import AdminProtectedRoute from "@/components/admin/AdminProtectedRoute";
+import { downloadAdminReportCsv } from "@/services/adminDashboard";
 
 export default function AdminReportsPage() {
   const [reportType, setReportType] = useState("settlements");
   const [dateRange, setDateRange] = useState("7d");
   const [isGenerating, setIsGenerating] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleDownload = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
+  const handleDownload = async () => {
+    try {
+      setIsGenerating(true);
+      setSuccessMsg("");
+      setErrorMsg("");
+      await downloadAdminReportCsv(reportType, dateRange);
+      setSuccessMsg(`Generated and downloaded live ${reportType.toUpperCase()} report CSV (${dateRange}).`);
+      setTimeout(() => setSuccessMsg(""), 5000);
+    } catch (err: any) {
+      console.error("Report generation failed:", err);
+      setErrorMsg(err.message || "Failed to generate CSV report.");
+    } finally {
       setIsGenerating(false);
-      setSuccessMsg(`Generated and downloaded ${reportType.toUpperCase()} report (${dateRange}).`);
-      setTimeout(() => setSuccessMsg(""), 4000);
-    }, 1200);
+    }
   };
 
   return (
-    <ProtectedRoute>
+    <AdminProtectedRoute>
       <div className="min-h-screen bg-obsidian text-white selection:bg-amber-500/30">
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 space-y-6 pb-16">
           {/* Header */}
@@ -37,7 +46,7 @@ export default function AdminReportsPage() {
                 Financial & System Reports
               </h1>
               <p className="text-xs text-white/40">
-                Export shop settlements, transaction audits, and order histories.
+                Export shop settlements, transaction audits, order logs, and student reports to CSV.
               </p>
             </div>
           </div>
@@ -81,17 +90,25 @@ export default function AdminReportsPage() {
               </div>
             )}
 
+            {errorMsg && (
+              <div className="flex items-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 p-4 text-xs font-semibold text-red-400">
+                <AlertCircle size={16} />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
             <button
               onClick={handleDownload}
               disabled={isGenerating}
               className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 px-6 py-3.5 text-xs font-bold text-slate-950 shadow-md shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
             >
               <Download size={16} />
-              <span>{isGenerating ? "Generating Report..." : "Generate & Export CSV"}</span>
+              <span>{isGenerating ? "Generating Live CSV..." : "Generate & Export CSV"}</span>
             </button>
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+    </AdminProtectedRoute>
   );
 }
+

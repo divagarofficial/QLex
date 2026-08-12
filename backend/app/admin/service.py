@@ -213,6 +213,36 @@ class AdminService:
             raise ValueError("Student not found")
         return student
 
+    def admin_orders(
+        self,
+        search: str | None = None,
+        status: str | None = None,
+        page: int = 1,
+        page_size: int = 12,
+    ):
+        return self.repository.admin_orders(
+            search=search,
+            status=status,
+            page=page,
+            page_size=page_size,
+        )
+
+    def admin_payments(
+        self,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 12,
+    ):
+        return self.repository.admin_payments(
+            search=search,
+            page=page,
+            page_size=page_size,
+        )
+
+    def export_report_csv(self, report_type: str = "settlements", date_range: str = "7d") -> str:
+        return self.repository.export_report_csv(report_type=report_type, date_range=date_range)
+
+
 
 
                 

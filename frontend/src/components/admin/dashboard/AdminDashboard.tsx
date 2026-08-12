@@ -18,6 +18,8 @@ import SkeletonLoader from "./SkeletonLoader";
 import EmptyState from "./EmptyState";
 import Popup from "@/components/popup/Popup";
 import { AlertTriangle, ShieldAlert } from "lucide-react";
+import AdminProtectedRoute from "../AdminProtectedRoute";
+
 
 import {
   getAdminOverview,
@@ -38,7 +40,8 @@ import {
   type ServerHealth,
 } from "@/services/adminDashboard";
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -222,3 +225,13 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+export default function AdminDashboard() {
+  return (
+    <AdminProtectedRoute>
+      <AdminDashboardContent />
+    </AdminProtectedRoute>
+  );
+}
+
+

@@ -10,6 +10,8 @@ import Pagination from "./Pagination";
 import SkeletonLoader from "./SkeletonLoader";
 import EmptyState from "./EmptyState";
 import Popup from "@/components/popup/Popup";
+import AdminProtectedRoute from "../AdminProtectedRoute";
+
 import {
   getStudentsOverview,
   getStudentsList,
@@ -19,7 +21,7 @@ import {
 } from "@/services/adminStudents";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
-export default function StudentsPage() {
+function StudentsPageContent() {
   const [overview, setOverview] = useState<OverviewType | null>(null);
   const [students, setStudents] = useState<StudentItem[]>([]);
   const [totalStudents, setTotalStudents] = useState<number>(0);
@@ -247,4 +249,14 @@ export default function StudentsPage() {
     </div>
   );
 }
+
+export default function StudentsPage() {
+  return (
+    <AdminProtectedRoute>
+      <StudentsPageContent />
+    </AdminProtectedRoute>
+  );
+}
+
+
 

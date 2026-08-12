@@ -13,6 +13,8 @@ import RecentChanges from "./RecentChanges";
 import StickySaveBar from "./StickySaveBar";
 import SkeletonLoader from "./SkeletonLoader";
 import Popup from "@/components/popup/Popup";
+import AdminProtectedRoute from "../AdminProtectedRoute";
+
 import {
   getPricingRules,
   updatePricingRule,
@@ -25,7 +27,7 @@ import {
   AuditLogItem,
 } from "@/services/adminPricing";
 
-export default function AdminPricingPage() {
+function AdminPricingPageContent() {
   // ── Read-only (merchant-set) ──────────────────────────
   const [originalRules, setOriginalRules] = useState<PricingRule[]>([]);
   const [services, setServices] = useState<ServiceRule[]>([]);
@@ -329,3 +331,13 @@ export default function AdminPricingPage() {
     </div>
   );
 }
+
+export default function AdminPricingPage() {
+  return (
+    <AdminProtectedRoute>
+      <AdminPricingPageContent />
+    </AdminProtectedRoute>
+  );
+}
+
+

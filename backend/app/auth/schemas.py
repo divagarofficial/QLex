@@ -96,3 +96,14 @@ class ShopLoginResponse(BaseModel):
     message: str
     token: str | None = None
 
+
+class AdminLoginRequest(BaseModel):
+    password: str
+
+
+class AdminLoginResponse(BaseModel):
+    success: bool = True
+    message: str
+    token: str | None = None
+
+

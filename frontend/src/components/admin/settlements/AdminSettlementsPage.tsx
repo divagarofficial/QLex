@@ -13,6 +13,8 @@ import Pagination from "./Pagination";
 import SkeletonLoader from "./SkeletonLoader";
 import EmptyState from "./EmptyState";
 import Popup from "@/components/popup/Popup";
+import AdminProtectedRoute from "../AdminProtectedRoute";
+
 import {
   getAdminSettlements,
   generateTodaySettlement,
@@ -21,7 +23,7 @@ import {
 } from "@/services/adminSettlements";
 import { getAdminShops, AdminShopItem } from "@/services/adminDashboard";
 
-export default function AdminSettlementsPage() {
+function AdminSettlementsPageContent() {
   const [settlements, setSettlements] = useState<SettlementItem[]>([]);
   const [shops, setShops] = useState<AdminShopItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -346,3 +348,13 @@ export default function AdminSettlementsPage() {
     </div>
   );
 }
+
+export default function AdminSettlementsPage() {
+  return (
+    <AdminProtectedRoute>
+      <AdminSettlementsPageContent />
+    </AdminProtectedRoute>
+  );
+}
+
+

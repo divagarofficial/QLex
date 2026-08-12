@@ -54,7 +54,7 @@ def login(
         password=request.password,
     )
 
-from app.auth.schemas import LoginRequest, LoginResponse, ShopLoginRequest, ShopLoginResponse
+from app.auth.schemas import LoginRequest, LoginResponse, ShopLoginRequest, ShopLoginResponse, AdminLoginRequest, AdminLoginResponse
 import os
 from fastapi import HTTPException
 
@@ -73,6 +73,23 @@ def shop_login(
             token="shop-operator-session-token",
         )
     raise HTTPException(status_code=401, detail="Incorrect PIN. Access Denied.")
+
+@router.post(
+    "/admin-login",
+    response_model=AdminLoginResponse,
+)
+def admin_login(
+    request: AdminLoginRequest,
+):
+    expected_password = os.getenv("ADMIN_ACCESS_PASSWORD", "Thiru@1012")
+    if request.password == expected_password:
+        return AdminLoginResponse(
+            success=True,
+            message="Access Granted",
+            token="admin-executive-session-token",
+        )
+    raise HTTPException(status_code=401, detail="Incorrect password. Access Denied.")
+
 
 @router.get(
     "/departments",

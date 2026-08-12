@@ -2,22 +2,16 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft, Store, RefreshCw, CheckCircle2, ShieldCheck, Printer, Clock } from "lucide-react";
+import { ArrowLeft, Store, RefreshCw } from "lucide-react";
 
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import { useAuthStore } from "@/store/authStore";
+import AdminProtectedRoute from "@/components/admin/AdminProtectedRoute";
 import { fetchAdminShops } from "@/services/adminDashboard";
 
 export default function AdminShopsPage() {
-  const token = useAuthStore((s) => s.token);
   const [shops, setShops] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    const activeToken = token || (typeof window !== "undefined" ? localStorage.getItem("qlex_token") : null);
-    if (!activeToken) return;
-
     try {
       setIsLoading(true);
       const data = await fetchAdminShops();
@@ -27,14 +21,14 @@ export default function AdminShopsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
   return (
-    <ProtectedRoute>
+    <AdminProtectedRoute>
       <div className="min-h-screen bg-obsidian text-white selection:bg-amber-500/30">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6 pb-16">
           {/* Header */}
@@ -90,7 +84,7 @@ export default function AdminShopsPage() {
                         </div>
                         <div>
                           <h3 className="font-bold text-white/95">{shop.name || "QLex Central Print Hub"}</h3>
-                          <span className="text-[10px] font-mono text-white/40">ID: {shop.id || "RIT_PRINT_SHOP"}</span>
+                          <span className="text-[10px] font-mono text-white/40">ID: {shop.id || shop.shop_id || "RIT_PRINT_SHOP"}</span>
                         </div>
                       </div>
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
@@ -100,12 +94,12 @@ export default function AdminShopsPage() {
 
                     <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
                       <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
-                        <span className="text-[10px] text-white/40">Total Orders</span>
-                        <div className="font-mono font-bold text-white mt-0.5">{shop.total_orders || 142}</div>
+                        <span className="text-[10px] text-white/40">Today Orders</span>
+                        <div className="font-mono font-bold text-white mt-0.5">{shop.orders_today ?? 0}</div>
                       </div>
                       <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
                         <span className="text-[10px] text-white/40">Status</span>
-                        <div className="font-mono font-bold text-emerald-400 mt-0.5">Active</div>
+                        <div className="font-mono font-bold text-emerald-400 mt-0.5">{shop.health || "OPERATIONAL"}</div>
                       </div>
                     </div>
                   </div>
@@ -115,6 +109,7 @@ export default function AdminShopsPage() {
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+    </AdminProtectedRoute>
   );
 }
+

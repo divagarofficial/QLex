@@ -359,4 +359,49 @@ class StudentsListResponse(BaseModel):
 
 class ToggleStudentStatusRequest(BaseModel):
     is_active: Optional[bool] = None
+
+
+class AdminOrderItemFull(BaseModel):
+    id: UUID
+    order_id: UUID
+    student_name: str
+    register_number: str
+    token: Optional[str] = None
+    shop_name: str = "QLex Central Print Hub"
+    status: str
+    payment_status: str
+    is_priority: bool
+    amount: Decimal
+    final_amount: Decimal
+    grand_total: Decimal
+    created_at: datetime
+
+
+class AdminOrdersListResponse(BaseModel):
+    orders: list[AdminOrderItemFull]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class AdminPaymentItemFull(BaseModel):
+    id: UUID
+    transaction_id: str
+    order_id: Optional[UUID] = None
+    user_name: str
+    register_number: str
+    amount: Decimal
+    gateway: str
+    status: str
+    created_at: datetime
+
+
+class AdminPaymentsListResponse(BaseModel):
+    payments: list[AdminPaymentItemFull]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
 

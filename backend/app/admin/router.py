@@ -1,7 +1,7 @@
 from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, BackgroundTasks
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -41,7 +41,10 @@ from .schemas import (
     StudentItemResponse,
     StudentsListResponse,
     ToggleStudentStatusRequest,
+    AdminOrdersListResponse,
+    AdminPaymentsListResponse,
 )
+
 
 router = APIRouter(
     prefix="/admin",
@@ -358,6 +361,63 @@ def get_recent_payments(
 ):
     service = AdminService(db)
     return service.recent_payments(limit=10)
+
+
+@router.get(
+    "/orders",
+    response_model=AdminOrdersListResponse,
+)
+def get_admin_orders(
+    search: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(12, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    service = AdminService(db)
+    return service.admin_orders(
+        search=search,
+        status=status,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/payments",
+    response_model=AdminPaymentsListResponse,
+)
+def get_admin_payments(
+    search: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(12, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    service = AdminService(db)
+    return service.admin_payments(
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/reports/export",
+)
+def export_admin_report_csv(
+    report_type: str = Query("settlements"),
+    date_range: str = Query("7d"),
+    db: Session = Depends(get_db),
+):
+    service = AdminService(db)
+    csv_content = service.export_report_csv(report_type=report_type, date_range=date_range)
+    filename = f"QLex_{report_type.capitalize()}_Report_{date_range}.csv"
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
 
 
 @router.get(

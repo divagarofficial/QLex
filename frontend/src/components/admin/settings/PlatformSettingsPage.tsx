@@ -26,7 +26,9 @@ import AboutSectionTab from "./AboutSectionTab";
 import StickySaveBar from "./StickySaveBar";
 import SkeletonLoader from "./SkeletonLoader";
 import Popup from "@/components/popup/Popup";
+import AdminProtectedRoute from "../AdminProtectedRoute";
 import { Search, RefreshCw, AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
+
 
 const DEFAULT_INTEGRATIONS: IntegrationItem[] = [
   {
@@ -91,7 +93,7 @@ const DEFAULT_INTEGRATIONS: IntegrationItem[] = [
   },
 ];
 
-export default function PlatformSettingsPage() {
+function PlatformSettingsPageContent() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<SettingsSectionId>("general");
@@ -717,3 +719,13 @@ export default function PlatformSettingsPage() {
     </div>
   );
 }
+
+export default function PlatformSettingsPage() {
+  return (
+    <AdminProtectedRoute>
+      <PlatformSettingsPageContent />
+    </AdminProtectedRoute>
+  );
+}
+
+

@@ -90,12 +90,18 @@ export interface SettlementItem {
 
 /** Helper fetcher with error handling */
 async function fetchAdminApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const adminToken = typeof window !== "undefined" ? localStorage.getItem("qlex_admin_token") || localStorage.getItem("qlex_token") : null;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (adminToken) {
+    headers["Authorization"] = `Bearer ${adminToken}`;
+  }
+
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
+    headers,
     cache: "no-store",
   });
 
@@ -152,6 +158,145 @@ export async function getRecentPayments(): Promise<RecentPaymentItem[]> {
   }));
 }
 
+export interface AdminOrderItemFull {
+  id: string;
+  order_id: string;
+  student_name: string;
+  register_number: string;
+  token?: string | null;
+  shop_name: string;
+  status: string;
+  payment_status: string;
+  is_priority: boolean;
+  amount: number;
+  final_amount: number;
+  grand_total: number;
+  created_at: string;
+}
+
+export interface AdminOrdersPaginatedResponse {
+  orders: AdminOrderItemFull[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export async function getAdminOrdersPage(params: {
+  search?: string;
+  status?: string;
+  page?: number;
+  page_size?: number;
+} = {}): Promise<AdminOrdersPaginatedResponse> {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.set("search", params.search);
+  if (params.status) queryParams.set("status", params.status);
+  if (params.page) queryParams.set("page", params.page.toString());
+  if (params.page_size) queryParams.set("page_size", params.page_size.toString());
+
+  const data = await fetchAdminApi<any>(`/admin/orders?${queryParams.toString()}`);
+  return {
+    orders: (data.orders || []).map((o: any) => ({
+      id: String(o.id || o.order_id || ""),
+      order_id: String(o.order_id || o.id || ""),
+      student_name: String(o.student_name || "Student"),
+      register_number: String(o.register_number || "N/A"),
+      token: o.token ? String(o.token) : null,
+      shop_name: String(o.shop_name || "QLex Central Print Hub"),
+      status: String(o.status || "PENDING"),
+      payment_status: String(o.payment_status || "PENDING"),
+      is_priority: Boolean(o.is_priority),
+      amount: Number(o.amount || 0),
+      final_amount: Number(o.final_amount || o.grand_total || 0),
+      grand_total: Number(o.grand_total || o.final_amount || 0),
+      created_at: String(o.created_at || ""),
+    })),
+    total: Number(data.total || 0),
+    page: Number(data.page || 1),
+    page_size: Number(data.page_size || 12),
+    total_pages: Number(data.total_pages || 1),
+  };
+}
+
+export interface AdminPaymentItemFull {
+  id: string;
+  transaction_id: string;
+  order_id?: string | null;
+  user_name: string;
+  register_number: string;
+  amount: number;
+  gateway: string;
+  status: string;
+  created_at: string;
+}
+
+export interface AdminPaymentsPaginatedResponse {
+  payments: AdminPaymentItemFull[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export async function getAdminPaymentsPage(params: {
+  search?: string;
+  page?: number;
+  page_size?: number;
+} = {}): Promise<AdminPaymentsPaginatedResponse> {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.set("search", params.search);
+  if (params.page) queryParams.set("page", params.page.toString());
+  if (params.page_size) queryParams.set("page_size", params.page_size.toString());
+
+  const data = await fetchAdminApi<any>(`/admin/payments?${queryParams.toString()}`);
+  return {
+    payments: (data.payments || []).map((p: any) => ({
+      id: String(p.id || ""),
+      transaction_id: String(p.transaction_id || ""),
+      order_id: p.order_id ? String(p.order_id) : null,
+      user_name: String(p.user_name || "Student"),
+      register_number: String(p.register_number || "N/A"),
+      amount: Number(p.amount || 0),
+      gateway: String(p.gateway || "Razorpay"),
+      status: String(p.status || "PAID"),
+      created_at: String(p.created_at || ""),
+    })),
+    total: Number(data.total || 0),
+    page: Number(data.page || 1),
+    page_size: Number(data.page_size || 12),
+    total_pages: Number(data.total_pages || 1),
+  };
+}
+
+export async function getRevenueHistory(): Promise<any> {
+  return fetchAdminApi<any>("/admin/revenue/history");
+}
+
+export async function downloadAdminReportCsv(reportType: string, dateRange: string): Promise<void> {
+  const adminToken = typeof window !== "undefined" ? localStorage.getItem("qlex_admin_token") || localStorage.getItem("qlex_token") : null;
+  const headers: Record<string, string> = {};
+  if (adminToken) {
+    headers["Authorization"] = `Bearer ${adminToken}`;
+  }
+
+  const url = `${API_BASE_URL}/admin/reports/export?report_type=${reportType}&date_range=${dateRange}`;
+  const res = await fetch(url, { headers, cache: "no-store" });
+
+  if (!res.ok) {
+    throw new Error(`Failed to export report CSV (Status: ${res.status})`);
+  }
+
+  const blob = await res.blob();
+  const downloadUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = downloadUrl;
+  a.download = `QLex_${reportType.toUpperCase()}_Report_${dateRange}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(downloadUrl);
+}
+
 export async function getAdminShops(): Promise<AdminShopItem[]> {
   const data = await fetchAdminApi<{ shops: any[] }>("/admin/shops");
   return (data.shops || []).map((shop) => ({
@@ -195,5 +340,6 @@ export const fetchAdminOverview = getAdminOverview;
 export const fetchAdminRecentOrders = getRecentOrders;
 export const fetchAdminRecentPayments = getRecentPayments;
 export const fetchAdminShops = getAdminShops;
+
 
 
