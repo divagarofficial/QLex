@@ -11,7 +11,11 @@ class PlatformSettingsService:
     def get_settings(self):
         settings = self.repository.get_settings()
         if not settings:
-            return None
+            from app.models.platform_setting import PlatformSetting
+            settings = PlatformSetting()
+            self.repository.db.add(settings)
+            self.repository.save()
+
 
         extra = dict(settings.extra_settings or {})
 

@@ -41,7 +41,10 @@ export interface BackendServerHealth {
 }
 
 function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("qlex_token") : null;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("qlex_admin_token") || localStorage.getItem("qlex_token")
+      : null;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -50,6 +53,7 @@ function getAuthHeaders(): Record<string, string> {
   }
   return headers;
 }
+
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {

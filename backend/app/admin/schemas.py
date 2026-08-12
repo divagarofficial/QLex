@@ -120,23 +120,24 @@ class PlatformSettingsResponse(BaseModel):
 
 class UpdatePlatformSettingsRequest(BaseModel):
 
-    platform_fee: Optional[Decimal] = Decimal("2.00")
+    platform_fee: Optional[Decimal] = None
 
-    priority_fee: Optional[Decimal] = Decimal("3.00")
+    priority_fee: Optional[Decimal] = None
 
-    max_documents_per_order: Optional[int] = 20
+    max_documents_per_order: Optional[int] = None
 
-    max_upload_size_mb: Optional[int] = 50
+    max_upload_size_mb: Optional[int] = None
 
-    max_pages_per_document: Optional[int] = 1000
+    max_pages_per_document: Optional[int] = None
 
-    draft_expiry_hours: Optional[int] = 24
+    draft_expiry_hours: Optional[int] = None
 
-    queue_timeout_minutes: Optional[int] = 10
+    queue_timeout_minutes: Optional[int] = None
 
-    allow_new_orders: Optional[bool] = True
+    allow_new_orders: Optional[bool] = None
 
-    maintenance_mode: Optional[bool] = False
+    maintenance_mode: Optional[bool] = None
+
 
     general: Optional[dict] = None
 
