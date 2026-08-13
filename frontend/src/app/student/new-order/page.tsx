@@ -368,6 +368,54 @@ export default function NewOrderPage() {
 
   const prices = useMemo(() => computePrices(), [computePrices]);
 
+  const enrichedDocumentSummaries: OrderDocumentSummary[] = useMemo(() => {
+    if (documentSummaries.length === 0) return [];
+
+    const defaultPlatformFee = platformFees ? Number(platformFees.platform_fee) : 0;
+    const platformFee = orderSummary ? Number(orderSummary.platform_fee) : defaultPlatformFee;
+    const platformFeeSharePerDoc = platformFee / documentSummaries.length;
+
+    const firstDocSettings = Object.values(docSettings)[0];
+    const spiralService = services.find((s) => s.name === "Spiral Binding" && s.is_active);
+    const softService = services.find((s) => s.name === "Soft Binding" && s.is_active);
+
+    const spiralCost = firstDocSettings?.spiralBinding && spiralService
+      ? Number(spiralService.price)
+      : 0;
+    const softCost = firstDocSettings?.softBinding && softService
+      ? Number(softService.price)
+      : 0;
+    const bindingPerDoc = (spiralCost + softCost) / documentSummaries.length;
+
+    return documentSummaries.map((doc) => {
+      const s = docSettings[doc.id];
+      let docPrintCost = Number(doc.document_total || 0);
+      let docConvFee = 0;
+
+      if (s) {
+        const pricing = pricingConfigs.find(
+          (p) =>
+            p.paper_size === s.paperSize &&
+            p.print_type === s.printType &&
+            p.print_side === s.printSide &&
+            p.is_active
+        );
+        const shopPrice = pricing ? Number(pricing.shop_price) : 0;
+        const convFeeRate = pricing ? Number(pricing.convenience_fee) : 0;
+
+        docPrintCost = doc.page_count * s.copies * shopPrice;
+        docConvFee = doc.page_count * s.copies * convFeeRate;
+      }
+
+      const totalForDoc = docPrintCost + bindingPerDoc + docConvFee + platformFeeSharePerDoc;
+
+      return {
+        ...doc,
+        document_total: totalForDoc,
+      };
+    });
+  }, [documentSummaries, docSettings, pricingConfigs, services, platformFees, orderSummary]);
+
   // ── File Upload Handler ───────────────────────────────────
   const handleUpload = useCallback(
     async (files: File[]) => {
@@ -580,7 +628,7 @@ export default function NewOrderPage() {
       case 3:
         return (
           <ReviewSection
-            documents={documentSummaries}
+            documents={enrichedDocumentSummaries}
             docSettings={docSettings}
             printType={firstDocSettings.printType}
             printSide={firstDocSettings.printSide}
@@ -719,7 +767,7 @@ export default function NewOrderPage() {
             <div className="w-full lg:w-[360px] lg:flex-shrink-0">
               <div className="hidden lg:block">
                 <OrderSummary
-                  documents={documentSummaries}
+                  documents={enrichedDocumentSummaries}
                   copies={firstDocSettings.copies}
                   pageCount={totalPageCount}
                   printType={firstDocSettings.printType}

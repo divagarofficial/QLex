@@ -78,6 +78,23 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
         document_total: printingSubtotal,
       },
     ];
+  } else {
+    const totalFeesToDistribute = convenienceFee + platformFee;
+    if (totalFeesToDistribute > 0) {
+      const totalPagesInPdf = docsList.reduce(
+        (acc, d) => acc + Number(d.page_count || 1) * Number(d.copies || 1),
+        0
+      ) || 1;
+
+      docsList = docsList.map((d) => {
+        const pgs = Number(d.page_count || 1) * Number(d.copies || 1);
+        const share = (pgs / totalPagesInPdf) * totalFeesToDistribute;
+        return {
+          ...d,
+          document_total: (Number(d.document_total) || 0) + share,
+        };
+      });
+    }
   }
 
   // Exact precision adjustment

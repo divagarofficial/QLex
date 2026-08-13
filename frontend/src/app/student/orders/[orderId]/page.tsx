@@ -210,22 +210,32 @@ export default function StudentOrderDetailPage({
                 </h3>
                 <div className="space-y-2">
                   {order.documents && order.documents.length > 0 ? (
-                    order.documents.map((doc, idx) => (
-                      <div
-                        key={doc.id || idx}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/[0.02] border border-white/10 p-4 text-xs"
-                      >
-                        <div>
-                          <div className="font-semibold text-white/90">{doc.file_name}</div>
-                          <div className="text-white/40 mt-0.5">
-                            {doc.print_type} • {doc.print_side} • {doc.paper_size} • {doc.copies} Copies ({doc.page_count} pages)
+                    (() => {
+                      const totalOrderFees = Number(order.convenience_fee || 0) + Number(order.platform_fee || 0);
+                      const totalOrderPages = order.documents.reduce((sum, d) => sum + (d.page_count * d.copies), 0) || 1;
+
+                      return order.documents.map((doc, idx) => {
+                        const feeShare = ((doc.page_count * doc.copies) / totalOrderPages) * totalOrderFees;
+                        const displayDocTotal = Number(doc.document_total || 0) + feeShare;
+
+                        return (
+                          <div
+                            key={doc.id || idx}
+                            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white/[0.02] border border-white/10 p-4 text-xs"
+                          >
+                            <div>
+                              <div className="font-semibold text-white/90">{doc.file_name}</div>
+                              <div className="text-white/40 mt-0.5">
+                                {doc.print_type} • {doc.print_side} • {doc.paper_size} • {doc.copies} Copies ({doc.page_count} pages)
+                              </div>
+                            </div>
+                            <div className="font-mono font-bold text-emerald-400 text-sm">
+                              ₹{displayDocTotal.toFixed(2)}
+                            </div>
                           </div>
-                        </div>
-                        <div className="font-mono font-bold text-emerald-400 text-sm">
-                          ₹{Number(doc.document_total || 0).toFixed(2)}
-                        </div>
-                      </div>
-                    ))
+                        );
+                      });
+                    })()
                   ) : (
                     <div className="text-xs text-white/40 italic p-3">No document breakdown attached.</div>
                   )}

@@ -136,6 +136,8 @@ export default function PaymentDetailPage({
   const platformFee = orderDetails?.platform_fee ? Number(orderDetails.platform_fee) : 0;
   const priorityFee = orderDetails?.priority_fee ? Number(orderDetails.priority_fee) : 0;
 
+  const displayPrintSubtotal = printSubtotal + convenienceFee + platformFee;
+
   const formattedDate = payment.paid_at
     ? new Date(payment.paid_at).toLocaleString([], {
         dateStyle: "full",
@@ -225,20 +227,8 @@ export default function PaymentDetailPage({
                 <div className="space-y-2 rounded-2xl bg-white/[0.02] border border-white/10 p-4 text-xs">
                   <div className="flex justify-between text-white/70">
                     <span>Print Subtotal</span>
-                    <span className="font-mono">₹{printSubtotal.toFixed(2)}</span>
+                    <span className="font-mono">₹{displayPrintSubtotal.toFixed(2)}</span>
                   </div>
-                  {convenienceFee > 0 && (
-                    <div className="flex justify-between text-white/50">
-                      <span>Convenience Fee</span>
-                      <span className="font-mono">₹{convenienceFee.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {platformFee > 0 && (
-                    <div className="flex justify-between text-white/50">
-                      <span>Platform Fee</span>
-                      <span className="font-mono">₹{platformFee.toFixed(2)}</span>
-                    </div>
-                  )}
                   {priorityFee > 0 && (
                     <div className="flex justify-between text-amber-300 font-semibold">
                       <span>Priority Fee</span>
