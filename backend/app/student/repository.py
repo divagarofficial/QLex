@@ -71,7 +71,6 @@ class StudentRepository:
             self.db.query(ShopQueue)
             .filter(
                 ShopQueue.order_id == order_id,
-                ShopQueue.queue_date == date.today(),
             )
             .first()
         )
@@ -90,19 +89,21 @@ class StudentRepository:
         if printing:
             return printing
 
-        # Priority 2: Active token for today with is_current == True
-        return (
-            self.db.query(ShopQueue)
+        # Priority 2: Fallback to active order in PRINTING state
+        from app.models.order import Order as OrderModel
+        from app.enums.order_status import OrderStatus
+        active_printing = (
+            self.db.query(OrderModel)
             .filter(
-                ShopQueue.queue_date == date.today(),
-                ShopQueue.is_current == True,
-                ShopQueue.queue_state.notin_(
-                    [QueueState.SERVED, QueueState.REJECTED]
-                ),
+                OrderModel.status == OrderStatus.PRINTING,
+                func.date(OrderModel.created_at) == date.today(),
             )
-            .order_by(ShopQueue.created_at.asc())
             .first()
         )
+        if active_printing and active_printing.shop_queue:
+            return active_printing.shop_queue
+
+        return None
 
     def get_priority_queue(self):
         return (
@@ -150,7 +151,6 @@ class StudentRepository:
                 self.db.query(ShopQueue)
                 .filter(
                     ShopQueue.order_id == order.id,
-                    ShopQueue.queue_date == date.today(),
                 )
                 .first()
             )
@@ -158,6 +158,20 @@ class StudentRepository:
             if not queue and order.status not in [OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT, OrderStatus.CANCELLED, OrderStatus.EXPIRED, OrderStatus.PAYMENT_FAILED] and getattr(order, "payment_status", None) == PaymentStatus.PAID and order.created_at and order.created_at.date() == date.today():
                 queue = queue_service.create_queue_entry(order)
             token = queue.token if queue else None
+
+            if not token and getattr(order, "payment_status", None) == PaymentStatus.PAID:
+                prefix = "P" if order.is_priority else "R"
+                seq_num = (
+                    self.db.query(Order)
+                    .filter(
+                        Order.is_priority == order.is_priority,
+                        Order.created_at >= (order.created_at.date() if order.created_at else date.today()),
+                        Order.created_at <= order.created_at,
+                    )
+                    .count()
+                )
+                token = f"{prefix}-{max(1, seq_num)}"
+
             doc_count = len(order.documents) if order.documents else 0
             result.append((order, token, doc_count))
 

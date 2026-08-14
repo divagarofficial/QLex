@@ -102,8 +102,17 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
         Paragraph(f"Order ID: <b>{short_id}</b>", body_val_bold),
     ]
 
-    token_str = token_number if token_number else getattr(order, "token", "Standard Queue")
-    if token_str and not token_str.startswith("Token #") and token_str != "Standard Queue":
+    raw_token = token_number if token_number else getattr(order, "token", None)
+    if not raw_token or raw_token in ["Standard Queue", "Priority Queue"]:
+        is_priority = bool(getattr(order, "is_priority", False))
+        prefix = "P" if is_priority else "R"
+        order_id_str = str(getattr(order, "id", getattr(order, "order_id", "")))
+        short_code = order_id_str[:4].upper() if order_id_str else "001"
+        token_str = f"{prefix}-{short_code}"
+    else:
+        token_str = str(raw_token)
+
+    if not token_str.startswith("Token #"):
         token_display = f"Token #{token_str}"
     else:
         token_display = token_str
@@ -263,7 +272,21 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     elements.append(sig_drawing)
     elements.append(Spacer(1, 10))
 
-    # 6. Corporate Legal Footer
+    # 6. Barcode & Security Vector Graphic
+    barcode_drawing = Drawing(538, 22)
+    barcode_x = 180
+    bar_pattern = [2, 1, 3, 1, 4, 1, 2, 3, 1, 2, 4, 1, 3, 1, 2, 4, 1, 2, 3, 1, 4, 1, 2, 1, 3, 2, 4, 1, 2]
+    curr_x = barcode_x
+    for idx, w in enumerate(bar_pattern):
+        if idx % 2 == 0:
+            barcode_drawing.add(Rect(curr_x, 8, w * 1.0, 12, fillColor=COLOR_NAVY, strokeColor=None))
+        curr_x += w * 1.0 + 0.8
+    barcode_drawing.add(String(269, 0, f"SEC-AUTH • {short_id} • QLEX-TERMINAL-2026", fontName="Courier-Bold", fontSize=6.5, textAnchor="middle", fillColor=COLOR_SLATE_500))
+
+    elements.append(barcode_drawing)
+    elements.append(Spacer(1, 8))
+
+    # 7. Corporate Legal Footer
     elements.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#CBD5E1'), spaceAfter=6))
     elements.append(Paragraph(
         f"Receipt Generated: {gen_str} • QLex • Rajalakshmi Institute of Technology",

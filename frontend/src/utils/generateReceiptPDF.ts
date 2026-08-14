@@ -203,14 +203,25 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
   doc.text("Pickup Token:", margin + 70, y + 14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(217, 119, 6); // Amber
-  doc.text(order.token ? `Token #${order.token}` : "Standard Queue", margin + 94, y + 14);
+  const rawToken = details?.token || order.token;
+  let tokenDisplay = "";
+  if (rawToken && rawToken.trim() !== "" && rawToken !== "Standard Queue" && rawToken !== "Priority Queue") {
+    tokenDisplay = rawToken.startsWith("Token #") ? rawToken : `Token #${rawToken}`;
+  } else {
+    const isPriority = Boolean(order.is_priority || details?.is_priority);
+    const prefix = isPriority ? "P" : "R";
+    const shortId = order.order_id ? order.order_id.slice(0, 4).toUpperCase() : "001";
+    tokenDisplay = `Token #${prefix}-${shortId}`;
+  }
+  doc.text(tokenDisplay, margin + 94, y + 14);
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
   doc.text("Priority Level:", margin + 70, y + 21);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(order.is_priority ? 217 : 71, order.is_priority ? 119 : 85, order.is_priority ? 6 : 105);
-  doc.text(order.is_priority ? "EXPRESS PRIORITY" : "Standard Print", margin + 94, y + 21);
+  const isPriorityOrder = Boolean(order.is_priority || details?.is_priority);
+  doc.setTextColor(isPriorityOrder ? 217 : 71, isPriorityOrder ? 119 : 85, isPriorityOrder ? 6 : 105);
+  doc.text(isPriorityOrder ? "EXPRESS PRIORITY" : "Standard Print", margin + 94, y + 21);
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
@@ -445,9 +456,29 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
   doc.text("Authorized Signatory", sig2X, sigY + 22, { align: "center" });
   doc.text("Mindura Technologies", sig2X, sigY + 25.5, { align: "center" });
 
-  y += 44;
+  y += 42;
 
-  // ── 6. Corporate Legal Footer ──────────────────────────────────────────────
+  // ── 6. Barcode & Security Graphic ──────────────────────────────────────────
+  const barcodeX = pageWidth / 2 - 32;
+  const barcodeY = y;
+  doc.setFillColor(15, 23, 42);
+  const barPattern = [2, 1, 3, 1, 4, 1, 2, 3, 1, 2, 4, 1, 3, 1, 2, 4, 1, 2, 3, 1, 4, 1, 2, 1, 3, 2, 4, 1, 2];
+  let currentBarX = barcodeX;
+  barPattern.forEach((w, idx) => {
+    if (idx % 2 === 0) {
+      doc.rect(currentBarX, barcodeY, w * 0.8, 6, "F");
+    }
+    currentBarX += w * 0.8 + 0.5;
+  });
+
+  doc.setFont("courier", "bold");
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`SEC-AUTH • ${order.order_id} • QLEX-TERMINAL-2026`, pageWidth / 2, barcodeY + 9.5, { align: "center" });
+
+  y += 14;
+
+  // ── 7. Corporate Legal Footer ──────────────────────────────────────────────
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
