@@ -2,6 +2,7 @@
 
 import { FileText, Receipt, CheckCircle2, ShieldCheck } from "lucide-react";
 import type { DetailedOrderDocument } from "@/types/shop";
+import { getDocumentDisplayPrice } from "@/utils/pricing";
 
 interface FinancialBreakdownProps {
   documents: DetailedOrderDocument[];
@@ -54,6 +55,16 @@ export default function FinancialBreakdown({
           <tbody className="divide-y divide-white/5 text-zinc-200">
             {documents.map((doc, idx) => {
               const specLabel = `${doc.print_type === "colour" || doc.print_type === "COLOR" ? "Colour" : "B&W"} • ${doc.paper_size} • ${doc.print_side}`;
+              const displayPrice = getDocumentDisplayPrice(
+                doc,
+                documents,
+                subtotal,
+                convenienceFee,
+                platformFee,
+                grandTotal,
+                priorityFee
+              );
+
               return (
                 <tr key={doc.id || idx} className="hover:bg-white/[0.02]">
                   <td className="py-2.5 pl-1 font-medium flex items-center gap-2">
@@ -64,7 +75,7 @@ export default function FinancialBreakdown({
                   <td className="py-2.5 font-mono">{doc.copies}x</td>
                   <td className="py-2.5 text-zinc-400">{specLabel}</td>
                   <td className="py-2.5 text-right pr-1 font-bold font-mono text-amber-300">
-                    ₹{Number(doc.document_total || 0).toFixed(2)}
+                    ₹{displayPrice.toFixed(2)}
                   </td>
                 </tr>
               );

@@ -5,6 +5,7 @@ import Popup from "@/components/popup/Popup";
 import { fetchOrderDetails } from "@/services/shop";
 import type { ShopOrderDetails } from "@/types/shop";
 import { FileText, Printer, CheckCircle, Zap, Loader2 } from "lucide-react";
+import { getDocumentDisplayPrice } from "@/utils/pricing";
 
 interface OrderDetailsModalProps {
   orderId: string | null;
@@ -70,20 +71,31 @@ export default function OrderDetailsModal({
 
           {/* Document list */}
           <div className="max-h-72 overflow-y-auto space-y-3 pr-1">
-            {details.documents.map((doc, idx) => (
-              <div
-                key={doc.id || idx}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2 backdrop-blur-md"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-amber-400" />
-                    {doc.original_filename}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-amber-300">
-                    ₹{Number(doc.document_total || 0).toFixed(2)}
-                  </span>
-                </div>
+            {details.documents.map((doc, idx) => {
+              const displayPrice = getDocumentDisplayPrice(
+                doc,
+                details.documents,
+                Number((details as any).subtotal || 0),
+                Number((details as any).convenience_fee || 0),
+                Number((details as any).platform_fee || 0),
+                Number(details.grand_total || 0),
+                Number((details as any).priority_fee || 0)
+              );
+
+              return (
+                <div
+                  key={doc.id || idx}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2 backdrop-blur-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-amber-400" />
+                      {doc.original_filename}
+                    </span>
+                    <span className="text-xs font-mono font-bold text-amber-300">
+                      ₹{displayPrice.toFixed(2)}
+                    </span>
+                  </div>
 
                 <div className="grid grid-cols-3 gap-2 text-[11px] text-zinc-300 font-medium">
                   <div>
@@ -118,8 +130,9 @@ export default function OrderDetailsModal({
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
         </div>
       )}
     </Popup>

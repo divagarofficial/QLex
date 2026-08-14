@@ -20,6 +20,7 @@ import type { TodayOrderItem, ShopOrderDetails } from "@/types/shop";
 import { fetchOrderDetails } from "@/services/shop";
 import { cn } from "@/lib/utils";
 import { getFileUrl } from "@/utils/fileUrl";
+import { getDocumentDisplayPrice } from "@/utils/pricing";
 
 interface NextOrderCardProps {
   orderItem: TodayOrderItem | null;
@@ -237,26 +238,38 @@ export default function NextOrderCard({
             Files To Print
           </span>
           <div className="flex flex-col gap-2">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center justify-between rounded-xl bg-white/5 p-2.5 px-3 border border-white/5"
-              >
-                <div className="flex items-center gap-2.5 truncate">
-                  <FileText className="h-4 w-4 text-amber-400 shrink-0" />
-                  <span className="text-xs font-semibold text-white truncate">
-                    {doc.original_filename}
-                  </span>
-                  <span className="text-[11px] text-zinc-400 shrink-0">
-                    ({doc.page_count} pages • {doc.copies} copy)
+            {documents.map((doc) => {
+              const displayPrice = getDocumentDisplayPrice(
+                doc,
+                documents,
+                Number(details?.subtotal || 0),
+                Number(details?.convenience_fee || 0),
+                Number(details?.platform_fee || 0),
+                Number(details?.grand_total || (orderItem as any)?.total_amount || 0),
+                Number(details?.priority_fee || 0)
+              );
+
+              return (
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between rounded-xl bg-white/5 p-2.5 px-3 border border-white/5"
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <FileText className="h-4 w-4 text-amber-400 shrink-0" />
+                    <span className="text-xs font-semibold text-white truncate">
+                      {doc.original_filename}
+                    </span>
+                    <span className="text-[11px] text-zinc-400 shrink-0">
+                      ({doc.page_count} pages • {doc.copies} copy)
+                    </span>
+                  </div>
+
+                  <span className="text-xs font-mono font-bold text-amber-300 shrink-0">
+                    ₹{displayPrice.toFixed(2)}
                   </span>
                 </div>
-
-                <span className="text-xs font-mono font-bold text-amber-300 shrink-0">
-                  ₹{Number(doc.document_total || 0).toFixed(2)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

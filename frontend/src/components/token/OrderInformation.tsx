@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Clock,
 } from "lucide-react";
+import { getDocumentDisplayPrice } from "@/utils/pricing";
 
 interface DocumentDetail {
   id?: string;
@@ -138,20 +139,33 @@ export default function OrderInformation({
             Uploaded Files ({documents.length})
           </p>
           <div className="space-y-2">
-            {documents.map((doc, idx) => (
-              <div
-                key={doc.id || idx}
-                className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 text-xs"
-              >
-                <div className="flex items-center gap-2.5 truncate">
-                  <FileText className="w-4 h-4 text-red-400 shrink-0" />
-                  <span className="font-mono text-slate-200 truncate">{doc.file_name}</span>
+            {documents.map((doc, idx) => {
+              const displayPrice = getDocumentDisplayPrice(
+                doc,
+                documents,
+                0,
+                0,
+                0,
+                totalAmount,
+                isPriority ? 10 : 0
+              );
+
+              return (
+                <div
+                  key={doc.id || idx}
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 text-xs"
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <FileText className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="font-mono text-slate-200 truncate">{doc.file_name}</span>
+                  </div>
+                  <span className="text-slate-400 shrink-0 flex items-center gap-2">
+                    <span>{doc.page_count} pages • {doc.copies} copy(ies)</span>
+                    <span className="font-mono font-bold text-emerald-400">₹{displayPrice.toFixed(2)}</span>
+                  </span>
                 </div>
-                <span className="text-slate-400 shrink-0">
-                  {doc.page_count} pages • {doc.copies} copy(ies)
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

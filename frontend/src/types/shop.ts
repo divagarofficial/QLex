@@ -42,6 +42,10 @@ export interface ShopOrderDetails {
   queue_state?: string;
   payment_status?: string;
   is_priority: boolean;
+  subtotal?: number;
+  convenience_fee?: number;
+  platform_fee?: number;
+  priority_fee?: number;
   grand_total: number;
   documents: ShopDocumentItem[];
 }

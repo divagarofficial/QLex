@@ -7,6 +7,7 @@ import type { OrderDocumentSummary } from "@/types/orders";
 import { PrintType, PrintSide, PaperSize } from "@/types/orders";
 import type { DocPrintSettings } from "@/components/orders/PrintOptions";
 import PriceBreakdown from "./PriceBreakdown";
+import { getDocumentDisplayPrice } from "@/utils/pricing";
 
 interface ReviewSectionProps {
   documents: OrderDocumentSummary[];
@@ -82,6 +83,16 @@ export default function ReviewSection({
               const spiral = s ? s.spiralBinding : spiralBinding;
               const soft = s ? s.softBinding : softBinding;
 
+              const displayPrice = getDocumentDisplayPrice(
+                doc,
+                documents,
+                subtotal,
+                convenienceFee,
+                platformFee,
+                grandTotal,
+                priorityFee
+              );
+
               return (
                 <div
                   key={doc.id}
@@ -99,7 +110,7 @@ export default function ReviewSection({
                       </div>
                     </div>
                     <span className="text-sm font-medium text-white/70 flex-shrink-0 ml-4">
-                      ₹{Number(doc.document_total || 0).toFixed(2)}
+                      ₹{displayPrice.toFixed(2)}
                     </span>
                   </div>
 

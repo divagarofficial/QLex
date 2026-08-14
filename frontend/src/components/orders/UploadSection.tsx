@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import Popup from "@/components/popup/Popup";
 import type { UploadedDocumentResponse } from "@/types/orders";
 import { getFileUrl } from "@/utils/fileUrl";
+import { getDocumentDisplayPrice } from "@/utils/pricing";
 
 interface UploadSectionProps {
   files: UploadedDocumentResponse[];
@@ -232,7 +233,7 @@ export default function UploadSection({
                   <span>•</span>
                   <span>{formatFileSize(file.file_size)}</span>
                   <span>•</span>
-                  <span>₹{Number(file.document_total || 0).toFixed(2)}</span>
+                  <span>₹{getDocumentDisplayPrice(file, files).toFixed(2)}</span>
                 </div>
               </div>
 

@@ -5,6 +5,7 @@ import { FileText, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PriceBreakdown from "./PriceBreakdown";
 import type { OrderDocumentSummary } from "@/types/orders";
+import { getDocumentDisplayPrice } from "@/utils/pricing";
 
 interface OrderSummaryProps {
   documents: OrderDocumentSummary[];
@@ -67,31 +68,43 @@ export default function OrderSummary({
               Documents ({documents.length})
             </h4>
             <AnimatePresence mode="popLayout">
-              {documents.map((doc) => (
-                <motion.div
-                  key={doc.id}
-                  layout
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]"
-                >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center">
-                    <FileText size={14} className="text-white/40" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-white/70 truncate">
-                      {doc.original_filename}
-                    </p>
-                    <p className="text-[11px] text-white/30">
-                      {doc.page_count} pages • {doc.copies} {doc.copies === 1 ? "copy" : "copies"}
-                    </p>
-                  </div>
-                  <span className="text-xs font-medium text-white/60">
-                    ₹{Number(doc.document_total || 0).toFixed(2)}
-                  </span>
-                </motion.div>
-              ))}
+              {documents.map((doc) => {
+                const displayPrice = getDocumentDisplayPrice(
+                  doc,
+                  documents,
+                  subtotal,
+                  convenienceFee,
+                  platformFee,
+                  grandTotal,
+                  priorityFee
+                );
+
+                return (
+                  <motion.div
+                    key={doc.id}
+                    layout
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center">
+                      <FileText size={14} className="text-white/40" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-white/70 truncate">
+                        {doc.original_filename}
+                      </p>
+                      <p className="text-[11px] text-white/30">
+                        {doc.page_count} pages • {doc.copies} {doc.copies === 1 ? "copy" : "copies"}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-white/60">
+                      ₹{displayPrice.toFixed(2)}
+                    </span>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
 
