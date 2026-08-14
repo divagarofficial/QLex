@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const QRCode = require("qrcode");
@@ -18,6 +19,9 @@ app.use((req, res, next) => {
 
 const PORT = process.env.WHATSAPP_PORT || (process.env.PORT && process.env.PORT !== "8080" ? process.env.PORT : 5001);
 
+// Absolute path to auth folder to prevent directory mismatch issue
+const AUTH_DIR = path.resolve(__dirname, "./.wwebjs_auth");
+
 // 1. Health & Keep-Alive Endpoints
 app.get("/health", (req, res) => res.json({ status: "healthy", service: "whatsapp-bot" }));
 app.get("/ping", (req, res) => res.status(200).send("pong"));
@@ -26,13 +30,16 @@ app.get("/ping", (req, res) => res.status(200).send("pong"));
 let botStatus = "INITIALIZING"; // INITIALIZING, QR_READY, AUTHENTICATED, READY, DISCONNECTED
 let currentQrCodeDataUrl = null;
 let clientInfo = null;
+let heartbeatInterval = null;
+let authFailureCount = 0;
+let isReinitializing = false;
 
 function removeChromeLocks(dir) {
   if (!fs.existsSync(dir)) return;
   try {
     const files = fs.readdirSync(dir);
     for (const file of files) {
-      const fullPath = `${dir}/${file}`;
+      const fullPath = path.join(dir, file);
       try {
         if (file.startsWith("Singleton")) {
           fs.unlinkSync(fullPath);
@@ -45,11 +52,10 @@ function removeChromeLocks(dir) {
 }
 
 function wipeSessionData() {
-  const authFolder = "./.wwebjs_auth";
   try {
-    removeChromeLocks(authFolder);
-    if (fs.existsSync(authFolder)) {
-      fs.rmSync(authFolder, { recursive: true, force: true });
+    removeChromeLocks(AUTH_DIR);
+    if (fs.existsSync(AUTH_DIR)) {
+      fs.rmSync(AUTH_DIR, { recursive: true, force: true });
       console.log("[WhatsApp Bot] Session directory wiped successfully.");
     }
   } catch (e) {
@@ -58,7 +64,7 @@ function wipeSessionData() {
 }
 
 function createClient() {
-  removeChromeLocks("./.wwebjs_auth");
+  removeChromeLocks(AUTH_DIR);
   const args = [
     "--no-sandbox",
     "--disable-setuid-sandbox",
@@ -70,10 +76,26 @@ function createClient() {
     "--no-default-browser-check",
     "--disable-extensions",
     "--disable-blink-features=AutomationControlled",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding",
+    "--disable-breakpad",
+    "--disable-component-extensions-with-background-pages",
+    "--disable-ipc-flooding-protection",
+    "--enable-features=NetworkService,NetworkServiceInProcess",
+    "--force-color-profile=srgb",
+    "--metrics-recording-only",
+    "--mute-audio",
     "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   ];
 
-  const puppeteerOpts = { headless: true, args };
+  const puppeteerOpts = {
+    headless: true,
+    args,
+    handleSIGINT: false,
+    handleSIGTERM: false,
+    handleSIGHUP: false
+  };
   if (fs.existsSync("/usr/bin/chromium")) {
     puppeteerOpts.executablePath = "/usr/bin/chromium";
   } else if (process.env.PUPPETEER_EXECUTABLE_PATH) {
@@ -81,12 +103,72 @@ function createClient() {
   }
 
   return new Client({
-    authStrategy: new LocalAuth({ clientId: "qlex-bot-session", dataPath: "./.wwebjs_auth" }),
+    authStrategy: new LocalAuth({ clientId: "qlex-bot-session", dataPath: AUTH_DIR }),
+    takeoverOnConflict: true,
+    qrMaxRetries: 10,
+    webVersionCache: {
+      type: "remote",
+      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1014111620-alpha.html"
+    },
     puppeteer: puppeteerOpts
   });
 }
 
 let client = createClient();
+
+function startHeartbeat() {
+  if (heartbeatInterval) clearInterval(heartbeatInterval);
+  heartbeatInterval = setInterval(async () => {
+    if (botStatus !== "READY" || !client) return;
+    try {
+      const state = await client.getState();
+      if (state && state !== "CONNECTED") {
+        console.warn(`[WhatsApp Bot Heartbeat] Connection state changed to: ${state}. Re-asserting connection...`);
+        reconnectClient(false);
+      }
+    } catch (err) {
+      console.warn(`[WhatsApp Bot Heartbeat] Ping failed (${err.message}). Attempting soft recovery...`);
+      reconnectClient(false);
+    }
+  }, 25000);
+}
+
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+}
+
+function reconnectClient(wipeSession = false) {
+  if (isReinitializing) return;
+  isReinitializing = true;
+  stopHeartbeat();
+  botStatus = "INITIALIZING";
+  currentQrCodeDataUrl = null;
+  clientInfo = null;
+
+  console.log(`[WhatsApp Bot] Reconnecting engine (wipeSession=${wipeSession})...`);
+  setTimeout(async () => {
+    try {
+      if (client) {
+        try { await client.destroy(); } catch (e) {}
+      }
+      if (wipeSession) {
+        wipeSessionData();
+      } else {
+        removeChromeLocks(AUTH_DIR);
+      }
+      client = createClient();
+      bindClientEvents(client);
+      initBot();
+    } catch (e) {
+      console.error("[WhatsApp Bot] Re-init error:", e);
+    } finally {
+      isReinitializing = false;
+    }
+  }, 2000);
+}
 
 function bindClientEvents(cli) {
   cli.on("qr", async (qr) => {
@@ -102,52 +184,43 @@ function bindClientEvents(cli) {
   cli.on("authenticated", () => {
     console.log("[WhatsApp Bot] Authenticated successfully!");
     botStatus = "AUTHENTICATED";
+    authFailureCount = 0;
     currentQrCodeDataUrl = null;
   });
 
   cli.on("auth_failure", (msg) => {
     console.error("[WhatsApp Bot] Auth Failure:", msg);
-    botStatus = "DISCONNECTED";
-    currentQrCodeDataUrl = null;
-    clientInfo = null;
-    setTimeout(() => {
-      console.log("[WhatsApp Bot] Resetting session after Auth Failure...");
-      try {
-        cli.destroy().catch(() => null);
-        wipeSessionData();
-        client = createClient();
-        bindClientEvents(client);
-        initBot();
-      } catch (e) {
-        console.error("[WhatsApp Bot] Re-init error:", e);
-      }
-    }, 2000);
+    authFailureCount++;
+    if (authFailureCount >= 3) {
+      console.error("[WhatsApp Bot] 3 consecutive auth failures. Wiping session for fresh QR...");
+      authFailureCount = 0;
+      reconnectClient(true);
+    } else {
+      console.log(`[WhatsApp Bot] Auth failed (${authFailureCount}/3). Retrying with existing session...`);
+      reconnectClient(false);
+    }
   });
 
   cli.on("ready", () => {
     console.log("[WhatsApp Bot] Client is READY & Connected to WhatsApp!");
     botStatus = "READY";
+    authFailureCount = 0;
     currentQrCodeDataUrl = null;
     clientInfo = cli.info ? { wid: cli.info.wid.user, pushname: cli.info.pushname } : null;
+    startHeartbeat();
   });
 
   cli.on("disconnected", (reason) => {
-    console.log("[WhatsApp Bot] Disconnected:", reason);
-    botStatus = "DISCONNECTED";
-    currentQrCodeDataUrl = null;
-    clientInfo = null;
-    setTimeout(() => {
-      console.log("[WhatsApp Bot] Auto-reinitializing engine after disconnect...");
-      try {
-        cli.destroy().catch(() => null);
-        wipeSessionData();
-        client = createClient();
-        bindClientEvents(client);
-        initBot();
-      } catch (e) {
-        console.error("[WhatsApp Bot] Re-init error:", e);
-      }
-    }, 2000);
+    console.log("[WhatsApp Bot] Disconnected event triggered. Reason:", reason);
+    stopHeartbeat();
+    const isExplicitLogout = reason === "LOGOUT" || reason === "UNPAIRED" || reason === "UNPAIRED_IDLE";
+    if (isExplicitLogout) {
+      console.log("[WhatsApp Bot] Device explicitly unlinked/logged out from phone. Wiping session...");
+      reconnectClient(true);
+    } else {
+      console.log("[WhatsApp Bot] Temporary network/socket disconnect. Reconnecting with existing session...");
+      reconnectClient(false);
+    }
   });
 }
 
@@ -162,6 +235,11 @@ function initBot() {
     .catch((err) => {
       console.error("[WhatsApp Bot] Init Error:", err ? (err.stack || err.message || err) : err);
       botStatus = "DISCONNECTED";
+      setTimeout(() => {
+        if (botStatus === "DISCONNECTED" && !isReinitializing) {
+          reconnectClient(false);
+        }
+      }, 5000);
     });
 }
 
@@ -267,6 +345,7 @@ app.post("/send", (req, res) => {
 app.post(["/logout", "/reset"], async (req, res) => {
   try {
     console.log("[WhatsApp Bot] Manual Session Reset / Logout requested.");
+    stopHeartbeat();
     botStatus = "DISCONNECTED";
     currentQrCodeDataUrl = null;
     clientInfo = null;
