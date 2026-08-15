@@ -9,12 +9,21 @@ interface PricingOverviewProps {
 }
 
 export default function PricingOverview({ pricingRules, settings }: PricingOverviewProps) {
+  const isMatch = (r: PricingRule, size: string, isBW: boolean, isSingle: boolean) => {
+    if (r.paper_size !== size) return false;
+    const pt = (r.print_type || "").toLowerCase();
+    const ps = (r.print_side || "").toLowerCase();
+    const rIsBW = pt === "bw" || pt === "black_white" || pt === "black_and_white";
+    const rIsSingle = ps === "single";
+    return rIsBW === isBW && rIsSingle === isSingle;
+  };
+
   // Find default A4 B&W and Colour rates
-  const bwSingle = pricingRules.find((r) => r.paper_size === "A4" && r.print_type === "BW" && r.print_side === "SINGLE");
-  const bwDouble = pricingRules.find((r) => r.paper_size === "A4" && r.print_type === "BW" && r.print_side === "DOUBLE");
+  const bwSingle = pricingRules.find((r) => isMatch(r, "A4", true, true));
+  const bwDouble = pricingRules.find((r) => isMatch(r, "A4", true, false));
   
-  const colorSingle = pricingRules.find((r) => r.paper_size === "A4" && r.print_type === "COLOR" && r.print_side === "SINGLE");
-  const colorDouble = pricingRules.find((r) => r.paper_size === "A4" && r.print_type === "COLOR" && r.print_side === "DOUBLE");
+  const colorSingle = pricingRules.find((r) => isMatch(r, "A4", false, true));
+  const colorDouble = pricingRules.find((r) => isMatch(r, "A4", false, false));
 
   const bwPriceDisplay = bwSingle ? `₹${bwSingle.shop_price.toFixed(2)}` : "₹1.50";
   const bwDoubleDisplay = bwDouble ? `₹${bwDouble.shop_price.toFixed(2)}` : "₹2.50";

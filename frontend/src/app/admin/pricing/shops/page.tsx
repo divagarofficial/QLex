@@ -101,8 +101,8 @@ export default function AdminShopPricingPage() {
                   {pricings.map((p, idx) => (
                     <tr key={p.id || idx} className="hover:bg-white/[0.02]">
                       <td className="p-4 font-mono font-bold text-amber-300">{p.paper_size || "A4"}</td>
-                      <td className="p-4 font-medium text-white/80">{p.print_type || "BW"}</td>
-                      <td className="p-4 font-medium text-white/80">{p.print_side || "SINGLE"}</td>
+                      <td className="p-4 font-medium text-white/80">{(p.print_type || "").toLowerCase().includes("col") ? "Color" : "B/W"}</td>
+                      <td className="p-4 font-medium text-white/80">{(p.print_side || "").toLowerCase().includes("double") ? "Double-sided" : "Single-sided"}</td>
                       <td className="p-4 font-mono font-bold text-emerald-400">₹{Number(p.shop_price || 2.0).toFixed(2)}</td>
                       <td className="p-4 font-mono text-white/70">₹{Number(p.convenience_fee || 0.5).toFixed(2)}</td>
                     </tr>

@@ -194,13 +194,16 @@ function AdminPricingPageContent() {
         });
       }
 
-      // 2. Update convenience_fee on each modified pricing rule via PUT /pricing/{id}
       for (const rule of editedRules) {
         const orig = originalRules.find((r) => r.id === rule.id);
         if (orig && Number(orig.convenience_fee) !== Number(rule.convenience_fee)) {
+          const pt = (rule.print_type || "").toLowerCase();
+          const ps = (rule.print_side || "").toLowerCase();
+          const isBW = pt === "bw" || pt === "black_white" || pt === "black_and_white";
+          const isSingle = ps === "single";
           newLogs.push({
             id: `log-${Date.now()}-${rule.id}`,
-            field_changed: `Convenience Fee — ${rule.paper_size} ${rule.print_type === "BW" ? "B&W" : "Colour"} ${rule.print_side === "SINGLE" ? "Single" : "Double"} Side`,
+            field_changed: `Convenience Fee — ${rule.paper_size} ${isBW ? "B&W" : "Colour"} ${isSingle ? "Single" : "Double"} Side`,
             old_value: `₹${Number(orig.convenience_fee).toFixed(2)} / page`,
             new_value: `₹${Number(rule.convenience_fee).toFixed(2)} / page`,
             changed_by: "Administrator",

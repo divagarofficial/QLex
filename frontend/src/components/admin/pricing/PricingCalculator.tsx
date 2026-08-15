@@ -27,10 +27,17 @@ export default function PricingCalculator({
 
   // Matched pricing rule from backend
   const matchedRule = useMemo(() => {
+    const isBW = printType === "BW" || printType === "black_white";
+    const isSingle = printSide === "SINGLE" || printSide === "single";
     return (
-      pricingRules.find(
-        (r) => r.paper_size === paperSize && r.print_type === printType && r.print_side === printSide
-      ) || { shop_price: 1.5, convenience_fee: 0.2, is_active: true }
+      pricingRules.find((r) => {
+        if (r.paper_size !== paperSize) return false;
+        const rPt = (r.print_type || "").toLowerCase();
+        const rPs = (r.print_side || "").toLowerCase();
+        const rIsBW = rPt === "bw" || rPt === "black_white" || rPt === "black_and_white";
+        const rIsSingle = rPs === "single";
+        return rIsBW === isBW && rIsSingle === isSingle;
+      }) || { shop_price: 1.5, convenience_fee: 0.2, is_active: true }
     );
   }, [pricingRules, paperSize, printType, printSide]);
 

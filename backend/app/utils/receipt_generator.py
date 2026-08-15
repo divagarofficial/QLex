@@ -162,25 +162,73 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
 
     documents = getattr(order, "documents", [])
     subtotal = float(getattr(order, "subtotal", 0.0))
+    convenience_fee = float(getattr(order, "convenience_fee", 0.0))
+    platform_fee = float(getattr(order, "platform_fee", 0.0))
+    priority_fee = float(getattr(order, "priority_fee", 10.0 if is_priority else 0.0))
+    printing_subtotal = subtotal + convenience_fee + platform_fee
+    grand_total = float(getattr(order, "grand_total", printing_subtotal + priority_fee))
+
+    total_fees_to_distribute = convenience_fee + platform_fee
 
     if documents:
+        total_pages_in_pdf = 0
+        for d in documents:
+            if isinstance(d, dict):
+                pgs = int(d.get("page_count") or d.get("total_pages") or 1) * int(d.get("copies") or 1)
+            else:
+                pgs = int(getattr(d, "page_count", 1) or getattr(d, "total_pages", 1) or 1) * int(getattr(d, "copies", 1) or 1)
+            total_pages_in_pdf += pgs
+        if total_pages_in_pdf <= 0:
+            total_pages_in_pdf = 1
+
         for idx, d in enumerate(documents, start=1):
-            file_name_str = getattr(d, "file_name", "Print Document")
+            if isinstance(d, dict):
+                file_name_str = (
+                    d.get("original_filename")
+                    or d.get("file_name")
+                    or d.get("filename")
+                    or d.get("name")
+                    or "Print Document"
+                )
+                paper_size = str(d.get("paper_size") or "A4")
+                if hasattr(paper_size, "value"):
+                    paper_size = paper_size.value
+                is_color = bool(d.get("is_color"))
+                is_duplex = bool(d.get("is_double_sided") or d.get("is_duplex"))
+                copies = int(d.get("copies") or 1)
+                pages = int(d.get("page_count") or d.get("total_pages") or 1)
+                doc_raw_total = float(d.get("price") or d.get("document_total") or d.get("total_price") or 0.0)
+            else:
+                file_name_str = (
+                    getattr(d, "original_filename", None)
+                    or getattr(d, "file_name", None)
+                    or getattr(d, "filename", None)
+                    or getattr(d, "name", None)
+                    or "Print Document"
+                )
+                paper_size = str(getattr(d, "paper_size", "A4"))
+                if hasattr(paper_size, "value"):
+                    paper_size = paper_size.value
+                is_color = bool(getattr(d, "is_color", False))
+                is_duplex = bool(getattr(d, "is_double_sided", False) or getattr(d, "is_duplex", False))
+                copies = int(getattr(d, "copies", 1) or 1)
+                pages = int(getattr(d, "page_count", 1) or getattr(d, "total_pages", 1) or 1)
+                doc_raw_total = float(getattr(d, "price", 0.0) or getattr(d, "document_total", 0.0) or getattr(d, "total_price", 0.0) or 0.0)
+
+            if doc_raw_total == 0.0 and len(documents) == 1:
+                doc_raw_total = subtotal
+
+            pgs = copies * pages
+            share = (pgs / total_pages_in_pdf) * total_fees_to_distribute if total_pages_in_pdf > 0 else 0
+            doc_total = doc_raw_total + share
+
             if len(file_name_str) > 38:
                 file_name_str = file_name_str[:35] + "..."
-            
-            paper_size = getattr(d, "paper_size", "A4")
-            color_type = "Color" if getattr(d, "is_color", False) else "B&W"
-            side_type = "Duplex" if getattr(d, "is_double_sided", False) else "Single Sided"
+
+            color_type = "Color" if is_color else "B&W"
+            side_type = "Duplex" if is_duplex else "Single Sided"
             specs_str = f"{paper_size} • {color_type} • {side_type}"
-            
-            copies = getattr(d, "copies", 1)
-            pages = getattr(d, "total_pages", 1)
-            qty_str = f"{copies} copy • {pages} pgs"
-            
-            doc_total = float(getattr(d, "price", getattr(d, "document_total", 0.0)))
-            if doc_total == 0.0 and len(documents) == 1:
-                doc_total = subtotal
+            qty_str = f"{copies} copy • {pages} pgs" if copies == 1 else f"{copies} copies • {pages} pgs"
 
             table_rows.append([
                 Paragraph(f"{idx:02d}", body_label),
@@ -195,7 +243,7 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
             Paragraph("Print Order Documents", table_cell_bold),
             Paragraph("A4 • B&W • Duplex", table_cell_style),
             Paragraph("1 copy • 1 pgs", table_cell_style),
-            Paragraph(f"₹{subtotal:.2f}", ParagraphStyle('TCRight', parent=table_cell_bold, alignment=2))
+            Paragraph(f"₹{printing_subtotal:.2f}", ParagraphStyle('TCRight', parent=table_cell_bold, alignment=2))
         ])
 
     doc_table = Table(table_rows, colWidths=[24, 180, 160, 94, 80])
@@ -211,12 +259,6 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     elements.append(Spacer(1, 10))
 
     # 4. Financial Summary Card
-    convenience_fee = float(getattr(order, "convenience_fee", 0.0))
-    platform_fee = float(getattr(order, "platform_fee", 0.0))
-    priority_fee = float(getattr(order, "priority_fee", 10.0 if is_priority else 0.0))
-    printing_subtotal = subtotal + convenience_fee + platform_fee
-    grand_total = float(getattr(order, "grand_total", printing_subtotal + priority_fee))
-
     fin_rows = [
         [Paragraph("Printing Subtotal", body_val_bold), Paragraph(f"₹{printing_subtotal:.2f}", ParagraphStyle('FR', parent=body_val_bold, alignment=2))]
     ]

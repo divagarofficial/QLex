@@ -54,8 +54,10 @@ export default function PrintPricingCard({ pricingRules, onConvenienceFeeChange 
       {/* Rules Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
         {filteredRules.map((rule) => {
-          const isBW = rule.print_type === "BW";
-          const isSingle = rule.print_side === "SINGLE";
+          const pt = (rule.print_type || "").toLowerCase();
+          const ps = (rule.print_side || "").toLowerCase();
+          const isBW = pt === "bw" || pt === "black_white" || pt === "black_and_white";
+          const isSingle = ps === "single";
           const typeLabel = isBW ? "Black & White" : "Full Colour";
           const sideLabel = isSingle ? "Single Sided" : "Double Sided";
 

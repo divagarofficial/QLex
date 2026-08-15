@@ -106,31 +106,42 @@ function createClient() {
     authStrategy: new LocalAuth({ clientId: "qlex-bot-session", dataPath: AUTH_DIR }),
     takeoverOnConflict: true,
     qrMaxRetries: 10,
-    webVersionCache: {
-      type: "remote",
-      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.3000.1014111620-alpha.html"
-    },
     puppeteer: puppeteerOpts
   });
 }
 
 let client = createClient();
 
+let heartbeatFailures = 0;
+
 function startHeartbeat() {
   if (heartbeatInterval) clearInterval(heartbeatInterval);
+  heartbeatFailures = 0;
   heartbeatInterval = setInterval(async () => {
     if (botStatus !== "READY" || !client) return;
     try {
       const state = await client.getState();
-      if (state && state !== "CONNECTED") {
-        console.warn(`[WhatsApp Bot Heartbeat] Connection state changed to: ${state}. Re-asserting connection...`);
-        reconnectClient(false);
+      if (state === "CONNECTED") {
+        heartbeatFailures = 0;
+      } else if (state && state !== "CONNECTED") {
+        heartbeatFailures++;
+        console.warn(`[WhatsApp Bot Heartbeat] Connection state is ${state} (${heartbeatFailures}/3)`);
+        if (heartbeatFailures >= 3) {
+          console.warn("[WhatsApp Bot Heartbeat] 3 consecutive non-CONNECTED states. Reconnecting...");
+          heartbeatFailures = 0;
+          reconnectClient(false);
+        }
       }
     } catch (err) {
-      console.warn(`[WhatsApp Bot Heartbeat] Ping failed (${err.message}). Attempting soft recovery...`);
-      reconnectClient(false);
+      heartbeatFailures++;
+      console.warn(`[WhatsApp Bot Heartbeat] Ping failed (${err.message || err}). (${heartbeatFailures}/3)`);
+      if (heartbeatFailures >= 3) {
+        console.warn("[WhatsApp Bot Heartbeat] 3 consecutive ping failures. Attempting soft recovery...");
+        heartbeatFailures = 0;
+        reconnectClient(false);
+      }
     }
-  }, 25000);
+  }, 60000);
 }
 
 function stopHeartbeat() {

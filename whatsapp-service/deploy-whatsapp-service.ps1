@@ -24,8 +24,9 @@ gcloud run deploy $ServiceName `
     --platform managed `
     --allow-unauthenticated `
     --port 8080 `
-    --memory 1Gi `
+    --memory 2Gi `
     --cpu 1 `
+    --no-cpu-throttling `
     --min-instances 1 `
     --max-instances 2
 
