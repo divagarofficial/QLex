@@ -240,3 +240,23 @@ export async function fetchOrderSummary(orderId: string): Promise<OrderSummaryRe
   return handleResponse<OrderSummaryResponse>(res);
 }
 
+export interface PrintAgentHealth {
+  status: string;
+  is_connected: boolean;
+  last_seen: string;
+  active_printers: string[];
+}
+
+/**
+ * Fetch live connectivity status of shop Print Agent
+ */
+export async function fetchPrintAgentHealth(): Promise<PrintAgentHealth> {
+  const res = await fetch(`${API_BASE}/shop/print-agent/health`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
+  return handleResponse<PrintAgentHealth>(res);
+}
+
+
