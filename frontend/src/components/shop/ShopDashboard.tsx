@@ -34,6 +34,7 @@ import type {
   LiveQueueSummary,
 } from "@/types/shop";
 
+import PrintAgentStatusCard from "./PrintAgentStatusCard";
 import Popup from "@/components/popup/Popup";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
@@ -298,15 +299,8 @@ export default function ShopDashboard() {
             {/* Quick Action Navigation Cards */}
             <QuickActions />
 
-            {/* Future Ready Reserved Layout Grid Slot */}
-            <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.01] p-6 text-center text-xs text-zinc-500">
-              <span className="font-semibold text-zinc-400">
-                Future Operations Modules Slot
-              </span>
-              <p className="mt-1">
-                Reserved for Live Queue Graph, Printer Health, Staff Activity & Daily Analytics.
-              </p>
-            </div>
+            {/* Auto-Print Agent Live Status & Control */}
+            <PrintAgentStatusCard />
           </motion.div>
         )}
       </main>

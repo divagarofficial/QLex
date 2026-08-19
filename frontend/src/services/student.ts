@@ -71,7 +71,10 @@ async function authGet<T>(path: string, token: string): Promise<T> {
     const errorBody = await res.json().catch(() => ({
       message: "Network error. Please try again.",
     }));
-    throw new Error(errorBody.message || `Request failed: ${res.status}`);
+    const err: any = new Error(errorBody.message || `Request failed: ${res.status}`);
+    err.status = res.status;
+    err.response = { status: res.status, data: errorBody };
+    throw err;
   }
 
   return res.json();
@@ -96,7 +99,10 @@ async function authPost<T>(path: string, token: string, body?: unknown): Promise
     const errorBody = await res.json().catch(() => ({
       message: "Network error. Please try again.",
     }));
-    throw new Error(errorBody.message || `Request failed: ${res.status}`);
+    const err: any = new Error(errorBody.message || `Request failed: ${res.status}`);
+    err.status = res.status;
+    err.response = { status: res.status, data: errorBody };
+    throw err;
   }
 
   return res.json();

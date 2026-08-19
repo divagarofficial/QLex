@@ -34,6 +34,17 @@ export default function AuthCard() {
 
   const setToken = useAuthStore((s) => s.setToken);
   const setUser = useAuthStore((s) => s.setUser);
+  const hydrate = useAuthStore((s) => s.hydrate);
+  const token = useAuthStore((s) => s.token);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  // If student is already authenticated (e.g. valid token in localStorage), auto-redirect to dashboard
+  useEffect(() => {
+    const storedToken = hydrate();
+    if (storedToken || (token && isAuthenticated)) {
+      router.replace("/student/dashboard");
+    }
+  }, [router, hydrate, token, isAuthenticated]);
 
   const handleLoginSuccess = useCallback(
     async (token: string) => {

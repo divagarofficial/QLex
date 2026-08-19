@@ -434,4 +434,154 @@ class ShopService:
             ),
         }
 
+    def get_pending_print_jobs(self):
+        """
+        Retrieves all PAID orders in the queue that are waiting to be printed.
+        Priority orders are sorted first, followed by regular orders by queue number.
+        """
+        from app.models.shop_queue import ShopQueue
+        from app.enums.queue_state import QueueState
+        from app.enums.queue_type import QueueType
+        from datetime import date
+
+        # Auto-process today's active orders
+        self.get_orders()
+        record_print_agent_heartbeat("shop-windows7-pc", [])
+
+        queues = (
+            self.repository.db.query(ShopQueue)
+            .filter(
+                ShopQueue.queue_date == date.today(),
+                ShopQueue.queue_state == QueueState.WAITING,
+            )
+            .order_by(
+                ShopQueue.queue_type == QueueType.REGULAR,  # PRIORITY first (False < True)
+                ShopQueue.queue_number.asc(),
+            )
+            .all()
+        )
+
+        jobs = []
+        for queue in queues:
+            order = queue.order
+            if not order or not order.documents:
+                continue
+
+            student = getattr(order, "student", None)
+            student_name = getattr(student, "full_name", "Student") if student else "Student"
+
+            documents_spec = []
+            for doc in order.documents:
+                print_type_val = (
+                    doc.print_type.value
+                    if hasattr(doc.print_type, "value")
+                    else str(doc.print_type)
+                )
+                paper_size_val = (
+                    doc.paper_size.value
+                    if hasattr(doc.paper_size, "value")
+                    else str(doc.paper_size)
+                )
+                print_side_val = (
+                    doc.print_side.value
+                    if hasattr(doc.print_side, "value")
+                    else str(doc.print_side)
+                )
+
+                documents_spec.append(
+                    {
+                        "id": doc.id,
+                        "original_filename": doc.original_filename,
+                        "stored_filename": doc.stored_filename,
+                        "url": doc.url,
+                        "file_size": doc.file_size,
+                        "page_count": doc.page_count,
+                        "paper_size": paper_size_val,
+                        "print_type": print_type_val,
+                        "print_side": print_side_val,
+                        "copies": doc.copies,
+                    }
+                )
+
+            jobs.append(
+                {
+                    "order_id": order.id,
+                    "token": queue.token,
+                    "is_priority": order.is_priority,
+                    "student_name": student_name,
+                    "created_at": order.created_at,
+                    "documents": documents_spec,
+                }
+            )
+
+        return jobs
+
+    def update_print_job_status(self, order_id, status: str, error_message: str = None, assigned_printer: str = None):
+        """
+        Updates print job status from local Print Agent.
+        - PRINTING: Marks order as PRINTING
+        - COMPLETED: Marks order as READY_FOR_PICKUP and notifies student via WhatsApp
+        - FAILED: Handles failure state
+        """
+        status_upper = status.upper()
+        if status_upper == "PRINTING":
+            queue = self.print_order(order_id)
+            new_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
+            return {
+                "success": True,
+                "order_id": order_id,
+                "new_queue_state": new_state,
+                "message": f"Order status updated to PRINTING on {assigned_printer or 'local printer'}",
+            }
+        elif status_upper == "COMPLETED":
+            queue = self.mark_ready(order_id)
+            new_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
+            return {
+                "success": True,
+                "order_id": order_id,
+                "new_queue_state": new_state,
+                "message": f"Order printed successfully on {assigned_printer or 'local printer'} and marked READY_FOR_PICKUP",
+            }
+        elif status_upper == "FAILED":
+            import logging
+            logging.getLogger(__name__).error(f"[ShopService] Print job failed for order {order_id}: {error_message}")
+            return {
+                "success": False,
+                "order_id": order_id,
+                "new_queue_state": "FAILED",
+                "message": f"Print job failed: {error_message}",
+            }
+        else:
+            raise ValueError(f"Unsupported status update: {status}")
+
+AGENT_HEARTBEAT_CACHE = {
+    "last_seen": None,
+    "active_printers": [],
+    "agent_id": "shop-windows7-pc",
+}
+
+
+def record_print_agent_heartbeat(agent_id: str, active_printers: list):
+    from datetime import datetime
+    AGENT_HEARTBEAT_CACHE["last_seen"] = datetime.utcnow()
+    AGENT_HEARTBEAT_CACHE["active_printers"] = active_printers
+    AGENT_HEARTBEAT_CACHE["agent_id"] = agent_id
+
+
+def get_print_agent_health():
+    from datetime import datetime, timedelta
+    last_seen = AGENT_HEARTBEAT_CACHE["last_seen"]
+    is_connected = False
+    if last_seen and (datetime.utcnow() - last_seen) < timedelta(seconds=15):
+        is_connected = True
+
+    return {
+        "status": "connected" if is_connected else "disconnected",
+        "is_connected": is_connected,
+        "last_seen": last_seen or datetime.utcnow(),
+        "active_printers": AGENT_HEARTBEAT_CACHE["active_printers"],
+    }
+
+
+
     

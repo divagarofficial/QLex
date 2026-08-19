@@ -30,7 +30,10 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
       success: false,
       message: "Network error. Please try again.",
     }));
-    throw new Error(errorBody.message || "Something went wrong.");
+    const err: any = new Error(errorBody.message || "Something went wrong.");
+    err.status = res.status;
+    err.response = { status: res.status, data: errorBody };
+    throw err;
   }
 
   return res.json();
@@ -52,7 +55,10 @@ async function authGetRequest<T>(path: string, token: string): Promise<T> {
       success: false,
       message: "Network error. Please try again.",
     }));
-    throw new Error(errorBody.message || "Something went wrong.");
+    const err: any = new Error(errorBody.message || "Something went wrong.");
+    err.status = res.status;
+    err.response = { status: res.status, data: errorBody };
+    throw err;
   }
 
   return res.json();

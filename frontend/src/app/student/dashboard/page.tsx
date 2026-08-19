@@ -115,7 +115,8 @@ export default function StudentDashboard() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load dashboard data.";
       setError(message);
-      if (message.includes("Invalid credentials") || message.includes("Not authenticated")) {
+      const isUnauthorized = (err as any)?.status === 401 || (err as any)?.response?.status === 401;
+      if (isUnauthorized) {
         logout();
         router.push("/student/login");
       }

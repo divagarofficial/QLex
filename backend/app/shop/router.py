@@ -12,6 +12,12 @@ from .schemas import (
     TodayRevenueResponse,
     RejectOrderRequest,
 )
+from .print_agent_schemas import (
+    PrintJobResponse,
+    JobStatusUpdateRequest,
+    PrintAgentStatusResponse,
+    AgentHeartbeatResponse,
+)
 from .service import ShopService
 
 
@@ -19,6 +25,56 @@ router = APIRouter(
     prefix="/shop",
     tags=["Shop"],
 )
+
+
+@router.get(
+    "/print-agent/pending-jobs",
+    response_model=list[PrintJobResponse],
+)
+def get_pending_print_jobs(
+    db: Session = Depends(get_db),
+):
+    """
+    Called by local Print Agent daemon to fetch all pending PAID print jobs.
+    """
+    service = ShopService(db)
+    return service.get_pending_print_jobs()
+
+
+@router.post(
+    "/print-agent/jobs/{order_id}/status",
+    response_model=PrintAgentStatusResponse,
+)
+def update_print_job_status(
+    order_id: UUID,
+    request: JobStatusUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Called by local Print Agent to update job status (PRINTING, COMPLETED, FAILED).
+    - COMPLETED automatically transitions order to READY_FOR_PICKUP and dispatches WhatsApp notification.
+    """
+    service = ShopService(db)
+    return service.update_print_job_status(
+        order_id=order_id,
+        status=request.status,
+        error_message=request.error_message,
+        assigned_printer=request.assigned_printer,
+    )
+
+
+@router.get(
+    "/print-agent/health",
+    response_model=AgentHeartbeatResponse,
+)
+def get_print_agent_health_status():
+    """
+    Returns active connectivity state of shop print agent based on recent heartbeats.
+    """
+    from .service import get_print_agent_health
+    return get_print_agent_health()
+
+
 
 
 @router.get(

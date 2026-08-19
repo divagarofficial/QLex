@@ -153,7 +153,9 @@ export default function LiveQueuePage() {
         const msg =
           err instanceof Error ? err.message : "Failed to load live queue data.";
 
-        if (msg.includes("Invalid credentials") || msg.includes("Not authenticated")) {
+        const isUnauthorized = (err as any)?.status === 401 || (err as any)?.response?.status === 401;
+
+        if (isUnauthorized) {
           logout();
           router.push("/student/login");
           return;
