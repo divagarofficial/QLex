@@ -38,7 +38,7 @@ gcloud run deploy $ServiceName `
     --min-instances 1 `
     --max-instances 1 `
     --no-cpu-throttling `
-    --set-env-vars "APP_NAME=QLex API,APP_VERSION=1.0.0,DEBUG=False,ACCESS_TOKEN_EXPIRE_MINUTES=525600,DATABASE_URL=postgresql+psycopg2://postgres:DivaThiru1012@db.fdkkjqvmdnfmqvmsexar.supabase.co:5432/postgres,SECRET_KEY=qlex_super_secret_key_change_this_before_production_2026,ALLOWED_ORIGINS=https://qlexmindtech.vercel.app,RAZORPAY_KEY_ID=rzp_test_TC5tGEdBuuCBLm,RAZORPAY_KEY_SECRET=ppBTFvxKCcCOiHYfrH2yJu9e,RAZORPAY_WEBHOOK_SECRET=DivaThiru@0810,WHATSAPP_BOT_URL=http://127.0.0.1:5001,BACKEND_URL=https://qlex-backend-ybnb435gbq-el.a.run.app,SMTP_HOST=smtp.gmail.com,SMTP_PORT=587,SMTP_USER=edivagar06@gmail.com,SMTP_PASSWORD=ufysgsazwngdjczz,EMAILS_FROM_EMAIL=edivagar06@gmail.com,EMAILS_FROM_NAME=QLex Printing Portal,SMTP_TLS=True"
+    --set-env-vars "APP_NAME=QLex API,APP_VERSION=1.0.0,DEBUG=False,ACCESS_TOKEN_EXPIRE_MINUTES=525600,DATABASE_URL=postgresql+psycopg2://postgres:DivaThiru1012@db.fdkkjqvmdnfmqvmsexar.supabase.co:5432/postgres,SECRET_KEY=qlex_super_secret_key_change_this_before_production_2026,ALLOWED_ORIGINS=https://qlexmindtech.vercel.app,RAZORPAY_KEY_ID=rzp_test_TC5tGEdBuuCBLm,RAZORPAY_KEY_SECRET=ppBTFvxKCcCOiHYfrH2yJu9e,RAZORPAY_WEBHOOK_SECRET=DivaThiru@0810,WHATSAPP_BOT_URL=http://127.0.0.1:5001,BACKEND_URL=https://qlex-backend-ybnb435gbq-el.a.run.app,SMTP_HOST=smtp.gmail.com,SMTP_PORT=587,SMTP_USER=edivagar06@gmail.com,SMTP_PASSWORD=ufysgsazwngdjczz,EMAILS_FROM_EMAIL=edivagar06@gmail.com,EMAILS_FROM_NAME=QLex_Printing_Portal,SMTP_TLS=True"
 
 Write-Host "Deployment completed successfully!" -ForegroundColor Green
 Write-Host "Service URL:" -ForegroundColor Yellow
