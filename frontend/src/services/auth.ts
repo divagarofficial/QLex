@@ -70,6 +70,10 @@ export function login(data: LoginRequest): Promise<LoginResponse> {
   return request<LoginResponse>("/api/v1/auth/login", data);
 }
 
+export function sendOTP(email: string): Promise<{ success: boolean; message: string }> {
+  return request<{ success: boolean; message: string }>("/api/v1/auth/send-otp", { email });
+}
+
 export function register(data: RegisterRequest): Promise<UserResponse> {
   return request<UserResponse>("/api/v1/auth/register", data);
 }

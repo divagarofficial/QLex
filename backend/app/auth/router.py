@@ -26,6 +26,28 @@ router = APIRouter(
 )
 
 
+from app.auth.schemas import SendOTPRequest, SendOTPResponse
+from app.auth.otp_service import send_otp
+
+
+@router.post(
+    "/send-otp",
+    response_model=SendOTPResponse,
+)
+def request_otp(
+    request: SendOTPRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        send_otp(request.email)
+        return SendOTPResponse(
+            success=True,
+            message=f"Verification code sent to {request.email}. Please check your inbox.",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.post(
     "/register",
     response_model=UserResponse,

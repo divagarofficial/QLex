@@ -2,11 +2,21 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from uuid import UUID
 
 
+class SendOTPRequest(BaseModel):
+    email: EmailStr
+
+
+class SendOTPResponse(BaseModel):
+    success: bool = True
+    message: str
+
+
 class RegisterRequest(BaseModel):
     register_number: str = Field(min_length=3, max_length=30)
     full_name: str = Field(min_length=2, max_length=150)
     phone: str = Field(min_length=10, max_length=15)
-    email: EmailStr | None = None
+    email: EmailStr
+    otp_code: str = Field(min_length=6, max_length=6)
     password: str = Field(min_length=8)
     confirm_password: str = Field(min_length=8)
 

@@ -10,11 +10,21 @@ export interface LoginResponse {
   token_type: string;
 }
 
+export interface SendOTPRequest {
+  email: string;
+}
+
+export interface SendOTPResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface RegisterRequest {
   register_number: string;
   full_name: string;
   phone: string;
-  email: string | null;
+  email: string;
+  otp_code: string;
   password: string;
   confirm_password: string;
   department_id: string;
