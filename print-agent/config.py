@@ -1,11 +1,15 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Base Directory
 BASE_DIR = Path(__file__).resolve().parent
 
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / ".env")
+
 # QLex Backend API Settings
-BACKEND_URL = os.getenv("QLEX_BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.getenv("QLEX_BACKEND_URL", "https://qlex-backend-ybnb435gbq-el.a.run.app")
 POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", "3"))
 
 # Print Agent Security Key (Optional)
