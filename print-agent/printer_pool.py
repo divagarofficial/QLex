@@ -64,6 +64,12 @@ class PrinterPoolManager:
             if filtered:
                 return filtered
 
+        # Ignore virtual file-saver printers if real physical paper printers are attached
+        virtual_keywords = ["microsoft print to pdf", "onenote", "fax", "xps document writer", "pdf24", "cutepdf", "adobe pdf"]
+        physical_printers = [p for p in printers if not any(v in p.lower() for v in virtual_keywords)]
+        if physical_printers:
+            return physical_printers
+
         return printers if printers else ["Default System Printer"]
 
     def get_printer_queue_count(self, printer_name: str) -> int:
