@@ -37,12 +37,15 @@ class QLexPrintAgentDaemon:
         """Poll QLex backend for pending PAID orders waiting to be printed."""
         url = f"{self.backend_url}/shop/print-agent/pending-jobs"
         try:
-            resp = requests.get(url, headers=self.headers, timeout=10)
+            resp = requests.get(url, headers=self.headers, timeout=30)
             if resp.status_code == 200:
                 return resp.json()
             else:
                 logger.warning(f"Failed to fetch pending jobs. HTTP {resp.status_code}: {resp.text}")
                 return []
+        except requests.exceptions.Timeout:
+            logger.debug("Cloud Run polling request timed out during cold start, retrying...")
+            return []
         except Exception as e:
             logger.error(f"Network error polling backend '{url}': {e}")
             return []
@@ -56,7 +59,7 @@ class QLexPrintAgentDaemon:
             "assigned_printer": assigned_printer,
         }
         try:
-            resp = requests.post(url, json=payload, headers=self.headers, timeout=10)
+            resp = requests.post(url, json=payload, headers=self.headers, timeout=30)
             if resp.status_code == 200:
                 result = resp.json()
                 logger.info(f"Backend status update for order '{order_id}': {result.get('message')}")
