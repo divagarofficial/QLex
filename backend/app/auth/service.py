@@ -57,8 +57,14 @@ class AuthService:
         if year is None:
             raise InvalidYearException()
 
-        # Validate email format and OTP verification (1st years can use personal email)
-        is_first_year = (year.year_number == 1)
+        # Validate email format and OTP verification (1st years can use personal email if enabled by admin)
+        is_first_year = False
+        if year.year_number == 1:
+            from app.models.platform_setting import PlatformSetting
+            setting = self.db.query(PlatformSetting).first()
+            if setting is None or getattr(setting, "allow_first_year_personal_email", True):
+                is_first_year = True
+
         from app.auth.otp_service import is_rit_email, verify_otp
         if not is_rit_email(request.email, is_first_year=is_first_year):
             raise ValueError("Registration is restricted to official RIT student email addresses (@ritchennai.edu.in).")

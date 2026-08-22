@@ -29,6 +29,7 @@ class PlatformSettingsService:
             "queue_timeout_minutes": settings.queue_timeout_minutes,
             "allow_new_orders": settings.allow_new_orders,
             "maintenance_mode": settings.maintenance_mode,
+            "allow_first_year_personal_email": getattr(settings, "allow_first_year_personal_email", True),
             "general": extra.get("general"),
             "platform": extra.get("platform"),
             "orders": extra.get("orders"),
@@ -77,6 +78,9 @@ class PlatformSettingsService:
 
         if request.maintenance_mode is not None:
             settings.maintenance_mode = request.maintenance_mode
+
+        if hasattr(request, "allow_first_year_personal_email") and getattr(request, "allow_first_year_personal_email", None) is not None:
+            settings.allow_first_year_personal_email = request.allow_first_year_personal_email
 
         current_extra = dict(settings.extra_settings or {})
 

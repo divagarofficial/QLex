@@ -127,6 +127,7 @@ function PlatformSettingsPageContent() {
         shopPortalEnabled: true,
         adminPortalEnabled: true,
         registrationEnabled: true,
+        allowFirstYearPersonalEmail: true,
         newShopRegistration: true,
       },
       orders: {
@@ -228,6 +229,7 @@ function PlatformSettingsPageContent() {
               ...(backendSettings.platform || {}),
               maintenanceMode: backendSettings.maintenance_mode,
               platformEnabled: backendSettings.allow_new_orders,
+              allowFirstYearPersonalEmail: backendSettings.allow_first_year_personal_email ?? true,
             },
             orders: {
               ...prev.orders,
@@ -323,6 +325,7 @@ function PlatformSettingsPageContent() {
         queue_timeout_minutes: draftState.orders.queueTimeoutMinutes,
         allow_new_orders: draftState.platform.platformEnabled,
         maintenance_mode: draftState.platform.maintenanceMode,
+        allow_first_year_personal_email: draftState.platform.allowFirstYearPersonalEmail,
         general: draftState.general,
         platform: draftState.platform,
         orders: draftState.orders,
@@ -343,6 +346,7 @@ function PlatformSettingsPageContent() {
           ...(updatedBackend.platform || {}),
           maintenanceMode: updatedBackend.maintenance_mode,
           platformEnabled: updatedBackend.allow_new_orders,
+          allowFirstYearPersonalEmail: updatedBackend.allow_first_year_personal_email ?? draftState.platform.allowFirstYearPersonalEmail,
         },
         orders: {
           ...draftState.orders,

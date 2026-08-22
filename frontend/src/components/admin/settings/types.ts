@@ -35,6 +35,7 @@ export interface PlatformSettingsState {
   shopPortalEnabled: boolean;
   adminPortalEnabled: boolean;
   registrationEnabled: boolean;
+  allowFirstYearPersonalEmail: boolean; // maps to backend allow_first_year_personal_email
   newShopRegistration: boolean;
 }
 

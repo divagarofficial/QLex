@@ -100,3 +100,7 @@ export function getSections(): Promise<SectionsResponse> {
   return request<SectionsResponse>("/api/v1/auth/sections");
 }
 
+export function getRegistrationSettings(): Promise<{ allow_first_year_personal_email: boolean; allowed_domains: string[] }> {
+  return request<{ allow_first_year_personal_email: boolean; allowed_domains: string[] }>("/api/v1/auth/registration-settings");
+}
+

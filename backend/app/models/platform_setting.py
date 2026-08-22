@@ -63,6 +63,12 @@ class PlatformSetting(BaseModel):
         nullable=False,
     )
 
+    allow_first_year_personal_email: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+
     extra_settings: Mapped[dict | None] = mapped_column(
         JSON,
         default=dict,

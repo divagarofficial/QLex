@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, Phone, Mail, Lock, BookOpen, ShieldCheck, KeyRound, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import GlassInput from "./GlassInput";
 import GlassSelect from "./GlassSelect";
-import { register, sendOTP, getDepartments, getYears } from "@/services/auth";
+import { register, sendOTP, getDepartments, getYears, getRegistrationSettings } from "@/services/auth";
 import type {
   UserResponse,
   DepartmentOption,
@@ -63,9 +63,10 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
   const [loading, setLoading] = useState(false);
   const [otpSentMessage, setOtpSentMessage] = useState<string | null>(null);
 
-  // Lookup data fetched from backend
+  // Lookup & Setting data fetched from backend
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [years, setYears] = useState<YearOption[]>([]);
+  const [allowFirstYearPersonal, setAllowFirstYearPersonal] = useState(true);
   const [lookupLoading, setLookupLoading] = useState(true);
 
   useEffect(() => {
@@ -73,13 +74,15 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
     async function fetchLookups() {
       setLookupLoading(true);
       try {
-        const [deptRes, yearRes] = await Promise.all([
+        const [deptRes, yearRes, regSettings] = await Promise.all([
           getDepartments(),
           getYears(),
+          getRegistrationSettings().catch(() => ({ allow_first_year_personal_email: true, allowed_domains: [] })),
         ]);
         if (!cancelled) {
           setDepartments(deptRes.departments);
           setYears(yearRes.years);
+          setAllowFirstYearPersonal(regSettings.allow_first_year_personal_email ?? true);
         }
       } catch {
         // Handle lookup load fail
@@ -109,7 +112,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
       newErrors.phone = "Phone number must be at least 10 digits.";
     }
     const selectedYear = years.find((y) => y.id === yearId);
-    const isFirstYear = selectedYear ? selectedYear.year_number === 1 : false;
+    const isFirstYear = (selectedYear ? selectedYear.year_number === 1 : false) && allowFirstYearPersonal;
 
     if (!email.trim()) {
       newErrors.email = isFirstYear ? "Email address is required." : "RIT email address is required.";
@@ -208,7 +211,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
   ];
 
   const selectedYearObj = years.find((y) => y.id === yearId);
-  const isFirstYearSelected = selectedYearObj ? selectedYearObj.year_number === 1 : false;
+  const isFirstYearSelected = (selectedYearObj ? selectedYearObj.year_number === 1 : false) && allowFirstYearPersonal;
 
   return (
     <div className="flex flex-col gap-4">

@@ -30,6 +30,21 @@ from app.auth.schemas import SendOTPRequest, SendOTPResponse
 from app.auth.otp_service import send_otp
 
 
+@router.get(
+    "/registration-settings",
+)
+def get_registration_settings(
+    db: Session = Depends(get_db),
+):
+    from app.models.platform_setting import PlatformSetting
+    setting = db.query(PlatformSetting).first()
+    allow_first_year_personal = getattr(setting, "allow_first_year_personal_email", True) if setting else True
+    return {
+        "allow_first_year_personal_email": allow_first_year_personal,
+        "allowed_domains": ["ritchennai.edu.in", "rajalakshmi.edu.in", "rit.ac.in", "rit.edu"]
+    }
+
+
 @router.post(
     "/send-otp",
     response_model=SendOTPResponse,
@@ -43,7 +58,10 @@ def request_otp(
         if request.year_id:
             year = db.get(Year, request.year_id)
             if year and year.year_number == 1:
-                is_first_year = True
+                from app.models.platform_setting import PlatformSetting
+                setting = db.query(PlatformSetting).first()
+                if setting is None or getattr(setting, "allow_first_year_personal_email", True):
+                    is_first_year = True
 
         send_otp(request.email, is_first_year=is_first_year)
         return SendOTPResponse(

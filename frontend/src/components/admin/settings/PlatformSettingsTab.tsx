@@ -246,6 +246,45 @@ export default function PlatformSettingsTab({ data, onChange }: PlatformSettings
               />
             </button>
           </div>
+
+          {/* 1st Year Flexible Personal Email Registration Toggle */}
+          <div className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-cyan-900/20 to-blue-950/40 border border-cyan-500/30 hover:border-cyan-500/50 transition-all col-span-1 md:col-span-2 backdrop-blur-xl shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+            <div className="space-y-1 pr-3">
+              <div className="text-xs font-bold text-cyan-300 flex items-center gap-2">
+                <UserPlus className="h-4 w-4 text-cyan-400 shrink-0" />
+                <span>1st Year Flexible Personal Email Registration (@gmail.com)</span>
+                {data.allowFirstYearPersonalEmail ? (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-wider">
+                    Flexible Active
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-zinc-500/20 text-zinc-400 border border-zinc-500/40 uppercase tracking-wider">
+                    Strict College Mail Only
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                Allows 1st Year RIT students without college mail IDs to register using their personal email (<code className="text-cyan-300 font-mono bg-cyan-500/10 px-1 py-0.5 rounded border border-cyan-500/20">@gmail.com</code>). Turn <strong className="text-white">OFF</strong> when official RIT college mail IDs are issued to 1st year batches.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.allowFirstYearPersonalEmail}
+              onClick={() => onChange({ allowFirstYearPersonalEmail: !data.allowFirstYearPersonalEmail })}
+              className={cn(
+                "relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-inner",
+                data.allowFirstYearPersonalEmail ? "bg-cyan-500" : "bg-zinc-700"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                  data.allowFirstYearPersonalEmail ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>

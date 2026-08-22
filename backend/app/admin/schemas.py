@@ -96,6 +96,7 @@ class PlatformSettingsResponse(BaseModel):
     allow_new_orders: bool
 
     maintenance_mode: bool
+    allow_first_year_personal_email: bool = True
 
     general: Optional[dict] = None
 
@@ -137,6 +138,8 @@ class UpdatePlatformSettingsRequest(BaseModel):
     allow_new_orders: Optional[bool] = None
 
     maintenance_mode: Optional[bool] = None
+
+    allow_first_year_personal_email: Optional[bool] = None
 
 
     general: Optional[dict] = None

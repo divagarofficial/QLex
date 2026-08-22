@@ -22,6 +22,7 @@ export interface BackendPlatformSettings {
   queue_timeout_minutes: number;
   allow_new_orders: boolean;
   maintenance_mode: boolean;
+  allow_first_year_personal_email?: boolean;
 
   general?: GeneralSettingsState;
   platform?: PlatformSettingsState;
@@ -93,6 +94,7 @@ export async function getBackendPlatformSettings(): Promise<BackendPlatformSetti
     queue_timeout_minutes: Number(data.queue_timeout_minutes || 10),
     allow_new_orders: Boolean(data.allow_new_orders),
     maintenance_mode: Boolean(data.maintenance_mode),
+    allow_first_year_personal_email: data.allow_first_year_personal_email !== undefined ? Boolean(data.allow_first_year_personal_email) : true,
     general: data.general || undefined,
     platform: data.platform || undefined,
     orders: data.orders || undefined,
@@ -125,6 +127,7 @@ export async function updateBackendPlatformSettings(
     queue_timeout_minutes: Number(data.queue_timeout_minutes || 10),
     allow_new_orders: Boolean(data.allow_new_orders),
     maintenance_mode: Boolean(data.maintenance_mode),
+    allow_first_year_personal_email: data.allow_first_year_personal_email !== undefined ? Boolean(data.allow_first_year_personal_email) : true,
     general: data.general || undefined,
     platform: data.platform || undefined,
     orders: data.orders || undefined,
