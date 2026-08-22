@@ -50,6 +50,14 @@ def init_db_tables():
 
             Base.metadata.create_all(bind=engine)
 
+            try:
+                with engine.connect() as conn:
+                    from sqlalchemy import text
+                    conn.execute(text("ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS allow_first_year_personal_email BOOLEAN DEFAULT TRUE NOT NULL;"))
+                    conn.commit()
+            except Exception as mig_err:
+                print(f"[DB Init Warning] Column migration warning: {mig_err}")
+
             db = SessionLocal()
             try:
                 from app.seeds.departments import seed_departments

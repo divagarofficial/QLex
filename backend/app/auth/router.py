@@ -36,9 +36,13 @@ from app.auth.otp_service import send_otp
 def get_registration_settings(
     db: Session = Depends(get_db),
 ):
-    from app.models.platform_setting import PlatformSetting
-    setting = db.query(PlatformSetting).first()
-    allow_first_year_personal = getattr(setting, "allow_first_year_personal_email", True) if setting else True
+    try:
+        from app.models.platform_setting import PlatformSetting
+        setting = db.query(PlatformSetting).first()
+        allow_first_year_personal = getattr(setting, "allow_first_year_personal_email", True) if setting else True
+    except Exception:
+        allow_first_year_personal = True
+
     return {
         "allow_first_year_personal_email": allow_first_year_personal,
         "allowed_domains": ["ritchennai.edu.in", "rajalakshmi.edu.in", "rit.ac.in", "rit.edu"]
