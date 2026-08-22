@@ -37,9 +37,9 @@ def send_email_via_smtp(to_email: str, code: str) -> bool:
     """Send HTML verification email via SMTP if credentials are configured."""
     host = getattr(settings, "SMTP_HOST", "smtp.gmail.com") or "smtp.gmail.com"
     port = getattr(settings, "SMTP_PORT", 587) or 587
-    user = getattr(settings, "SMTP_USER", "edivagar06@gmail.com") or "edivagar06@gmail.com"
-    pwd = getattr(settings, "SMTP_PASSWORD", "ufysgsazwngdjczz") or "ufysgsazwngdjczz"
-    from_email = getattr(settings, "EMAILS_FROM_EMAIL", "edivagar06@gmail.com") or user
+    user = getattr(settings, "SMTP_USER", "divagar.240075@aids.ritchennai.edu.in") or "divagar.240075@aids.ritchennai.edu.in"
+    pwd = getattr(settings, "SMTP_PASSWORD", "eprzscarycrjwnda") or "eprzscarycrjwnda"
+    from_email = getattr(settings, "EMAILS_FROM_EMAIL", "divagar.240075@aids.ritchennai.edu.in") or user
 
     try:
         msg = MIMEMultipart("alternative")
