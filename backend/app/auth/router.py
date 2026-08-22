@@ -39,7 +39,13 @@ def request_otp(
     db: Session = Depends(get_db),
 ):
     try:
-        send_otp(request.email)
+        is_first_year = False
+        if request.year_id:
+            year = db.get(Year, request.year_id)
+            if year and year.year_number == 1:
+                is_first_year = True
+
+        send_otp(request.email, is_first_year=is_first_year)
         return SendOTPResponse(
             success=True,
             message=f"Verification code sent to {request.email}. Please check your inbox.",

@@ -20,10 +20,12 @@ ALLOWED_RIT_DOMAINS = (
 _OTP_STORE: dict[str, dict] = {}
 
 
-def is_rit_email(email: str) -> bool:
-    """Check if the provided email belongs to an allowed RIT domain."""
+def is_rit_email(email: str, is_first_year: bool = False) -> bool:
+    """Check if the provided email belongs to an allowed RIT domain or is a valid personal email for 1st year students."""
     if not email or "@" not in email:
         return False
+    if is_first_year:
+        return "." in email.split("@")[-1]
     domain = email.strip().split("@")[-1].lower()
     return any(domain == d or domain.endswith("." + d) for d in ALLOWED_RIT_DOMAINS)
 
@@ -78,13 +80,13 @@ def send_email_via_smtp(to_email: str, code: str) -> bool:
         return False
 
 
-def send_otp(email: str) -> str:
+def send_otp(email: str, is_first_year: bool = False) -> str:
     """
-    Validates RIT domain, generates an OTP, stores it with 5-min expiry,
+    Validates RIT domain (or personal email for 1st years), generates an OTP, stores it with 5-min expiry,
     attempts sending email via SMTP, and returns/logs the OTP.
     """
     clean_email = email.strip().lower()
-    if not is_rit_email(clean_email):
+    if not is_rit_email(clean_email, is_first_year=is_first_year):
         raise ValueError("Registration is restricted to official RIT student email addresses (@ritchennai.edu.in).")
 
     code = generate_otp()

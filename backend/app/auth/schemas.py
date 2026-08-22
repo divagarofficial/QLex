@@ -4,6 +4,7 @@ from uuid import UUID
 
 class SendOTPRequest(BaseModel):
     email: EmailStr
+    year_id: str | None = None
 
 
 class SendOTPResponse(BaseModel):

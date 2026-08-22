@@ -34,8 +34,11 @@ interface FormErrors {
 
 const ALLOWED_RIT_DOMAINS = ["ritchennai.edu.in", "rajalakshmi.edu.in", "rit.ac.in", "rit.edu"];
 
-function isRITEmail(email: string): boolean {
+function isRITEmail(email: string, isFirstYear?: boolean): boolean {
   if (!email || !email.includes("@")) return false;
+  if (isFirstYear) {
+    return email.trim().split("@").pop()?.includes(".") ?? false;
+  }
   const domain = email.trim().split("@").pop()?.toLowerCase() || "";
   return ALLOWED_RIT_DOMAINS.some((d) => domain === d || domain.endsWith("." + d));
 }
@@ -105,10 +108,15 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
     if (!phone.trim() || phone.trim().length < 10) {
       newErrors.phone = "Phone number must be at least 10 digits.";
     }
+    const selectedYear = years.find((y) => y.id === yearId);
+    const isFirstYear = selectedYear ? selectedYear.year_number === 1 : false;
+
     if (!email.trim()) {
-      newErrors.email = "RIT email address is required.";
-    } else if (!isRITEmail(email)) {
-      newErrors.email = "Registration is restricted to official RIT student email addresses (@ritchennai.edu.in).";
+      newErrors.email = isFirstYear ? "Email address is required." : "RIT email address is required.";
+    } else if (!isRITEmail(email, isFirstYear)) {
+      newErrors.email = isFirstYear
+        ? "Please enter a valid email address."
+        : "Registration is restricted to official RIT student email addresses (@ritchennai.edu.in).";
     }
     if (!departmentId) {
       newErrors.department_id = "Please select your department.";
@@ -129,8 +137,8 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
 
     setLoading(true);
     try {
-      const res = await sendOTP(email.trim());
-      setOtpSentMessage(res.message || "OTP verification code sent to your RIT email.");
+      const res = await sendOTP(email.trim(), yearId);
+      setOtpSentMessage(res.message || "OTP verification code sent to your email.");
       setStep("otp");
     } catch (err: any) {
       const msg = err.message || "Unable to send verification OTP code. Please check your email.";
@@ -199,6 +207,9 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
     ...years.map((y) => ({ value: y.id, label: `${y.year_number}${getYearSuffix(y.year_number)} Year` })),
   ];
 
+  const selectedYearObj = years.find((y) => y.id === yearId);
+  const isFirstYearSelected = selectedYearObj ? selectedYearObj.year_number === 1 : false;
+
   return (
     <div className="flex flex-col gap-4">
       {/* Notice & Guest Checkout Prompt Banner */}
@@ -210,12 +221,18 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-400">
-                RIT Student Account Registration
+                {isFirstYearSelected ? "1st Year Student Registration" : "RIT Student Account Registration"}
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-white/70 leading-relaxed">
-              Account registration is reserved for RIT students requiring an official RIT email (<code className="text-cyan-300">@ritchennai.edu.in</code>).
-            </p>
+            {isFirstYearSelected ? (
+              <p className="mt-0.5 text-xs text-emerald-300 leading-relaxed font-medium">
+                ✨ 1st Year Mode Active: Personal email (<code className="text-white bg-emerald-500/20 px-1 py-0.5 rounded">@gmail.com</code>) is accepted!
+              </p>
+            ) : (
+              <p className="mt-0.5 text-xs text-white/70 leading-relaxed">
+                Account registration for RIT students (<code className="text-cyan-300">@ritchennai.edu.in</code>). 1st years can use personal email.
+              </p>
+            )}
           </div>
         </div>
 
@@ -281,7 +298,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
               icon={Phone}
             />
             <GlassInput
-              label="RIT Student Email (Mandatory)"
+              label={isFirstYearSelected ? "Email (Personal @gmail.com allowed)" : "RIT Student Email (Mandatory)"}
               type="email"
               value={email}
               onChange={setEmail}
@@ -289,7 +306,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
               autoComplete="email"
               disabled={loading}
               required
-              placeholder="name@ritchennai.edu.in"
+              placeholder={isFirstYearSelected ? "e.g. student@gmail.com" : "name@ritchennai.edu.in"}
               icon={Mail}
             />
           </div>

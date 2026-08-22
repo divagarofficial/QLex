@@ -57,6 +57,15 @@ class AuthService:
         if year is None:
             raise InvalidYearException()
 
+        # Validate email format and OTP verification (1st years can use personal email)
+        is_first_year = (year.year_number == 1)
+        from app.auth.otp_service import is_rit_email, verify_otp
+        if not is_rit_email(request.email, is_first_year=is_first_year):
+            raise ValueError("Registration is restricted to official RIT student email addresses (@ritchennai.edu.in).")
+
+        if not verify_otp(request.email, request.otp_code):
+            raise ValueError("Invalid or expired OTP verification code. Please request a new OTP.")
+
         # Validate/Lookup Section by name (allow any alphabet A-Z)
         sec_name = request.section_name.strip().upper()
         if not sec_name:
