@@ -142,7 +142,7 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
               <div className="flex justify-between sm:block">
                 <span className="text-slate-400 print:text-slate-600 sm:text-[11px]">Print Shop:</span>
                 <span className="font-semibold text-slate-200 print:text-slate-900 ml-1">
-                  {data.shop?.name || "Campus Xerox Center"}
+                  {data.shop?.name || "QLex Central Print Hub"}
                 </span>
               </div>
               <div className="flex justify-between sm:block">

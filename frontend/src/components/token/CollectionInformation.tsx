@@ -9,8 +9,8 @@ interface CollectionInformationProps {
 }
 
 export default function CollectionInformation({
-  location = "Campus Xerox Center, Student Center, Block B, Main Campus",
-  workingHours = "08:00 AM - 08:00 PM (Mon - Sat)",
+  location = "QLex Central Print Hub, RIT Campus Road, Opposite to A Block, RIT Main Campus",
+  workingHours = "08:00 AM - 03:00 PM (Mon - Sat)",
   collectionStatus,
 }: CollectionInformationProps) {
   const normStatus = (collectionStatus || "").toUpperCase();

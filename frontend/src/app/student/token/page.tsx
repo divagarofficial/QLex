@@ -256,7 +256,7 @@ function MyTokenContent() {
   const registerNumber = userProfile?.register_number || "REQ-NUM";
 
   const orderIdStr = tokenInfo?.order_id || activeOrder?.order_id || requestedOrderId || "ORDER-ID";
-  const shopNameStr = "Campus Xerox Center";
+  const shopNameStr = (tokenInfo as any)?.shop?.name || (activeOrder as any)?.shop?.name || "QLex Central Print Hub";
 
   // Calculate live queue position metrics from backend live-queue and tokenInfo
   const currentlyPrinting = tokenInfo?.currently_printing || liveQueue?.currently_printing || null;

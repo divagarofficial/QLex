@@ -9,11 +9,11 @@ interface ShopInfoProps {
 
 export default function ShopInfo({ shop }: ShopInfoProps) {
   const shopData: ShopDetailsInfo = shop || {
-    name: "Campus Xerox Center",
-    location: "Student Center, Block B, Ground Floor, Main Campus",
-    working_hours: "08:00 AM - 08:00 PM (Mon-Sat)",
+    name: "QLex Central Print Hub",
+    location: "RIT Campus Road, Opposite to A Block, RIT Main Campus",
+    working_hours: "08:00 AM - 03:00 PM (Mon-Sat)",
     contact_number: "+91 98765 43210",
-    google_maps_url: "https://maps.google.com/?q=Campus+Xerox+Center",
+    google_maps_url: "https://maps.google.com/?q=QLex+Central+Print+Hub",
   };
 
   return (

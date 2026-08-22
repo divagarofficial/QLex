@@ -30,7 +30,7 @@ export default function OrderDetails({ data }: OrderDetailsProps) {
     },
     {
       label: "Shop",
-      value: data.shop?.name || "Campus Xerox Center",
+      value: data.shop?.name || "QLex Central Print Hub",
       icon: Store,
       highlight: true,
     },
