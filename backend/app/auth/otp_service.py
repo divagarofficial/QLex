@@ -36,7 +36,7 @@ def generate_otp() -> str:
 
 
 def send_email_via_smtp(to_email: str, code: str) -> bool:
-    """Send HTML verification email via SMTP if credentials are configured."""
+    """Send enhanced, branded HTML verification email via SMTP if credentials are configured."""
     host = getattr(settings, "SMTP_HOST", "smtp.gmail.com") or "smtp.gmail.com"
     port = getattr(settings, "SMTP_PORT", 587) or 587
     user = getattr(settings, "SMTP_USER", "divagar.240075@aids.ritchennai.edu.in") or "divagar.240075@aids.ritchennai.edu.in"
@@ -45,23 +45,116 @@ def send_email_via_smtp(to_email: str, code: str) -> bool:
 
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"{code} is your QLex RIT Student Verification Code"
+        msg["Subject"] = f"{code} is your QLex RIT Student Verification Code 🔐"
         msg["From"] = f"QLex Printing Portal <{from_email}>"
         msg["To"] = to_email
 
-        text_content = f"Your QLex RIT Student Verification Code is: {code}\nThis code expires in 5 minutes."
+        text_content = f"""
+=====================================================
+QLex Printing Portal | Rajalakshmi Institute of Technology
+=====================================================
+
+Hello RIT Student,
+
+Your 6-digit verification code is: {code}
+
+This code is valid for 5 minutes. Use it to complete your account registration on QLex.
+
+Security Warning: Never share this OTP code with anyone.
+
+© 2026 QLex Technology | Rajalakshmi Institute of Technology
+"""
+
         html_content = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
-            <h2 style="color: #0284c7; text-align: center; margin-top: 0;">QLex Printing Portal</h2>
-            <p style="font-size: 15px; color: #1e293b;">Hello RIT Student,</p>
-            <p style="font-size: 14px; color: #475569; line-height: 1.6;">Use the following 6-digit OTP code to verify your RIT email address and complete your account registration:</p>
-            <div style="text-align: center; margin: 28px 0;">
-                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #0284c7; background: #f0f9ff; padding: 14px 28px; border-radius: 12px; border: 1px solid #bae6fd; display: inline-block;">
-                    {code}
-                </span>
-            </div>
-            <p style="font-size: 13px; color: #64748b;">This code is valid for 5 minutes. If you did not request this, please ignore this message.</p>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QLex Verification Code</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; color: #f8fafc;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0f172a; padding: 32px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 520px; background-color: #1e293b; border: 1px solid #334155; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4); overflow: hidden;">
+          
+          <!-- Header Banner -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 60%, #0f172a 100%); padding: 28px 24px; text-align: center;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase;">
+                QLex <span style="color: #38bdf8;">Printing Portal</span>
+              </h1>
+              <p style="margin: 6px 0 0 0; font-size: 12px; color: #bae6fd; font-weight: 600; letter-spacing: 0.5px;">
+                Rajalakshmi Institute of Technology (RIT) Campus Service
+              </p>
+            </td>
+          </tr>
+
+          <!-- Main Body Content -->
+          <tr>
+            <td style="padding: 32px 28px;">
+              <h2 style="margin-top: 0; font-size: 18px; font-weight: 700; color: #f8fafc;">
+                Student Account Verification Code 🔐
+              </h2>
+              <p style="font-size: 14px; color: #94a3b8; line-height: 1.6; margin-bottom: 20px;">
+                Hello RIT Student,<br>
+                Use the 6-digit OTP verification code below to confirm your email address and complete your account registration on <strong>QLex</strong>:
+              </p>
+
+              <!-- OTP Code Display Box -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 24px 0; background-color: #0f172a; border: 2px dashed #0284c7; border-radius: 16px; text-align: center;">
+                <tr>
+                  <td style="padding: 22px 16px;">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #38bdf8; letter-spacing: 2px; display: block; margin-bottom: 8px;">
+                      Your Verification OTP Code
+                    </span>
+                    <span style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #ffffff; font-family: 'Courier New', Courier, monospace; display: inline-block;">
+                      {code}
+                    </span>
+                    <div style="margin-top: 10px;">
+                      <span style="font-size: 11px; font-weight: 600; color: #f59e0b; background-color: rgba(245, 158, 11, 0.12); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.25); display: inline-block;">
+                        ⏱️ Valid for 5 Minutes
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Steps Guide -->
+              <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px;">How to complete setup:</h4>
+                <ol style="margin: 0; padding-left: 18px; font-size: 13px; color: #94a3b8; line-height: 1.7;">
+                  <li>Return to the QLex registration page.</li>
+                  <li>Enter code <strong style="color: #38bdf8;">{code}</strong> into the OTP field.</li>
+                  <li>Set your account password and click <strong>Verify OTP & Create Account</strong>.</li>
+                </ol>
+              </div>
+
+              <!-- Security Notice -->
+              <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin: 0; padding-top: 16px; border-top: 1px solid #334155;">
+                🔒 <strong>Security Warning:</strong> Never share this OTP code with anyone. QLex support staff will never ask for your verification code. If you did not request this email, please ignore this message.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #0f172a; padding: 18px 24px; text-align: center; border-top: 1px solid #334155;">
+              <p style="margin: 0; font-size: 12px; color: #64748b; font-weight: 600;">
+                © 2026 QLex Technology | Rajalakshmi Institute of Technology (RIT)
+              </p>
+              <p style="margin: 4px 0 0 0; font-size: 11px; color: #475569;">
+                Fast, Smart & Seamless Campus Printing Hub
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
         """
 
         msg.attach(MIMEText(text_content, "plain"))
@@ -72,7 +165,7 @@ def send_email_via_smtp(to_email: str, code: str) -> bool:
         server.login(user, pwd)
         server.sendmail(from_email, [to_email], msg.as_string())
         server.quit()
-        logger.info(f"[RIT OTP Service] Successfully sent OTP email to {to_email}")
+        logger.info(f"[RIT OTP Service] Successfully sent enhanced OTP email to {to_email}")
         return True
     except Exception as e:
         logger.error(f"[RIT OTP Service] Failed to send SMTP email to {to_email}: {e}")

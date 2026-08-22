@@ -41,10 +41,17 @@ function removeChromeLocks(dir) {
     for (const file of files) {
       const fullPath = path.join(dir, file);
       try {
-        if (file.startsWith("Singleton")) {
-          fs.unlinkSync(fullPath);
-        } else if (fs.statSync(fullPath).isDirectory()) {
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
           removeChromeLocks(fullPath);
+        } else if (
+          file.startsWith("Singleton") ||
+          file.endsWith(".lock") ||
+          file === "lockfile" ||
+          file === "LOCK" ||
+          file === "Preferences.tmp"
+        ) {
+          fs.unlinkSync(fullPath);
         }
       } catch (e) {}
     }
@@ -75,6 +82,9 @@ function createClient() {
     "--disable-gpu",
     "--no-default-browser-check",
     "--disable-extensions",
+    "--disable-session-crashed-bubble",
+    "--disable-infobars",
+    "--restore-last-session",
     "--disable-blink-features=AutomationControlled",
     "--disable-background-timer-throttling",
     "--disable-backgrounding-occluded-windows",
@@ -105,7 +115,7 @@ function createClient() {
   return new Client({
     authStrategy: new LocalAuth({ clientId: "qlex-bot-session", dataPath: AUTH_DIR }),
     takeoverOnConflict: true,
-    qrMaxRetries: 10,
+    qrMaxRetries: 15,
     puppeteer: puppeteerOpts
   });
 }
@@ -200,16 +210,12 @@ function bindClientEvents(cli) {
   });
 
   cli.on("auth_failure", (msg) => {
-    console.error("[WhatsApp Bot] Auth Failure:", msg);
+    console.error("[WhatsApp Bot] Auth Delay / Initialization Warning:", msg);
     authFailureCount++;
-    if (authFailureCount >= 3) {
-      console.error("[WhatsApp Bot] 3 consecutive auth failures. Wiping session for fresh QR...");
-      authFailureCount = 0;
-      reconnectClient(true);
-    } else {
-      console.log(`[WhatsApp Bot] Auth failed (${authFailureCount}/3). Retrying with existing session...`);
+    console.log(`[WhatsApp Bot] Preserving session credentials. Retrying connection (${authFailureCount})...`);
+    setTimeout(() => {
       reconnectClient(false);
-    }
+    }, 3000);
   });
 
   cli.on("ready", () => {
@@ -521,3 +527,17 @@ app.get(["/", "/qr-page"], (req, res) => {
 app.listen(PORT, () => {
   console.log(`[WhatsApp Bot Microservice] Running locally on http://localhost:${PORT}`);
 });
+
+// Graceful process exit cleanup to preserve session files cleanly
+const handleShutdown = async (signal) => {
+  console.log(`[WhatsApp Bot] Signal ${signal} received. Safely closing browser and preserving session...`);
+  try {
+    if (client) {
+      await client.destroy();
+    }
+  } catch (e) {}
+  process.exit(0);
+};
+
+process.on("SIGINT", () => handleShutdown("SIGINT"));
+process.on("SIGTERM", () => handleShutdown("SIGTERM"));
