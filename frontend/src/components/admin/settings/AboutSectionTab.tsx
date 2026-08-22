@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Info, Sparkles, Shield, Cpu, Code2, Heart } from "lucide-react";
 import { AboutSectionState } from "./types";
 
@@ -90,8 +91,14 @@ export default function AboutSectionTab({ data }: AboutSectionTabProps) {
         {/* Powered By MINDURA TECHNOLOGIES */}
         <div className="p-6 rounded-xl bg-gradient-to-r from-amber-500/10 via-blue-500/10 to-violet-500/10 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/30">
-              <Sparkles className="h-5 w-5" />
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-center p-1 shadow-inner">
+              <Image
+                src="/mindura-logo.png"
+                alt="Mindura Technologies"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(231,200,115,0.4)]"
+              />
             </div>
             <div>
               <div className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Architected & Engineered By</div>
