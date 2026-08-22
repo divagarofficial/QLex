@@ -34,25 +34,23 @@ export default function Landing() {
       <section className="relative flex min-h-[80vh] flex-col items-center justify-start px-6 pt-[6vh] sm:pt-[8vh] md:pt-[10vh]">
         {/* ─── MINDURA TECHNOLOGIES PRESENTS BRANDING ─── */}
         <motion.div {...fadeUp(0.05)} className="flex flex-col items-center gap-3 sm:gap-4">
-          {/* Logo with Ambient Glass Badge */}
+          {/* Mindura Logo (Enhanced Size, Floating Seal without Box) */}
           <div className="relative group cursor-default">
             <div
-              className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full"
               style={{
-                background: "radial-gradient(circle, rgba(231,200,115,0.2) 0%, transparent 70%)",
-                filter: "blur(14px)",
+                background: "radial-gradient(circle, rgba(231,200,115,0.25) 0%, transparent 70%)",
+                filter: "blur(20px)",
               }}
             />
-            <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.04] backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.2)] transition-transform duration-500 hover:scale-105">
-              <Image
-                src="/mindura-logo.svg"
-                width={32}
-                height={32}
-                alt="Mindura"
-                className="h-7 w-7 sm:h-8 sm:w-8 opacity-90 transition-opacity duration-300 group-hover:opacity-100"
-                priority
-              />
-            </div>
+            <Image
+              src="/mindura-logo.png"
+              width={140}
+              height={140}
+              alt="Mindura Technologies"
+              className="relative h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain filter drop-shadow-[0_0_20px_rgba(231,200,115,0.35)] transition-transform duration-500 hover:scale-105"
+              priority
+            />
           </div>
 
           {/* Mindura Technologies Name */}
