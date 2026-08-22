@@ -170,7 +170,7 @@ function PlatformSettingsPageContent() {
       appearance: {
         platformTheme: "dark",
         accentColor: "amber",
-        logoUrl: "/favicon.ico",
+        logoUrl: "/qlex-logo.png",
         faviconUrl: "/favicon.ico",
       },
       advanced: {

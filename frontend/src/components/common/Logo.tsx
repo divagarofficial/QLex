@@ -1,25 +1,65 @@
-export default function Logo() {
+import Image from "next/image";
+
+interface LogoProps {
+  className?: string;
+  showText?: boolean;
+  showSubtitle?: boolean;
+  size?: "sm" | "md" | "lg";
+}
+
+export default function Logo({
+  className = "",
+  showText = true,
+  showSubtitle = true,
+  size = "md",
+}: LogoProps) {
+  const iconSizes = {
+    sm: "h-8 w-8",
+    md: "h-10 w-10 sm:h-11 sm:w-11",
+    lg: "h-14 w-14",
+  };
+
+  const textSizes = {
+    sm: "text-xl",
+    md: "text-2xl sm:text-3xl",
+    lg: "text-4xl",
+  };
+
+  const subtitleSizes = {
+    sm: "text-[9px]",
+    md: "text-[10px] sm:text-xs",
+    lg: "text-xs",
+  };
+
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative">
-        <div className="absolute inset-0 rounded-full bg-blue-500/40 blur-xl" />
+    <div className={`flex items-center gap-3 select-none ${className}`}>
+      <div className="relative flex items-center justify-center shrink-0">
+        {/* Soft golden glow behind logo */}
+        <div className="absolute inset-0 rounded-full bg-amber-400/25 blur-md" />
 
-        <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
-          <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 bg-clip-text text-2xl font-black text-transparent">
-            Q
-          </span>
+        <Image
+          src="/qlex-logo.png"
+          alt="QLex Logo"
+          width={80}
+          height={80}
+          className={`relative ${iconSizes[size]} object-contain filter drop-shadow-[0_0_12px_rgba(231,200,115,0.45)] transition-transform duration-300 hover:scale-105`}
+          priority
+        />
+      </div>
+
+      {showText && (
+        <div className="flex flex-col leading-none">
+          <h1 className={`bg-gradient-to-r from-white via-amber-100 to-amber-300 bg-clip-text ${textSizes[size]} font-black tracking-tight text-transparent drop-shadow-sm`}>
+            QLex
+          </h1>
+
+          {showSubtitle && (
+            <p className={`mt-0.5 ${subtitleSizes[size]} font-medium tracking-wide text-amber-200/60`}>
+              Upload to Pickup
+            </p>
+          )}
         </div>
-      </div>
-
-      <div>
-        <h1 className="bg-gradient-to-r from-white via-blue-200 to-violet-300 bg-clip-text text-3xl font-black tracking-tight text-transparent">
-          QLex
-        </h1>
-
-        <p className="text-xs text-zinc-400">
-          Upload to Pickup
-        </p>
-      </div>
+      )}
     </div>
   );
-}
+}

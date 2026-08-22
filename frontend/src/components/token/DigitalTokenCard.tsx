@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { User, Hash, Store, Calendar, Clock, Zap, ShieldCheck } from "lucide-react";
 import StatusChip from "./StatusChip";
@@ -31,46 +32,44 @@ export default function DigitalTokenCard({
 }: DigitalTokenCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.96, y: 15 }}
+      initial={{ opacity: 0, scale: 0.95, y: 15 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="relative group w-full"
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="relative w-full rounded-3xl bg-slate-900/90 border border-cyan-500/25 p-6 sm:p-8 shadow-2xl shadow-cyan-950/40 backdrop-blur-2xl text-slate-100 overflow-hidden"
     >
-      {/* Ambient background glow ring */}
-      <div className="absolute -inset-0.5 rounded-[34px] bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-purple-600/30 blur-xl opacity-60 group-hover:opacity-90 transition duration-700 pointer-events-none" />
+      {/* Subtle top edge reflection */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent pointer-events-none" />
 
-      {/* Hero Glass Card Container */}
-      <div className="relative rounded-[32px] bg-[#070b14]/90 backdrop-blur-2xl border border-white/15 p-6 sm:p-8 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.85)] overflow-hidden transition duration-500">
-        
-        {/* Subtle top edge reflection */}
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent pointer-events-none" />
-
-        {/* Card Header: Brand Monogram & Status */}
-        <div className="flex items-center justify-between gap-2 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-black text-xs">
-              QL
-            </div>
-            {isPriority || (tokenNumber && tokenNumber.startsWith("P-")) ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 font-extrabold text-[11px]">
-                <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
-                Priority Token Ticket
-              </span>
-            ) : (
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-                Regular Digital Ticket
-              </span>
-            )}
-          </div>
-
-          <StatusChip status={orderStatus} />
+      {/* Card Header: Brand Monogram & Status */}
+      <div className="flex items-center justify-between gap-2 mb-6">
+        <div className="flex items-center gap-2">
+          <Image
+            src="/qlex-logo.png"
+            alt="QLex"
+            width={36}
+            height={36}
+            className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(231,200,115,0.4)]"
+          />
+          {isPriority || (tokenNumber && tokenNumber.startsWith("P-")) ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 font-extrabold text-[11px]">
+              <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
+              Priority Token Ticket
+            </span>
+          ) : (
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+              Regular Digital Ticket
+            </span>
+          )}
         </div>
 
-        {/* Hero Section: Token Number & Queue Number */}
-        <div className="py-4 text-center border-y border-white/10 my-4 bg-white/[0.02] rounded-2xl p-6">
-          <p className="text-xs uppercase tracking-widest font-semibold text-slate-400 mb-1">
-            Token Number
-          </p>
+        <StatusChip status={orderStatus} />
+      </div>
+
+      {/* Hero Section: Token Number & Queue Number */}
+      <div className="py-4 text-center border-y border-white/10 my-4 bg-white/[0.02] rounded-2xl p-6">
+        <p className="text-xs uppercase tracking-widest font-semibold text-slate-400 mb-1">
+          Token Number
+        </p>
           
           <div className="text-6xl sm:text-7xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 font-mono drop-shadow-[0_0_35px_rgba(56,189,248,0.35)]">
             {tokenNumber}
@@ -143,8 +142,6 @@ export default function DigitalTokenCard({
             <span>{timeStr}</span>
           </div>
         </div>
-
-      </div>
-    </motion.div>
-  );
-}
+      </motion.div>
+    );
+  }

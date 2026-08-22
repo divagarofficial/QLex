@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { X, Printer, Download, ShieldCheck, CheckCircle2, Sparkles, Building2, QrCode } from "lucide-react";
 import type { OrderTokenData } from "@/types/token";
@@ -79,8 +80,14 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
           <div className="rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/10 p-5 print:bg-slate-900 print:text-white">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center font-extrabold text-2xl text-amber-400 shadow-inner">
-                  Q
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-center p-1.5 shadow-inner">
+                  <Image
+                    src="/qlex-logo.png"
+                    alt="QLex"
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(231,200,115,0.4)]"
+                  />
                 </div>
                 <div>
                   <h2 className="text-lg font-black tracking-wider text-white uppercase">
