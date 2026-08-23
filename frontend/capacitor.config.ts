@@ -4,12 +4,12 @@ const config: CapacitorConfig = {
   appId: 'com.qlex.app',
   appName: 'QLex',
   webDir: 'out',
-  server: {
-    url: process.env.CAPACITOR_SERVER_URL || 'https://qlexmindtech.vercel.app',
+  server: process.env.CAPACITOR_SERVER_URL ? {
+    url: process.env.CAPACITOR_SERVER_URL,
     cleartext: true,
     androidScheme: 'https',
     allowNavigation: ['*']
-  },
+  } : undefined,
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,
