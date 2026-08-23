@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 def make_icon(source_path, target_path, size):
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
-    # Deep imperial dark background #030712
-    bg = Image.new("RGBA", (size, size), (3, 7, 18, 255))
+    # Deep imperial dark background #02040a
+    bg = Image.new("RGBA", (size, size), (2, 4, 10, 255))
     img = Image.open(source_path).convert("RGBA")
     
     logo_size = int(size * 0.75)
@@ -30,8 +30,8 @@ def get_font(size):
 
 def make_splash(source_path, target_path, width, height):
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
-    # Deep imperial dark background #030712
-    canvas = Image.new("RGBA", (width, height), (3, 7, 18, 255))
+    # Deep imperial dark background #02040a
+    canvas = Image.new("RGBA", (width, height), (2, 4, 10, 255))
     draw = ImageDraw.Draw(canvas)
     
     logo = Image.open(source_path).convert("RGBA")
@@ -77,8 +77,8 @@ def make_splash(source_path, target_path, width, height):
     
     text_y += h1 + int(height * 0.04)
     
-    # Line 2: SINGLE LINE "THIRUMALAI D & DIVAGAR E"
-    line2 = "THIRUMALAI D & DIVAGAR E"
+    # Line 2: SINGLE LINE "THIRUMALAI D × DIVAGAR E"
+    line2 = "THIRUMALAI D x DIVAGAR E"
     bbox2 = draw.textbbox((0, 0), line2, font=font_title)
     w2 = bbox2[2] - bbox2[0]
     
