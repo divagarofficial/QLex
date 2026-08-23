@@ -4,12 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.qlex.app',
   appName: 'QLex',
   webDir: 'out',
-  server: process.env.CAPACITOR_SERVER_URL ? {
-    url: process.env.CAPACITOR_SERVER_URL,
-    cleartext: true,
+  server: {
     androidScheme: 'https',
+    hostname: 'localhost',
     allowNavigation: ['*']
-  } : undefined,
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 0,

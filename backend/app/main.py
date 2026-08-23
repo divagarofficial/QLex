@@ -44,25 +44,25 @@ async def serve_upload_file(file_path: str):
 
 register_exception_handlers(app)
 
-# CORS — allow all origins (local dev + all Vercel frontend deployments)
-raw_origins = os.getenv("ALLOWED_ORIGINS", "")
-custom_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
-default_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "https://qlexmindtech.vercel.app",
-]
-allowed_origins = list(set(default_origins + custom_origins))
+# Intercept all HTTP requests for 100% universal CORS support across Web and Mobile (Android/Capacitor)
+@app.middleware("http")
+async def universal_cors_middleware(request, call_next):
+    origin = request.headers.get("origin")
+    if request.method == "OPTIONS":
+        response = Response(status_code=200, content="OK")
+        response.headers["Access-Control-Allow-Origin"] = origin if origin else "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Accept, Origin, X-Waiting-Room-Session"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins if "*" not in raw_origins else ["*"],
-    allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    response = await call_next(request)
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    else:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
 
 
 @app.on_event("startup")
