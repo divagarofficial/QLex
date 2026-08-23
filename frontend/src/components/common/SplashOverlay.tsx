@@ -29,6 +29,54 @@ export default function SplashOverlay() {
           {/* Deep Imperial Dark Background */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#020617] via-[#080d1a] to-[#020617]" />
 
+          {/* TOP GRAND PALACE ARC */}
+          <div className="absolute top-0 inset-x-0 flex justify-center pointer-events-none z-10 pt-1">
+            <svg
+              viewBox="0 0 1000 180"
+              className="w-full max-w-4xl h-auto drop-shadow-[0_4px_25px_rgba(245,158,11,0.7)]"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Outer Golden Imperial Arch */}
+              <path
+                d="M 30 180 C 220 20, 780 20, 970 180"
+                stroke="url(#palaceGoldArc)"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+              {/* Inner Decorative Cyan Dashed Arch */}
+              <path
+                d="M 80 180 C 250 45, 750 45, 920 180"
+                stroke="url(#palaceCyanArc)"
+                strokeWidth="2.5"
+                strokeDasharray="8 6"
+              />
+              {/* Center Keystone Crown Emblem */}
+              <path
+                d="M 500 15 L 520 40 L 500 60 L 480 40 Z"
+                fill="url(#palaceGoldArc)"
+                stroke="#f59e0b"
+                strokeWidth="1.5"
+              />
+              <circle cx="500" cy="37.5" r="4" fill="#030712" />
+
+              <defs>
+                <linearGradient id="palaceGoldArc" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.1" />
+                  <stop offset="30%" stopColor="#fef08a" stopOpacity="0.9" />
+                  <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+                  <stop offset="70%" stopColor="#fef08a" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1" />
+                </linearGradient>
+                <linearGradient id="palaceCyanArc" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.1" />
+                  <stop offset="50%" stopColor="#67e8f9" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.1" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
           {/* Hardware-Accelerated Glowing Radial Background Beam (Lag-Free) */}
           <div 
             style={{ willChange: "transform, opacity" }}
@@ -47,7 +95,7 @@ export default function SplashOverlay() {
           <div className="w-full" />
 
           {/* Main Empire Container */}
-          <div className="relative z-10 flex flex-col items-center text-center max-w-2xl w-full px-2">
+          <div className="relative z-10 flex flex-col items-center text-center max-w-2xl w-full px-2 mt-4">
             
             {/* Royal Crown Icon */}
             <motion.div
