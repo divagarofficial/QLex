@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -17,6 +17,34 @@ try:
     os.makedirs(RECEIPTS_DIR, exist_ok=True)
 except Exception:
     pass
+
+# IST is UTC + 5:30
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def format_datetime_ist(dt_val) -> str:
+    """
+    Converts a datetime object or ISO string to IST (UTC+5:30)
+    and returns formatted string e.g. 'Aug 23, 2026, 08:43 PM'.
+    """
+    if dt_val is None:
+        dt = datetime.now(timezone.utc)
+    elif isinstance(dt_val, str):
+        try:
+            val_str = dt_val.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(val_str)
+        except Exception:
+            dt = datetime.now(timezone.utc)
+    elif isinstance(dt_val, datetime):
+        dt = dt_val
+    else:
+        dt = datetime.now(timezone.utc)
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+
+    dt_ist = dt.astimezone(IST)
+    return dt_ist.strftime("%b %d, %Y, %I:%M %p")
 
 
 def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str = "Print Hub") -> str:
@@ -88,10 +116,10 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     elements.append(banner_drawing)
     elements.append(Spacer(1, 10))
 
-    # Dates calculation
+    # Dates calculation formatted in IST (UTC+5:30)
     created_at = getattr(order, "created_at", None)
-    created_str = created_at.strftime("%b %d, %Y, %I:%M %p") if isinstance(created_at, datetime) else datetime.utcnow().strftime("%b %d, %Y, %I:%M %p")
-    gen_str = datetime.utcnow().strftime("%b %d, %Y, %I:%M %p")
+    created_str = format_datetime_ist(created_at)
+    gen_str = format_datetime_ist(datetime.now(timezone.utc))
 
     # 2. Metadata 3-Column Grid
     meta_col1 = [

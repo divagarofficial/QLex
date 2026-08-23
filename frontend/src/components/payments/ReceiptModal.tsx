@@ -32,6 +32,7 @@ export default function ReceiptModal({
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "Asia/Kolkata",
       })
     : new Date().toLocaleString("en-IN", {
         day: "2-digit",
@@ -39,6 +40,7 @@ export default function ReceiptModal({
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "Asia/Kolkata",
       });
 
   const amount = Number(payment.amount) || 0;

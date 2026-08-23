@@ -29,6 +29,7 @@ export default function ReceiptModal({ isOpen, onClose, data }: ReceiptModalProp
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Kolkata",
   });
 
   const rawToken = data.token;

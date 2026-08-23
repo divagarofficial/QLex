@@ -29,8 +29,16 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "Asia/Kolkata",
       })
-    : new Date().toLocaleString("en-IN");
+    : new Date().toLocaleString("en-IN", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Kolkata",
+      });
 
   const generatedDateStr = new Date().toLocaleString("en-IN", {
     month: "short",
@@ -38,6 +46,7 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Kolkata",
   });
 
   const grandTotal = Number(details?.total_amount ?? order.total_amount) || 0;
