@@ -8,7 +8,7 @@ export default function SplashOverlay() {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Stay visible for 10 seconds (10000ms) as requested
+    // 10-second splash screen duration
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 10000);
@@ -21,113 +21,111 @@ export default function SplashOverlay() {
       {isVisible && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.08, filter: "blur(12px)" }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-0 z-[99999] flex flex-col items-center justify-between py-12 px-6 bg-[#020617] text-white select-none overflow-hidden"
+          exit={{ opacity: 0, scale: 1.05 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          style={{ willChange: "opacity, transform" }}
+          className="fixed inset-0 z-[99999] flex flex-col items-center justify-between py-10 px-4 bg-[#030712] text-white select-none overflow-hidden"
         >
-          {/* Deep Cosmic Background & Ambient Glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-950/50 via-slate-950 to-[#020617]" />
+          {/* Deep Imperial Dark Background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#020617] via-[#080d1a] to-[#020617]" />
 
-          {/* Rotating Radiant Light Orbs */}
-          <motion.div
-            animate={{
-              rotate: [0, 360],
-              scale: [0.9, 1.15, 0.9],
-            }}
-            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
-            className="absolute w-[500px] h-[500px] bg-gradient-to-tr from-cyan-500/15 via-indigo-500/10 to-amber-500/15 rounded-full blur-3xl"
+          {/* Hardware-Accelerated Glowing Radial Background Beam (Lag-Free) */}
+          <div 
+            style={{ willChange: "transform, opacity" }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[500px] sm:h-[500px] rounded-full bg-[radial-gradient(circle,_rgba(245,158,11,0.18)_0%,_rgba(6,182,212,0.12)_40%,_transparent_70%)] pointer-events-none animate-pulse" 
           />
 
-          <motion.div
-            animate={{
-              rotate: [360, 0],
-              scale: [1.1, 0.85, 1.1],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute w-[400px] h-[400px] bg-gradient-to-bl from-amber-500/15 via-blue-600/10 to-cyan-400/15 rounded-full blur-3xl"
-          />
-
-          {/* Floating Sparkle Stars Grid */}
-          <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:32px_32px] opacity-15" />
+          {/* Floating Gold Sparkle Particles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
+            <div className="absolute top-1/4 left-10 w-2 h-2 rounded-full bg-amber-400 animate-ping [animation-duration:3s]" />
+            <div className="absolute top-1/3 right-12 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping [animation-duration:4s]" />
+            <div className="absolute bottom-1/3 left-1/4 w-2 h-2 rounded-full bg-amber-300 animate-ping [animation-duration:3.5s]" />
+            <div className="absolute bottom-1/4 right-1/3 w-1.5 h-1.5 rounded-full bg-cyan-300 animate-ping [animation-duration:4.5s]" />
+          </div>
 
           {/* Top Spacer */}
           <div className="w-full" />
 
-          {/* Center Grand Content */}
-          <div className="relative z-10 flex flex-col items-center text-center max-w-xl w-full">
-            {/* Logo Container with Royal Aura */}
+          {/* Main Empire Container */}
+          <div className="relative z-10 flex flex-col items-center text-center max-w-2xl w-full px-2">
+            
+            {/* Royal Crown Icon */}
             <motion.div
-              initial={{ scale: 0.2, opacity: 0, rotate: -15 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="relative mb-10"
+              initial={{ opacity: 0, y: -20, scale: 0.5 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="mb-3 text-amber-400 text-3xl sm:text-4xl drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]"
             >
-              {/* Outer Pulsing Golden/Cyan Ring */}
-              <motion.div
-                animate={{
-                  scale: [1, 1.25, 1],
-                  opacity: [0.4, 0.8, 0.4],
-                }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -inset-6 rounded-full bg-gradient-to-r from-amber-400/30 via-cyan-500/30 to-amber-400/30 blur-xl"
+              👑
+            </motion.div>
+
+            {/* QLex Logo with Gold & Cyan Imperial Ring */}
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
+              className="relative mb-8"
+            >
+              {/* Outer Golden Aura Ring */}
+              <div 
+                style={{ willChange: "transform" }}
+                className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-amber-400/40 via-cyan-400/40 to-amber-400/40 opacity-75 blur-md animate-pulse" 
               />
 
-              <div className="relative bg-slate-950/90 border border-amber-400/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(245,158,11,0.3)] backdrop-blur-xl">
+              <div className="relative bg-slate-950/95 border-2 border-amber-400/60 p-5 rounded-2xl shadow-[0_0_40px_rgba(245,158,11,0.35)]">
                 <Image
                   src="/qlex-logo.png"
                   alt="QLex Logo"
-                  width={130}
-                  height={130}
-                  className="object-contain drop-shadow-[0_0_25px_rgba(56,189,248,0.8)]"
+                  width={115}
+                  height={115}
+                  className="object-contain drop-shadow-[0_0_20px_rgba(56,189,248,0.7)]"
                   priority
                 />
               </div>
             </motion.div>
 
-            {/* Grand Empire Announcement Text (ALL CAPS) */}
-            <div className="space-y-4 px-2">
-              {/* Line 1: WELCOME TO THE EMPIRE OF */}
-              <motion.div
-                initial={{ opacity: 0, y: 25, letterSpacing: "0.1em" }}
-                animate={{ opacity: 1, y: 0, letterSpacing: "0.3em" }}
-                transition={{ duration: 1.1, delay: 0.6, ease: "easeOut" }}
-              >
-                <span className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-100 to-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]">
-                  WELCOME TO THE EMPIRE OF
-                </span>
-              </motion.div>
+            {/* Empire Announcement - Line 1 */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="mb-3"
+            >
+              <span className="inline-block px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-[0.25em] bg-gradient-to-r from-amber-400 via-amber-200 to-cyan-300 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.5)] border border-amber-300/50">
+                WELCOME TO THE EMPIRE OF
+              </span>
+            </motion.div>
 
-              {/* Line 2: THIRUMALAI D AND DIVAGAR E */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.85, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 1.2, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                className="relative"
-              >
-                <div className="absolute -inset-2 bg-cyan-500/20 blur-lg rounded-lg opacity-60 animate-pulse" />
-                <h1 className="relative text-2xl sm:text-4xl font-black uppercase tracking-wider leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 via-amber-200 to-white drop-shadow-[0_4px_25px_rgba(6,182,212,0.7)]">
-                  THIRUMALAI D AND DIVAGAR E
-                </h1>
-              </motion.div>
-            </div>
+            {/* SINGLE LINE Founders Title - Line 2 */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.9, delay: 0.8 }}
+              className="w-full flex justify-center items-center px-1"
+            >
+              <h1 className="text-base sm:text-2xl md:text-3xl font-black uppercase tracking-wider whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white via-cyan-200 to-amber-200 drop-shadow-[0_4px_20px_rgba(245,158,11,0.6)]">
+                THIRUMALAI D &amp; DIVAGAR E
+              </h1>
+            </motion.div>
           </div>
 
-          {/* Bottom 10-Second Animated Progress Bar */}
-          <div className="relative z-10 w-full max-w-xs flex flex-col items-center space-y-3">
+          {/* Smooth 10-Second Progress Indicator Bar */}
+          <div className="relative z-10 w-full max-w-xs flex flex-col items-center space-y-2.5">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.5 }}
-              className="text-[10px] uppercase font-bold tracking-[0.2em] text-cyan-300/80"
+              transition={{ delay: 1.1 }}
+              className="text-[10px] uppercase font-extrabold tracking-[0.2em] text-amber-300/90 drop-shadow-sm"
             >
-              INITIALIZING EMPIRE ARCHITECTURE...
+              ENTERING THE EMPIRE...
             </motion.div>
-            <div className="w-full h-1.5 bg-slate-900/90 rounded-full overflow-hidden border border-cyan-500/30 shadow-inner">
+            <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-amber-400/40 shadow-inner">
               <motion.div
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{ duration: 10, ease: "linear" }}
-                className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 via-amber-400 to-cyan-400 shadow-[0_0_12px_rgba(56,189,248,0.9)]"
+                style={{ willChange: "width" }}
+                className="h-full bg-gradient-to-r from-amber-400 via-cyan-400 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.9)]"
               />
             </div>
           </div>
