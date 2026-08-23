@@ -120,7 +120,9 @@ class WhatsAppService:
                 f"Hi *{student_name}*, your order *#{order_id}* at *{shop_name}* is confirmed!\n"
                 f"📋{token_str} Total Paid: *₹{total_amount:.2f}* ({payment_status})\n\n"
                 f"📎 Attached is your official QLex PDF Receipt.\n"
-                f"We will notify you here as soon as your printing starts!"
+                f"We will notify you here as soon as your printing starts!\n\n"
+                f"© 2026 MINDURA TECHNOLOGIES. All rights reserved.\n"
+                f"QLex • Rajalakshmi Institute of Technology"
             )
 
             self.send_message(phone, msg, pdf_path=pdf_path)
@@ -147,23 +149,31 @@ class WhatsAppService:
             status_clean = str(status).upper()
             token_str = f" Token #: *{token_number}*." if token_number else ""
 
+            footer_str = (
+                "\n\n© 2026 MINDURA TECHNOLOGIES. All rights reserved.\n"
+                "QLex • Rajalakshmi Institute of Technology"
+            )
+
             if "PRINTING" in status_clean:
                 msg = (
                     f"🖨️ *QLex Order Update*\n\n"
                     f"Hi *{student_name}*, your order *#{short_id}* at *{shop_name}* is now *PRINTING*.\n"
                     f"Please stand by for pickup notification!"
+                    f"{footer_str}"
                 )
             elif "READY" in status_clean:
                 msg = (
                     f"🛍️ *QLex Order Ready for Pickup!*\n\n"
                     f"Hi *{student_name}*, your order *#{short_id}* is *READY FOR PICKUP* at *{shop_name}*!{token_str}\n"
                     f"Please bring your token or register number to collect your documents."
+                    f"{footer_str}"
                 )
             elif "SERVED" in status_clean or "COMPLETED" in status_clean:
                 msg = (
                     f"✅ *QLex Order Completed*\n\n"
                     f"Hi *{student_name}*, your order *#{short_id}* has been marked as completed.\n"
                     f"Thank you for printing with QLex!"
+                    f"{footer_str}"
                 )
             elif "REJECTED" in status_clean or "CANCELLED" in status_clean:
                 reason_str = f"\nReason: _{reason}_" if reason else ""
@@ -171,11 +181,13 @@ class WhatsAppService:
                     f"❌ *QLex Order Status Alert*\n\n"
                     f"Hi *{student_name}*, your order *#{short_id}* was cancelled/rejected.{reason_str}\n"
                     f"If you have questions, please check with {shop_name} counter."
+                    f"{footer_str}"
                 )
             else:
                 msg = (
                     f"🔔 *QLex Order Update*\n\n"
                     f"Hi *{student_name}*, your order *#{short_id}* status is now: *{status_clean}*."
+                    f"{footer_str}"
                 )
 
             self.send_message(phone, msg)

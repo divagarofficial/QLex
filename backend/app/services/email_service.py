@@ -285,9 +285,8 @@ QLex • Rajalakshmi Institute of Technology
         token_number: Optional[str] = None,
         reason: Optional[str] = None
     ):
-        """Asynchronously sends status update notification (Ready for Pickup, Printing, Completed, Rejected)."""
-        if not self.is_enabled(db) or not to_email:
-            return
+        """Email alerts are restricted to Order Placement Confirmation only. Status update emails are suppressed."""
+        return
 
         def _worker():
             try:
