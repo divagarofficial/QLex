@@ -5,12 +5,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 export default function SplashOverlay() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("ENTERING THE EMPIRE...");
   const [isAccessGranted, setIsAccessGranted] = useState(false);
 
   useEffect(() => {
+    // Only show splash screen once per browser session
+    if (typeof window !== "undefined") {
+      const hasSeenSplash = sessionStorage.getItem("qlex_splash_shown");
+      if (hasSeenSplash) {
+        return;
+      }
+      sessionStorage.setItem("qlex_splash_shown", "true");
+      setIsVisible(true);
+    }
+
     // 10-second (10000ms) precise progress timer
     const intervalTime = 100;
     const totalSteps = 10000 / intervalTime;

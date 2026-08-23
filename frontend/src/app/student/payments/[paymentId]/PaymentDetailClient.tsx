@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, CreditCard, Calendar, Store, FileText, CheckCircle2, Shield, Printer, ExternalLink, AlertTriangle } from "lucide-react";
 
@@ -18,6 +18,10 @@ import type { PaymentItem, OrderDetailsResponse } from "@/types/student";
 
 export default function PaymentDetailClient({ paymentId }: { paymentId: string }) {
   const router = useRouter();
+  const params = useParams();
+  const rawParam = params?.paymentId as string | undefined;
+  const activePaymentId = rawParam && rawParam !== "placeholder" ? rawParam : paymentId;
+
   const token = useAuthStore((s) => s.token);
   const logout = useAuthStore((s) => s.logout);
 
@@ -34,13 +38,13 @@ export default function PaymentDetailClient({ paymentId }: { paymentId: string }
 
   const loadData = useCallback(async () => {
     const activeToken = token || (typeof window !== "undefined" ? localStorage.getItem("qlex_token") : null);
-    if (!activeToken || !paymentId) return;
+    if (!activeToken || !activePaymentId) return;
 
     try {
       setIsLoading(true);
       const res = await fetchPayments(activeToken);
       const found = res.payments?.find(
-        (p) => String(p.payment_id) === paymentId || String(p.order_id) === paymentId
+        (p) => String(p.payment_id) === activePaymentId || String(p.order_id) === activePaymentId
       );
 
       if (found) {

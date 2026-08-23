@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Printer, Clock, FileText, CheckCircle2, ShieldAlert, Download, Store, RefreshCw, AlertTriangle } from "lucide-react";
 
@@ -19,6 +19,10 @@ import type { OrderDetailsResponse } from "@/types/student";
 
 export default function StudentOrderDetailClient({ orderId }: { orderId: string }) {
   const router = useRouter();
+  const params = useParams();
+  const rawParam = params?.orderId as string | undefined;
+  const activeOrderId = rawParam && rawParam !== "placeholder" ? rawParam : orderId;
+
   const token = useAuthStore((s) => s.token);
   const logout = useAuthStore((s) => s.logout);
 
@@ -36,12 +40,12 @@ export default function StudentOrderDetailClient({ orderId }: { orderId: string 
   const loadData = useCallback(
     async (isManual = false) => {
       const activeToken = token || (typeof window !== "undefined" ? localStorage.getItem("qlex_token") : null);
-      if (!activeToken || !orderId) return;
+      if (!activeToken || !activeOrderId) return;
 
       if (isManual) setIsRefreshing(true);
 
       try {
-        const res = await fetchOrderDetails(activeToken, orderId);
+        const res = await fetchOrderDetails(activeToken, activeOrderId);
         setOrder(res);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to load order details.";

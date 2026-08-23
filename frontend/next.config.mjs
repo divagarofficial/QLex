@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "export",
+  ...(process.env.CAPACITOR_BUILD === "true" ? { output: "export" } : {}),
   images: { unoptimized: true },
   allowedDevOrigins: [
     "192.168.27.188",

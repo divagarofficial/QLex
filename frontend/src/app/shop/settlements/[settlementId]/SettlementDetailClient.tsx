@@ -17,6 +17,7 @@ import {
   Sparkles,
   Download,
 } from "lucide-react";
+import { useParams } from "next/navigation";
 import SettlementStatusChip from "@/components/shop/settlements/SettlementStatusChip";
 import SettlementBreakdown from "@/components/shop/settlements/SettlementBreakdown";
 import BankInformationCard from "@/components/shop/settlements/BankInformationCard";
@@ -26,6 +27,10 @@ import { fetchSettlementById, generateUpiPayment } from "@/services/shop";
 import type { SettlementItem } from "@/types/shop";
 
 export default function SettlementDetailClient({ settlementId }: { settlementId: string }) {
+  const params = useParams();
+  const rawParam = params?.settlementId as string | undefined;
+  const activeSettlementId = rawParam && rawParam !== "placeholder" ? rawParam : settlementId;
+
   const [settlement, setSettlement] = useState<SettlementItem | null>(null);
   const [upiDetails, setUpiDetails] = useState<{
     upi_id: string;
@@ -42,13 +47,14 @@ export default function SettlementDetailClient({ settlementId }: { settlementId:
   });
 
   const loadSettlement = useCallback(async () => {
+    if (!activeSettlementId) return;
     try {
       setIsLoading(true);
-      const data = await fetchSettlementById(settlementId);
+      const data = await fetchSettlementById(activeSettlementId);
       setSettlement(data);
 
       // Attempt to fetch UPI payment details if supported
-      generateUpiPayment(settlementId)
+      generateUpiPayment(activeSettlementId)
         .then((upi) => setUpiDetails(upi))
         .catch(() => null);
     } catch (err: any) {
@@ -60,7 +66,7 @@ export default function SettlementDetailClient({ settlementId }: { settlementId:
     } finally {
       setIsLoading(false);
     }
-  }, [settlementId]);
+  }, [activeSettlementId]);
 
   useEffect(() => {
     loadSettlement();

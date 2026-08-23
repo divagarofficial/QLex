@@ -1,5 +1,7 @@
 import SettlementDetailClient from "./SettlementDetailClient";
 
+export const dynamicParams = true;
+
 export function generateStaticParams() {
   return [{ settlementId: "placeholder" }];
 }

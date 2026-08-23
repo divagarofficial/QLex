@@ -1,5 +1,7 @@
 import PaymentDetailClient from "./PaymentDetailClient";
 
+export const dynamicParams = true;
+
 export function generateStaticParams() {
   return [{ paymentId: "placeholder" }];
 }

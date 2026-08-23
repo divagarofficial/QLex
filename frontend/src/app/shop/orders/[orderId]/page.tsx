@@ -12,6 +12,8 @@ interface PageProps {
   }>;
 }
 
+export const dynamicParams = true;
+
 export function generateStaticParams() {
   return [{ orderId: "placeholder" }];
 }

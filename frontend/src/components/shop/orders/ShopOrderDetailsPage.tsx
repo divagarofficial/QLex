@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -41,6 +41,9 @@ interface ShopOrderDetailsPageProps {
 
 export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPageProps) {
   const router = useRouter();
+  const params = useParams();
+  const rawParam = params?.orderId as string | undefined;
+  const activeOrderId = rawParam && rawParam !== "placeholder" ? rawParam : orderId;
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -71,13 +74,14 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
   // Load Order Details from Backend
   const loadOrderDetails = useCallback(
     async (isRefresh = false) => {
+      if (!activeOrderId) return;
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
 
       try {
         const [shopRes, summaryRes] = await Promise.all([
-          fetchOrderDetails(orderId).catch(() => null),
-          fetchOrderSummary(orderId).catch(() => null),
+          fetchOrderDetails(activeOrderId).catch(() => null),
+          fetchOrderSummary(activeOrderId).catch(() => null),
         ]);
 
         if (shopRes) setDetails(shopRes);
@@ -99,7 +103,7 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
         setRefreshing(false);
       }
     },
-    [orderId]
+    [activeOrderId]
   );
 
   useEffect(() => {
