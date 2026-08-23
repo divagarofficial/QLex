@@ -10,9 +10,10 @@ class ShopService:
 
         self.repository = ShopRepository(db)
 
-    def _notify_whatsapp_status(self, queue, status_str: str, reason: str = None):
+    def _notify_status_update(self, queue, status_str: str, reason: str = None):
         try:
             from app.services.whatsapp_service import whatsapp_service
+            from app.services.email_service import email_service
             from app.models.order import Order
             from app.models.user import User
 
@@ -30,22 +31,44 @@ class ShopService:
             if not student and getattr(order, "student_id", None):
                 student = self.repository.db.query(User).filter(User.id == order.student_id).first()
 
-            if not student or not student.phone:
+            if not student:
                 return
 
-            whatsapp_service.send_status_update(
-                db=self.repository.db,
-                order_id=str(order.id),
-                student_name=student.full_name,
-                phone=student.phone,
-                shop_name="Print Hub",
-                status=status_str,
-                token_number=getattr(queue, "token", None),
-                reason=reason
-            )
+            student_name = getattr(student, "full_name", "Student") or "Student"
+            phone = getattr(student, "phone", "") or ""
+            email = getattr(student, "email", "") or ""
+            token_number = getattr(queue, "token", None)
+
+            if phone:
+                whatsapp_service.send_status_update(
+                    db=self.repository.db,
+                    order_id=str(order.id),
+                    student_name=student_name,
+                    phone=phone,
+                    shop_name="Print Hub",
+                    status=status_str,
+                    token_number=token_number,
+                    reason=reason
+                )
+
+            if email:
+                email_service.send_status_update_email(
+                    db=self.repository.db,
+                    order_id=str(order.id),
+                    student_name=student_name,
+                    to_email=email,
+                    shop_name="Print Hub",
+                    status=status_str,
+                    token_number=token_number,
+                    reason=reason
+                )
         except Exception as e:
             import logging
-            logging.getLogger(__name__).warning(f"[ShopService] Failed to send WhatsApp status update: {e}")
+            logging.getLogger(__name__).warning(f"[ShopService] Failed to send status update notification: {e}")
+
+    def _notify_whatsapp_status(self, queue, status_str: str, reason: str = None):
+        """Backward compatibility alias for _notify_status_update."""
+        self._notify_status_update(queue, status_str, reason=reason)
 
     def auto_process_printing_timeouts(self):
         """Disabled auto-timeout processing. Order status changes are purely manual by the shopkeeper."""

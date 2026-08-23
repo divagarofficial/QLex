@@ -108,12 +108,15 @@ class ShopQueueService:
             self.db.commit()
             self.db.refresh(queue)
 
-        # Trigger WhatsApp order receipt notification for student
+        # Trigger WhatsApp & Email order receipt notifications for student
         try:
             from app.services.whatsapp_service import whatsapp_service
+            from app.services.email_service import email_service
             student = getattr(order, "student", None)
             student_name = getattr(student, "full_name", "Student") if student else "Student"
             phone = getattr(student, "phone", "") if student else ""
+            email = getattr(student, "email", "") if student else ""
+
             if phone:
                 whatsapp_service.send_order_placed_receipt(
                     db=self.db,
@@ -123,8 +126,17 @@ class ShopQueueService:
                     shop_name="Print Hub",
                     token_number=queue.token
                 )
-        except Exception as whatsapp_err:
+            if email:
+                email_service.send_order_placed_email(
+                    db=self.db,
+                    order=order,
+                    student_name=student_name,
+                    to_email=email,
+                    shop_name="Print Hub",
+                    token_number=queue.token
+                )
+        except Exception as notify_err:
             import logging
-            logging.getLogger(__name__).warning(f"[ShopQueueService] WhatsApp receipt dispatch error: {whatsapp_err}")
+            logging.getLogger(__name__).warning(f"[ShopQueueService] Notification error: {notify_err}")
 
         return queue
