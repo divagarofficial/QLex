@@ -58,7 +58,7 @@ class EmailService:
         user = getattr(settings, "SMTP_USER", "divagar.240075@aids.ritchennai.edu.in") or os.getenv("SMTP_USER", "")
         pwd = getattr(settings, "SMTP_PASSWORD", "eprzscarycrjwnda") or os.getenv("SMTP_PASSWORD", "")
         from_email = getattr(settings, "EMAILS_FROM_EMAIL", user) or user or "divagar.240075@aids.ritchennai.edu.in"
-        from_name = getattr(settings, "EMAILS_FROM_NAME", "QLex") or "QLex"
+        from_name = "QLex"
 
         if not user or not pwd:
             logger.warning("[EmailService] SMTP user/password credentials missing. Skipping email dispatch.")
