@@ -51,7 +51,7 @@ export default function SplashOverlay() {
           exit={{ opacity: 0, scale: 1.08, filter: "brightness(1.5)" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
           style={{ willChange: "opacity, transform" }}
-          className={`fixed inset-0 z-[99999] flex flex-col items-center justify-between py-6 px-4 text-white select-none overflow-hidden transition-colors duration-500 ${
+          className={`fixed inset-0 z-[99999] flex flex-col items-center justify-between py-10 px-4 text-white select-none overflow-hidden transition-colors duration-500 ${
             isAccessGranted ? "bg-[#030e24]" : "bg-[#02040a]"
           }`}
         >
@@ -64,54 +64,6 @@ export default function SplashOverlay() {
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[480px] sm:h-[480px] rounded-full bg-[radial-gradient(circle,_rgba(245,158,11,0.2)_0%,_rgba(6,182,212,0.15)_40%,_transparent_70%)] pointer-events-none animate-pulse" 
           />
 
-          {/* TOP GRAND PALACE ARC */}
-          <div className="absolute top-0 inset-x-0 flex justify-center pointer-events-none z-10 pt-1">
-            <svg
-              viewBox="0 0 1000 180"
-              className="w-full max-w-4xl h-auto drop-shadow-[0_4px_25px_rgba(245,158,11,0.7)]"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Outer Golden Imperial Arch */}
-              <path
-                d="M 30 180 C 220 20, 780 20, 970 180"
-                stroke="url(#palaceGoldArc)"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
-              {/* Inner Decorative Cyan Dashed Arch */}
-              <path
-                d="M 80 180 C 250 45, 750 45, 920 180"
-                stroke="url(#palaceCyanArc)"
-                strokeWidth="2"
-                strokeDasharray="8 6"
-              />
-              {/* Center Keystone Emblem */}
-              <path
-                d="M 500 15 L 520 40 L 500 60 L 480 40 Z"
-                fill="url(#palaceGoldArc)"
-                stroke="#f59e0b"
-                strokeWidth="1.5"
-              />
-              <circle cx="500" cy="37.5" r="4" fill="#02040a" />
-
-              <defs>
-                <linearGradient id="palaceGoldArc" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.1" />
-                  <stop offset="30%" stopColor="#fef08a" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
-                  <stop offset="70%" stopColor="#fef08a" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.1" />
-                </linearGradient>
-                <linearGradient id="palaceCyanArc" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.1" />
-                  <stop offset="50%" stopColor="#67e8f9" stopOpacity="0.85" />
-                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.1" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-
           {/* Floating Gold Sparkles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
             <div className="absolute top-1/4 left-10 w-2 h-2 rounded-full bg-amber-400 animate-ping [animation-duration:3s]" />
@@ -123,53 +75,8 @@ export default function SplashOverlay() {
           <div className="w-full" />
 
           {/* Center Royal Artifact & Empire Titles */}
-          <div className="relative z-10 flex flex-col items-center text-center max-w-2xl w-full px-2 mt-2">
+          <div className="relative z-10 flex flex-col items-center text-center max-w-2xl w-full px-2 mt-4">
             
-            {/* Custom Minimal Metallic Gold Crown Icon */}
-            <motion.div
-              initial={{ opacity: 0, y: -15, scale: 0.8 }}
-              animate={{ opacity: 1, y: [0, -6, 0], scale: 1 }}
-              transition={{ 
-                opacity: { duration: 0.8 },
-                y: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
-              }}
-              className="mb-4 drop-shadow-[0_0_15px_rgba(245,158,11,0.85)]"
-            >
-              <svg 
-                width="46" 
-                height="38" 
-                viewBox="0 0 64 52" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Crown Metallic Gold Frame */}
-                <path 
-                  d="M6 44 L16 16 L28 32 L32 10 L36 32 L48 16 L58 44 Z" 
-                  stroke="#fbbf24" 
-                  strokeWidth="3.5" 
-                  strokeLinejoin="round" 
-                  strokeLinecap="round"
-                  fill="url(#crownGoldGrad)"
-                  fillOpacity="0.15"
-                />
-                {/* Crown Base Bar */}
-                <rect x="6" y="44" width="52" height="5" rx="2.5" fill="#f59e0b" stroke="#fbbf24" strokeWidth="1" />
-                
-                {/* Tiny Cyan Gem Highlights on Crown Peaks */}
-                <circle cx="16" cy="16" r="3.5" fill="#67e8f9" className="animate-pulse" />
-                <circle cx="32" cy="10" r="4.5" fill="#38bdf8" className="animate-pulse" />
-                <circle cx="48" cy="16" r="3.5" fill="#67e8f9" className="animate-pulse" />
-
-                <defs>
-                  <linearGradient id="crownGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#f59e0b" />
-                    <stop offset="50%" stopColor="#fef08a" />
-                    <stop offset="100%" stopColor="#d97706" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </motion.div>
-
             {/* FLOATING CIRCULAR GLASS ROYAL ARTIFACT FRAME */}
             <motion.div
               initial={{ scale: 0.6, opacity: 0 }}
