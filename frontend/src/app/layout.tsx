@@ -5,6 +5,7 @@ import Script from "next/script";
 import AuroraBackground from "@/components/effects/AuroraBackground";
 import { PopupProvider } from "@/components/popup/PopupContext";
 import Footer from "@/components/common/Footer";
+import SplashOverlay from "@/components/common/SplashOverlay";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,6 +41,7 @@ export default function RootLayout({
       >
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <PopupProvider>
+          <SplashOverlay />
           <AuroraBackground />
 
           <div className="flex-1 flex flex-col">
