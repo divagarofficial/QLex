@@ -12,6 +12,10 @@ interface PageProps {
   }>;
 }
 
+export function generateStaticParams() {
+  return [{ orderId: "placeholder" }];
+}
+
 export default async function Page({ params }: PageProps) {
   const { orderId } = await params;
   return <ShopOrderDetailsPage orderId={orderId} />;

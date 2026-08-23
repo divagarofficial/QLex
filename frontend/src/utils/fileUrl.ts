@@ -8,7 +8,7 @@ export function getFileUrl(
   orderId?: string | null,
   filename?: string | null
 ): string {
-  const defaultApiBase = "https://qlex-two.vercel.app";
+  const defaultApiBase = "https://qlex-backend-ybnb435gbq-el.a.run.app";
   const apiBase = (
     process.env.NEXT_PUBLIC_API_URL || defaultApiBase
   ).replace(/\/+$/, "");

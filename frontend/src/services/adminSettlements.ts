@@ -3,7 +3,7 @@
  * Interacts with FastAPI backend `/admin/settlements` and `/settlements` endpoints.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://qlex-backend-ybnb435gbq-el.a.run.app";
 
 export interface SettlementItem {
   id: string;

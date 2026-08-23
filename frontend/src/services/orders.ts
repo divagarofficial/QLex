@@ -16,7 +16,7 @@ import type {
   LiveQueueResponse,
 } from "@/types/orders";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-backend-ybnb435gbq-el.a.run.app";
 
 // ── Waiting Room Session ──────────────────────────────────────────
 let waitingRoomSession: string | null = null;

@@ -32,9 +32,6 @@ backend/uploads/
 cloudflared.exe
 backend_routes.txt
 
-# System / IDE files
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
+# Keys & Signing Secrets
+*.jks
+*.idsig

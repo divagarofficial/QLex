@@ -1,7 +1,7 @@
 import { ADMIN_ACCESS_PASSWORD } from "@/config/admin";
 import { validateAdminPasswordFormat } from "@/utils/adminValidation";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://qlex-backend-ybnb435gbq-el.a.run.app";
 export const ADMIN_TOKEN_KEY = "qlex_admin_token";
 
 export interface AdminAuthResponse {

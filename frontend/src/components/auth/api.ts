@@ -8,7 +8,7 @@ import type {
   SectionsResponse,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-backend-ybnb435gbq-el.a.run.app";
 
 async function request<T>(path: string, body?: unknown): Promise<T> {
   const options: RequestInit = {

@@ -11,7 +11,7 @@ export interface ShopAuthResponse {
  * Currently verifies PIN against temporary config (0810).
  * Keep async interface for seamless backend integration later.
  */
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-two.vercel.app";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://qlex-backend-ybnb435gbq-el.a.run.app";
 
 export async function loginShop(pin: string): Promise<ShopAuthResponse> {
   const validation = validatePinFormat(pin);

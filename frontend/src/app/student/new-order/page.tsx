@@ -551,6 +551,9 @@ export default function NewOrderPage() {
       const payment = await createPayment(orderId);
       setPaymentData(payment);
 
+      const userRaw = typeof window !== "undefined" ? localStorage.getItem("qlex_user") : null;
+      const userObj = userRaw ? JSON.parse(userRaw) : null;
+
       const options = {
         key: payment.razorpay_key_id,
         amount: payment.amount * 100,
@@ -558,6 +561,22 @@ export default function NewOrderPage() {
         name: "QLex",
         description: `Order #${payment.order_id.slice(0, 8)}`,
         order_id: payment.razorpay_order_id,
+        prefill: {
+          name: userObj?.name || "",
+          email: userObj?.email || "",
+          contact: userObj?.phone || "",
+        },
+        retry: {
+          enabled: true,
+          max_count: 3,
+        },
+        config: {
+          display: {
+            preferences: {
+              show_default_blocks: true,
+            },
+          },
+        },
         handler: async function (response: any) {
           try {
             await verifyPayment({
@@ -585,6 +604,10 @@ export default function NewOrderPage() {
 
       // @ts-ignore
       const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        setCreatingPayment(false);
+        setPaymentError(response.error?.description || "Payment process was cancelled or failed.");
+      });
       rzp.open();
     } catch (err: any) {
       setCreatingPayment(false);
