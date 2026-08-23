@@ -45,13 +45,13 @@ def send_email_via_smtp(to_email: str, code: str) -> bool:
 
     try:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"{code} is your QLex RIT Student Verification Code 🔐"
-        msg["From"] = f"QLex Printing Portal <{from_email}>"
+        msg["Subject"] = f"{code} is your QLex Verification Code 🔐"
+        msg["From"] = f"QLex <{from_email}>"
         msg["To"] = to_email
 
         text_content = f"""
 =====================================================
-QLex Printing Portal | Rajalakshmi Institute of Technology
+QLex | A PRODUCT OF MINDURA TECHNOLOGIES
 =====================================================
 
 Hello RIT Student,
@@ -62,7 +62,8 @@ This code is valid for 5 minutes. Use it to complete your account registration o
 
 Security Warning: Never share this OTP code with anyone.
 
-© 2026 QLex Technology | Rajalakshmi Institute of Technology
+© 2026 MINDURA TECHNOLOGIES. All rights reserved.
+QLex • Rajalakshmi Institute of Technology
 """
 
         html_content = f"""
@@ -82,11 +83,11 @@ Security Warning: Never share this OTP code with anyone.
           <!-- Header Banner -->
           <tr>
             <td style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 60%, #0f172a 100%); padding: 28px 24px; text-align: center;">
-              <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase;">
-                QLex <span style="color: #38bdf8;">Printing Portal</span>
+              <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; text-transform: uppercase;">
+                QLex
               </h1>
-              <p style="margin: 6px 0 0 0; font-size: 12px; color: #bae6fd; font-weight: 600; letter-spacing: 0.5px;">
-                Rajalakshmi Institute of Technology (RIT) Campus Service
+              <p style="margin: 6px 0 0 0; font-size: 11px; color: #bae6fd; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                A PRODUCT OF MINDURA TECHNOLOGIES
               </p>
             </td>
           </tr>
@@ -141,11 +142,11 @@ Security Warning: Never share this OTP code with anyone.
           <!-- Footer -->
           <tr>
             <td style="background-color: #0f172a; padding: 18px 24px; text-align: center; border-top: 1px solid #334155;">
-              <p style="margin: 0; font-size: 12px; color: #64748b; font-weight: 600;">
-                © 2026 QLex Technology | Rajalakshmi Institute of Technology (RIT)
+              <p style="margin: 0; font-size: 12px; color: #cbd5e1; font-weight: 600;">
+                © 2026 MINDURA TECHNOLOGIES. All rights reserved.
               </p>
-              <p style="margin: 4px 0 0 0; font-size: 11px; color: #475569;">
-                Fast, Smart & Seamless Campus Printing Hub
+              <p style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 600;">
+                QLex • Rajalakshmi Institute of Technology
               </p>
             </td>
           </tr>

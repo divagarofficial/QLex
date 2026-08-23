@@ -58,7 +58,7 @@ class EmailService:
         user = getattr(settings, "SMTP_USER", "divagar.240075@aids.ritchennai.edu.in") or os.getenv("SMTP_USER", "")
         pwd = getattr(settings, "SMTP_PASSWORD", "eprzscarycrjwnda") or os.getenv("SMTP_PASSWORD", "")
         from_email = getattr(settings, "EMAILS_FROM_EMAIL", user) or user or "divagar.240075@aids.ritchennai.edu.in"
-        from_name = getattr(settings, "EMAILS_FROM_NAME", "QLex Printing Portal") or "QLex Printing Portal"
+        from_name = getattr(settings, "EMAILS_FROM_NAME", "QLex") or "QLex"
 
         if not user or not pwd:
             logger.warning("[EmailService] SMTP user/password credentials missing. Skipping email dispatch.")
@@ -135,11 +135,11 @@ class EmailService:
 
                 formatted_now = datetime.now(timezone.utc).astimezone(IST).strftime("%b %d, %Y, %I:%M %p")
 
-                subject = f"🧾 Order Confirmed! {token_display} — QLex Print Hub"
+                subject = f"🧾 Order Confirmed! {token_display} — QLex"
 
                 text_body = f"""
 =====================================================
-QLex Printing Portal | Rajalakshmi Institute of Technology
+QLex | A PRODUCT OF MINDURA TECHNOLOGIES
 =====================================================
 
 Hi {student_name},
@@ -157,7 +157,8 @@ Location     : {shop_name}
 Attached is your official QLex PDF Receipt for your records.
 We will notify you via Email and WhatsApp as soon as your printing begins!
 
-© 2026 QLex Technology | Rajalakshmi Institute of Technology
+© 2026 MINDURA TECHNOLOGIES. All rights reserved.
+QLex • Rajalakshmi Institute of Technology
 """
 
                 html_body = f"""
@@ -177,11 +178,11 @@ We will notify you via Email and WhatsApp as soon as your printing begins!
           <!-- Header Banner -->
           <tr>
             <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); padding: 28px 24px; text-align: center; border-bottom: 3px solid #f59e0b;">
-              <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px;">
-                QLex <span style="color: #f59e0b;">PRINT HUB</span>
+              <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px;">
+                QLex
               </h1>
-              <p style="margin: 6px 0 0 0; font-size: 12px; color: #94a3b8; font-weight: 600; letter-spacing: 0.5px;">
-                Rajalakshmi Institute of Technology (RIT) Campus Service
+              <p style="margin: 6px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                A PRODUCT OF MINDURA TECHNOLOGIES
               </p>
             </td>
           </tr>
@@ -251,8 +252,11 @@ We will notify you via Email and WhatsApp as soon as your printing begins!
           <!-- Footer -->
           <tr>
             <td style="background-color: #0f172a; padding: 18px 24px; text-align: center; border-top: 1px solid #334155;">
-              <p style="margin: 0; font-size: 12px; color: #64748b; font-weight: 600;">
-                © 2026 QLex Technology | Rajalakshmi Institute of Technology (RIT)
+              <p style="margin: 0; font-size: 12px; color: #cbd5e1; font-weight: 600;">
+                © 2026 MINDURA TECHNOLOGIES. All rights reserved.
+              </p>
+              <p style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 600;">
+                QLex • Rajalakshmi Institute of Technology
               </p>
             </td>
           </tr>
@@ -292,7 +296,7 @@ We will notify you via Email and WhatsApp as soon as your printing begins!
                 token_display = f"Token #{token_number}" if token_number else f"Order #{short_id}"
 
                 if "PRINTING" in status_clean:
-                    subject = f"🖨️ Order #{short_id} is NOW PRINTING — QLex Print Hub"
+                    subject = f"🖨️ Order #{short_id} is NOW PRINTING — QLex"
                     badge_color = "#38bdf8"
                     badge_bg = "rgba(56, 189, 248, 0.15)"
                     badge_border = "rgba(56, 189, 248, 0.3)"
@@ -300,7 +304,7 @@ We will notify you via Email and WhatsApp as soon as your printing begins!
                     message_intro = f"Hi <strong>{student_name}</strong>, your print order <strong>#{short_id}</strong> is currently on the printer at <strong>{shop_name}</strong>!"
                     action_note = "Your documents will be ready for pickup shortly. Stand by for the ready notification!"
                 elif "READY" in status_clean:
-                    subject = f"🛍️ READY FOR PICKUP! {token_display} — QLex Print Hub"
+                    subject = f"🛍️ READY FOR PICKUP! {token_display} — QLex"
                     badge_color = "#10b981"
                     badge_bg = "rgba(16, 185, 129, 0.15)"
                     badge_border = "rgba(16, 185, 129, 0.3)"
@@ -308,15 +312,15 @@ We will notify you via Email and WhatsApp as soon as your printing begins!
                     message_intro = f"Hi <strong>{student_name}</strong>, great news! Your order <strong>#{short_id}</strong> is <strong>READY FOR PICKUP</strong> at <strong>{shop_name}</strong>!"
                     action_note = f"Please bring your token number <strong style='color:#f59e0b;'>{token_display}</strong> or student ID card to the <strong>{shop_name}</strong> counter to collect your documents."
                 elif "SERVED" in status_clean or "COMPLETED" in status_clean:
-                    subject = f"✅ Order #{short_id} Completed — QLex Print Hub"
+                    subject = f"✅ Order #{short_id} Completed — QLex"
                     badge_color = "#10b981"
                     badge_bg = "rgba(16, 185, 129, 0.15)"
                     badge_border = "rgba(16, 185, 129, 0.3)"
                     badge_text = "✅ Order Completed"
                     message_intro = f"Hi <strong>{student_name}</strong>, your order <strong>#{short_id}</strong> has been marked as completed."
-                    action_note = "Thank you for printing with QLex Print Hub at RIT!"
+                    action_note = "Thank you for printing with QLex at RIT!"
                 elif "REJECTED" in status_clean or "CANCELLED" in status_clean:
-                    subject = f"❌ Order #{short_id} Status Update — QLex Print Hub"
+                    subject = f"❌ Order #{short_id} Status Update — QLex"
                     badge_color = "#ef4444"
                     badge_bg = "rgba(239, 68, 68, 0.15)"
                     badge_border = "rgba(239, 68, 68, 0.3)"
@@ -325,7 +329,7 @@ We will notify you via Email and WhatsApp as soon as your printing begins!
                     message_intro = f"Hi <strong>{student_name}</strong>, your order <strong>#{short_id}</strong> was cancelled or rejected.{reason_str}"
                     action_note = f"If you have any questions, please speak directly with the {shop_name} counter staff."
                 else:
-                    subject = f"🔔 Order #{short_id} Update — QLex Print Hub"
+                    subject = f"🔔 Order #{short_id} Update — QLex"
                     badge_color = "#38bdf8"
                     badge_bg = "rgba(56, 189, 248, 0.15)"
                     badge_border = "rgba(56, 189, 248, 0.3)"
@@ -335,7 +339,7 @@ We will notify you via Email and WhatsApp as soon as your printing begins!
 
                 text_body = f"""
 =====================================================
-QLex Printing Portal | Rajalakshmi Institute of Technology
+QLex | A PRODUCT OF MINDURA TECHNOLOGIES
 =====================================================
 
 Hi {student_name},
@@ -349,7 +353,8 @@ Location     : {shop_name}
 Details:
 {action_note}
 
-© 2026 QLex Technology | Rajalakshmi Institute of Technology
+© 2026 MINDURA TECHNOLOGIES. All rights reserved.
+QLex • Rajalakshmi Institute of Technology
 """
 
                 html_body = f"""
@@ -369,11 +374,11 @@ Details:
           <!-- Header Banner -->
           <tr>
             <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); padding: 28px 24px; text-align: center; border-bottom: 3px solid #f59e0b;">
-              <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px;">
-                QLex <span style="color: #f59e0b;">PRINT HUB</span>
+              <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px;">
+                QLex
               </h1>
-              <p style="margin: 6px 0 0 0; font-size: 12px; color: #94a3b8; font-weight: 600; letter-spacing: 0.5px;">
-                Rajalakshmi Institute of Technology (RIT) Campus Service
+              <p style="margin: 6px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                A PRODUCT OF MINDURA TECHNOLOGIES
               </p>
             </td>
           </tr>
@@ -416,8 +421,11 @@ Details:
           <!-- Footer -->
           <tr>
             <td style="background-color: #0f172a; padding: 18px 24px; text-align: center; border-top: 1px solid #334155;">
-              <p style="margin: 0; font-size: 12px; color: #64748b; font-weight: 600;">
-                © 2026 QLex Technology | Rajalakshmi Institute of Technology (RIT)
+              <p style="margin: 0; font-size: 12px; color: #cbd5e1; font-weight: 600;">
+                © 2026 MINDURA TECHNOLOGIES. All rights reserved.
+              </p>
+              <p style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 600;">
+                QLex • Rajalakshmi Institute of Technology
               </p>
             </td>
           </tr>
