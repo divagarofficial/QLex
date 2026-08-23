@@ -3,7 +3,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 def make_icon(source_path, target_path, size):
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
-    bg = Image.new("RGBA", (size, size), (11, 15, 25, 255)) # Dark background #0b0f19
+    # Deep dark background #020617
+    bg = Image.new("RGBA", (size, size), (2, 6, 23, 255))
     img = Image.open(source_path).convert("RGBA")
     
     # Scale logo to ~75% of icon size
@@ -15,7 +16,6 @@ def make_icon(source_path, target_path, size):
     bg.save(target_path, "PNG")
 
 def get_font(size):
-    # Try system fonts on Windows
     font_paths = [
         "C:\\Windows\\Fonts\\segoeuib.ttf", # Segoe UI Bold
         "C:\\Windows\\Fonts\\arialbd.ttf",  # Arial Bold
@@ -31,8 +31,8 @@ def get_font(size):
 
 def make_splash(source_path, target_path, width, height):
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
-    # Dark background #0b0f19
-    canvas = Image.new("RGBA", (width, height), (11, 15, 25, 255))
+    # Deep cosmic dark background #020617
+    canvas = Image.new("RGBA", (width, height), (2, 6, 23, 255))
     draw = ImageDraw.Draw(canvas)
     
     logo = Image.open(source_path).convert("RGBA")
@@ -47,28 +47,28 @@ def make_splash(source_path, target_path, width, height):
     
     logo_resized = logo.resize((new_w, new_h), Image.Resampling.LANCZOS)
     
-    # Position logo slightly above center
+    # Position logo above center
     logo_x = (width - new_w) // 2
-    logo_y = int(height * 0.28)
+    logo_y = int(height * 0.25)
     
     canvas.paste(logo_resized, (logo_x, logo_y), logo_resized)
     
-    # Typography sizing
-    badge_size = max(14, int(min_dim * 0.038))
-    name_size = max(18, int(min_dim * 0.055))
+    # Typography sizing for Empire Text
+    subtitle_size = max(13, int(min_dim * 0.035))
+    title_size = max(17, int(min_dim * 0.052))
     
-    font_badge = get_font(badge_size)
-    font_name = get_font(name_size)
+    font_sub = get_font(subtitle_size)
+    font_title = get_font(title_size)
     
-    text_y = logo_y + new_h + int(height * 0.04)
+    text_y = logo_y + new_h + int(height * 0.05)
     
-    # Line 1: "Heart and Soul of QLex"
-    line1 = "Heart and Soul of QLex"
-    bbox1 = draw.textbbox((0, 0), line1, font=font_badge)
+    # Line 1: "WELCOME TO THE EMPIRE OF"
+    line1 = "WELCOME TO THE EMPIRE OF"
+    bbox1 = draw.textbbox((0, 0), line1, font=font_sub)
     w1 = bbox1[2] - bbox1[0]
     h1 = bbox1[3] - bbox1[1]
     
-    # Draw Cyan / Amber Accent Badge Box behind line 1
+    # Draw Golden Badge Box for Line 1
     padding_x = 16
     padding_y = 6
     bx1 = (width - w1) // 2 - padding_x
@@ -76,26 +76,33 @@ def make_splash(source_path, target_path, width, height):
     bx2 = (width + w1) // 2 + padding_x
     by2 = text_y + h1 + padding_y
     
-    draw.rounded_rectangle([bx1, by1, bx2, by2], radius=12, fill=(30, 41, 59, 255), outline=(245, 158, 11, 255), width=2)
-    draw.text(((width - w1) // 2, text_y), line1, font=font_badge, fill=(251, 191, 36, 255)) # Gold color
+    draw.rounded_rectangle([bx1, by1, bx2, by2], radius=14, fill=(15, 23, 42, 255), outline=(245, 158, 11, 255), width=2)
+    draw.text(((width - w1) // 2, text_y), line1, font=font_sub, fill=(251, 191, 36, 255)) # Gold color
     
     text_y += h1 + int(height * 0.04)
     
-    # Line 2: "THIRUMALAI D"
-    line2 = "THIRUMALAI D"
-    bbox2 = draw.textbbox((0, 0), line2, font=font_name)
-    w2 = bbox2[2] - bbox2[0]
-    h2 = bbox2[3] - bbox2[1]
-    draw.text(((width - w2) // 2, text_y), line2, font=font_name, fill=(255, 255, 255, 255))
+    # Line 2: "THIRUMALAI D AND DIVAGAR E"
+    line2 = "THIRUMALAI D AND DIVAGAR E"
     
-    text_y += h2 + int(height * 0.02)
-    
-    # Line 3: "DIVAGAR E"
-    line3 = "DIVAGAR E"
-    bbox3 = draw.textbbox((0, 0), line3, font=font_name)
-    w3 = bbox3[2] - bbox3[0]
-    h3 = bbox3[3] - bbox3[1]
-    draw.text(((width - w3) // 2, text_y), line3, font=font_name, fill=(103, 232, 249, 255)) # Cyan highlight
+    # If screen is narrow (portrait), split line2 into 2 lines for perfect fit
+    if width < 600:
+        partA = "THIRUMALAI D"
+        partB = "AND DIVAGAR E"
+        
+        bboxA = draw.textbbox((0, 0), partA, font=font_title)
+        wA = bboxA[2] - bboxA[0]
+        hA = bboxA[3] - bboxA[1]
+        draw.text(((width - wA) // 2, text_y), partA, font=font_title, fill=(255, 255, 255, 255))
+        
+        text_y += hA + int(height * 0.02)
+        
+        bboxB = draw.textbbox((0, 0), partB, font=font_title)
+        wB = bboxB[2] - bboxB[0]
+        draw.text(((width - wB) // 2, text_y), partB, font=font_title, fill=(103, 232, 249, 255)) # Cyan color
+    else:
+        bbox2 = draw.textbbox((0, 0), line2, font=font_title)
+        w2 = bbox2[2] - bbox2[0]
+        draw.text(((width - w2) // 2, text_y), line2, font=font_title, fill=(255, 255, 255, 255))
     
     canvas.save(target_path, "PNG")
 
@@ -124,7 +131,7 @@ splash_sizes = {
     "drawable-land-xxxhdpi": (1920, 1280),
 }
 
-print("Generating Dark App Icons...")
+print("Generating Empire Dark App Icons...")
 for folder, size in icon_sizes.items():
     icon_path = os.path.join(res_dir, folder, "ic_launcher.png")
     round_icon_path = os.path.join(res_dir, folder, "ic_launcher_round.png")
@@ -137,9 +144,9 @@ make_icon(source_logo, os.path.join(res_dir, "mipmap-xhdpi", "ic_launcher_foregr
 make_icon(source_logo, os.path.join(res_dir, "mipmap-xxhdpi", "ic_launcher_foreground.png"), 324)
 make_icon(source_logo, os.path.join(res_dir, "mipmap-xxxhdpi", "ic_launcher_foreground.png"), 432)
 
-print("Generating Grand Dark Splash Screens...")
+print("Generating Grand Empire Splash Screens...")
 for folder, (w, h) in splash_sizes.items():
     splash_path = os.path.join(res_dir, folder, "splash.png")
     make_splash(source_logo, splash_path, w, h)
 
-print("Grand Dark Splash Screens & Icons Generated Successfully!")
+print("Grand Empire Splash Screens & Icons Generated Successfully!")
