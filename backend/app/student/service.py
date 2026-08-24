@@ -23,6 +23,8 @@ class StudentService:
         from app.models.order import Order
         from app.models.shop_queue import ShopQueue
         from app.enums.queue_type import QueueType
+        from sqlalchemy import func
+        from datetime import date
 
         # Always fetch student's most recent order
         latest_order = self.repository.get_latest_active_order(student_id)
@@ -52,17 +54,16 @@ class StudentService:
 
             token_str = queue.token
             queue_num = queue.queue_number
-            status_val = queue.queue_state.value
+            status_val = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
         else:
             prefix = "P" if is_priority_order else "R"
             from app.models.order import Order as OrderModel
-            from datetime import date
             seq_num = (
                 self.repository.db.query(OrderModel)
                 .filter(
                     OrderModel.is_priority == is_priority_order,
-                    OrderModel.created_at >= date.today(),
-                    OrderModel.created_at <= latest_order.created_at,
+                    func.date(OrderModel.created_at) >= date.today(),
+                    OrderModel.created_at <= (latest_order.created_at if latest_order.created_at else func.now()),
                 )
                 .count()
             )
@@ -79,8 +80,8 @@ class StudentService:
 
         # Calculate students ahead & estimated wait
         students_ahead = 0
-        if status_val == "WAITING":
-            from datetime import date
+        if status_val in ["WAITING", "CONFIRMED", "PAID"]:
+            target_created = queue.created_at if (queue and queue.created_at) else (latest_order.created_at if latest_order.created_at else func.now())
             if is_priority_order:
                 students_ahead = (
                     self.repository.db.query(ShopQueue)
@@ -88,7 +89,7 @@ class StudentService:
                         ShopQueue.queue_date == date.today(),
                         ShopQueue.queue_type == QueueType.PRIORITY,
                         ShopQueue.queue_state == QueueState.WAITING,
-                        ShopQueue.created_at < (queue.created_at if queue else latest_order.created_at),
+                        ShopQueue.created_at < target_created,
                     )
                     .count()
                 )
@@ -108,7 +109,7 @@ class StudentService:
                         ShopQueue.queue_date == date.today(),
                         ShopQueue.queue_type == QueueType.REGULAR,
                         ShopQueue.queue_state == QueueState.WAITING,
-                        ShopQueue.created_at < (queue.created_at if queue else latest_order.created_at),
+                        ShopQueue.created_at < target_created,
                     )
                     .count()
                 )
@@ -136,7 +137,7 @@ class StudentService:
             "queue_number": queue_num,
             "students_ahead": students_ahead,
             "currently_printing": currently_printing_token,
-            "created_at": latest_order.created_at.isoformat() if latest_order.created_at else None,
+            "created_at": latest_order.created_at.isoformat() if (latest_order.created_at and hasattr(latest_order.created_at, "isoformat")) else str(latest_order.created_at) if latest_order.created_at else None,
         }
 
     
@@ -257,13 +258,15 @@ class StudentService:
         else:
             from app.models.order import Order as OrderModel
             from datetime import date
+            from sqlalchemy import func
             prefix = "P" if order.is_priority else "R"
+            target_date = order.created_at.date() if (order.created_at and hasattr(order.created_at, "date")) else date.today()
             seq_num = (
                 self.repository.db.query(OrderModel)
                 .filter(
                     OrderModel.is_priority == order.is_priority,
-                    OrderModel.created_at >= (order.created_at.date() if order.created_at else date.today()),
-                    OrderModel.created_at <= order.created_at,
+                    func.date(OrderModel.created_at) >= target_date,
+                    OrderModel.created_at <= (order.created_at if order.created_at else func.now()),
                 )
                 .count()
             )

@@ -155,18 +155,19 @@ class StudentRepository:
                 .first()
             )
             from app.enums.payment_status import PaymentStatus
-            if not queue and order.status not in [OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT, OrderStatus.CANCELLED, OrderStatus.EXPIRED, OrderStatus.PAYMENT_FAILED] and getattr(order, "payment_status", None) == PaymentStatus.PAID and order.created_at and order.created_at.date() == date.today():
+            if not queue and order.status not in [OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT, OrderStatus.CANCELLED, OrderStatus.EXPIRED, OrderStatus.PAYMENT_FAILED] and getattr(order, "payment_status", None) == PaymentStatus.PAID and order.created_at and hasattr(order.created_at, "date") and order.created_at.date() == date.today():
                 queue = queue_service.create_queue_entry(order)
             token = queue.token if queue else None
 
             if not token and getattr(order, "payment_status", None) == PaymentStatus.PAID:
                 prefix = "P" if order.is_priority else "R"
+                target_date = order.created_at.date() if (order.created_at and hasattr(order.created_at, "date")) else date.today()
                 seq_num = (
                     self.db.query(Order)
                     .filter(
                         Order.is_priority == order.is_priority,
-                        Order.created_at >= (order.created_at.date() if order.created_at else date.today()),
-                        Order.created_at <= order.created_at,
+                        func.date(Order.created_at) >= target_date,
+                        Order.created_at <= (order.created_at if order.created_at else func.now()),
                     )
                     .count()
                 )
