@@ -6,6 +6,9 @@ export interface TodayOrderItem {
   token: string;
   order_id: string;
   student_id: string;
+  student_name?: string;
+  register_number?: string;
+  assigned_printer?: string;
   documents: number;
   is_priority: boolean;
   queue_state: QueueState;
@@ -37,6 +40,9 @@ export interface ShopDocumentItem {
 export interface ShopOrderDetails {
   order_id: string;
   student_id: string;
+  student_name?: string;
+  register_number?: string;
+  assigned_printer?: string;
   token: string;
   status?: string;
   queue_state?: string;
@@ -90,6 +96,9 @@ export interface QueueStateResponse {
 export interface ActiveShopOrder {
   id: string;
   status: string;
+  student_name?: string;
+  register_number?: string;
+  assigned_printer?: string;
   payment_status?: string;
   token?: string;
   queue_state?: string;
@@ -116,7 +125,9 @@ export interface EnrichedShopOrder {
   order_id: string;
   token: string;
   student_id: string;
+  student_name?: string;
   register_number?: string;
+  assigned_printer?: string;
   is_priority: boolean;
   queue_state: QueueState;
   payment_status: "PAID" | "PENDING" | "FAILED" | "REFUNDED" | "paid" | "pending" | string;

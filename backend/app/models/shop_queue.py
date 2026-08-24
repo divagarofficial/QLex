@@ -64,6 +64,11 @@ class ShopQueue(BaseModel):
         nullable=False,
     )
 
+    assigned_printer: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
     opened_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,

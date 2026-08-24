@@ -82,9 +82,14 @@ class ShopService:
 
         for order in orders:
             queue = queue_service.create_queue_entry(order)
+            student = getattr(order, "student", None)
             if queue:
                 order.token = queue.token
                 order.queue_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
+                order.assigned_printer = getattr(queue, "assigned_printer", None)
+            order.student_name = getattr(student, "full_name", "Student") if student else "Student"
+            order.register_number = getattr(student, "register_number", "N/A") if student else "N/A"
+
             p_status = getattr(order, "payment_status", None)
             order.payment_status = p_status.value if hasattr(p_status, "value") else (str(p_status) if p_status else "unpaid")
 
@@ -103,12 +108,16 @@ class ShopService:
         for queue in queues:
 
             order = queue.order
+            student = getattr(order, "student", None) if order else None
             q_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
             results.append(
                 {
                     "token": queue.token,
                     "order_id": order.id,
                     "student_id": order.student_id,
+                    "student_name": getattr(student, "full_name", "Student") if student else "Student",
+                    "register_number": getattr(student, "register_number", "N/A") if student else "N/A",
+                    "assigned_printer": getattr(queue, "assigned_printer", None),
                     "documents": len(order.documents),
                     "is_priority": order.is_priority,
                     "queue_state": q_state,
@@ -186,11 +195,22 @@ class ShopService:
             else (str(p_status) if p_status else "unpaid")
         )
 
+        student = getattr(order, "student", None)
+        student_name = getattr(student, "full_name", "Student") if student else "Student"
+        register_number = getattr(student, "register_number", "N/A") if student else "N/A"
+        assigned_printer = getattr(queue, "assigned_printer", None) if queue else None
+
         return {
 
             "order_id": order.id,
 
             "student_id": order.student_id,
+
+            "student_name": student_name,
+
+            "register_number": register_number,
+
+            "assigned_printer": assigned_printer,
 
             "token": token,
 
@@ -492,6 +512,7 @@ class ShopService:
 
             student = getattr(order, "student", None)
             student_name = getattr(student, "full_name", "Student") if student else "Student"
+            register_number = getattr(student, "register_number", "N/A") if student else "N/A"
 
             documents_spec = []
             for doc in order.documents:
@@ -532,6 +553,7 @@ class ShopService:
                     "token": queue.token,
                     "is_priority": order.is_priority,
                     "student_name": student_name,
+                    "register_number": register_number,
                     "created_at": order.created_at,
                     "documents": documents_spec,
                 }
@@ -547,8 +569,22 @@ class ShopService:
         - FAILED: Handles failure state
         """
         status_upper = status.upper()
+
+        # Save assigned_printer on queue if provided
+        if assigned_printer:
+            try:
+                queue = self.repository.get_queue_by_order(order_id)
+                if queue and hasattr(queue, "assigned_printer"):
+                    queue.assigned_printer = assigned_printer
+                    self.repository.save()
+            except Exception:
+                pass
+
         if status_upper == "PRINTING":
             queue = self.print_order(order_id)
+            if queue and assigned_printer and hasattr(queue, "assigned_printer"):
+                queue.assigned_printer = assigned_printer
+                self.repository.save()
             new_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
             return {
                 "success": True,
@@ -558,6 +594,9 @@ class ShopService:
             }
         elif status_upper == "COMPLETED":
             queue = self.mark_ready(order_id)
+            if queue and assigned_printer and hasattr(queue, "assigned_printer"):
+                queue.assigned_printer = assigned_printer
+                self.repository.save()
             new_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
             return {
                 "success": True,

@@ -26,6 +26,12 @@ class ShopOrderResponse(BaseModel):
 
     queue_state: str | None = None
 
+    student_name: str | None = None
+
+    register_number: str | None = None
+
+    assigned_printer: str | None = None
+
     grand_total: Decimal
 
     is_priority: bool
@@ -39,6 +45,12 @@ class TodayOrderResponse(BaseModel):
     order_id: UUID
 
     student_id: UUID
+
+    student_name: str | None = None
+
+    register_number: str | None = None
+
+    assigned_printer: str | None = None
 
     documents: int
 
@@ -96,6 +108,12 @@ class ShopOrderDetailsResponse(BaseModel):
     order_id: UUID
 
     student_id: UUID
+
+    student_name: str | None = None
+
+    register_number: str | None = None
+
+    assigned_printer: str | None = None
 
     token: str
 

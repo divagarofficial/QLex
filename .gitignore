@@ -31,6 +31,7 @@ backend/uploads/
 # Binaries & Scratch files
 cloudflared.exe
 backend_routes.txt
+print-agent/tools/*.exe
 
 # Keys & Signing Secrets
 *.jks

@@ -45,7 +45,11 @@ export default function OrderCard({
 
   // Format order number & student register number
   const shortOrderId = order.order_id.slice(0, 8).toUpperCase();
-  const regNo = order.register_number || `REG-${order.student_id.slice(0, 8).toUpperCase()}`;
+  const regNo = order.register_number && order.register_number !== "N/A"
+    ? order.register_number
+    : `REG-${order.student_id.slice(0, 8).toUpperCase()}`;
+  const studentName = order.student_name || "Student";
+  const assignedPrinter = order.assigned_printer || null;
 
   // Format time
   const formattedTime = new Date(order.created_at).toLocaleTimeString([], {
@@ -140,19 +144,30 @@ export default function OrderCard({
           </div>
 
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-base font-bold text-white tracking-tight">
+                {studentName}
+              </span>
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/10 text-amber-300 border border-white/10 font-bold">
                 {regNo}
               </span>
               <PaymentBadge status={order.payment_status} />
             </div>
-            <div className="mt-1 flex items-center gap-3 text-xs text-zinc-400 font-mono">
+            <div className="mt-1 flex items-center gap-2.5 text-xs text-zinc-400 font-mono flex-wrap">
               <span>Order #{shortOrderId}</span>
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3 text-zinc-500" />
                 {formattedTime}
               </span>
+              {assignedPrinter && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1 text-emerald-400 font-sans font-medium">
+                    <Printer className="h-3 w-3 text-emerald-400" /> {assignedPrinter}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>

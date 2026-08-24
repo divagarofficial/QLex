@@ -21,31 +21,63 @@ class PrinterPoolManager:
         self.is_windows = sys.platform.startswith("win")
 
     def get_installed_printers(self) -> List[str]:
-        """Discover installed printers on the operating system."""
+        """Discover installed physical printers on the operating system automatically."""
         if MOCK_PRINT:
             return ["Mock Printer Alpha (B&W)", "Mock Printer Beta (Color)"]
 
         printers = []
+        virtual_keywords = [
+            "microsoft print to pdf", "onenote", "fax", "xps document writer", 
+            "pdf24", "cutepdf", "adobe pdf", "foxit", "snagit", "pdf", "root", "send to"
+        ]
+
         if self.is_windows:
+            physical_detected = []
             try:
                 import win32print
                 flags = win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS
                 installed = win32print.EnumPrinters(flags)
                 for p in installed:
-                    # p is a tuple (flags, description, name, comment)
-                    printers.append(p[2])
+                    printer_name = p[2]
+                    printers.append(printer_name)
+                    
+                    # Check port and printer metadata to identify physical hardware
+                    try:
+                        handle = win32print.OpenPrinter(printer_name)
+                        try:
+                            info = win32print.GetPrinter(handle, 2)
+                            port = str(info.get("pPortName", "")).lower()
+                            # Physical hardware ports: USB, WSD, Network IP, LPT, COM, DOT4, etc.
+                            is_virtual_port = any(v in port for v in ["portprompt", "nul:", "mxdw:", "pdf", "file:", "onenote"])
+                            is_virtual_name = any(v in printer_name.lower() for v in virtual_keywords)
+                            if not is_virtual_port and not is_virtual_name:
+                                physical_detected.append(printer_name)
+                        finally:
+                            win32print.ClosePrinter(handle)
+                    except Exception:
+                        pass
             except Exception as e:
                 logger.warning(f"Failed to enumerate Windows printers via win32print: {e}")
-                # Fallback via PowerShell
+
+            # Fallback via PowerShell if win32print did not return physical printers
+            if not physical_detected:
                 try:
                     res = subprocess.run(
-                        ["powershell", "-Command", "Get-Printer | Select-Object -ExpandProperty Name"],
+                        ["powershell", "-Command", 
+                         "Get-Printer | Where-Object { $_.PortName -notlike '*PORTPROMPT*' -and $_.PortName -notlike 'nul*' } | Select-Object -ExpandProperty Name"],
                         capture_output=True, text=True, timeout=5
                     )
                     if res.returncode == 0:
-                        printers = [line.strip() for line in res.stdout.splitlines() if line.strip()]
+                        ps_printers = [line.strip() for line in res.stdout.splitlines() if line.strip()]
+                        for p in ps_printers:
+                            if not any(v in p.lower() for v in virtual_keywords):
+                                physical_detected.append(p)
                 except Exception as ps_err:
                     logger.error(f"PowerShell printer discovery failed: {ps_err}")
+
+            if physical_detected:
+                printers = physical_detected
+
         else:
             # Linux / macOS CUPS
             try:
@@ -54,23 +86,26 @@ class PrinterPoolManager:
                     for line in res.stdout.splitlines():
                         parts = line.split()
                         if parts:
-                            printers.append(parts[0])
+                            p_name = parts[0]
+                            if not any(v in p_name.lower() for v in virtual_keywords):
+                                printers.append(p_name)
             except Exception as e:
                 logger.warning(f"Failed to enumerate CUPS printers: {e}")
 
+        # If user explicitly configured PRINTER_POOL in .env, filter by it
         if self.configured_printers:
-            # Filter by explicit configured printer pool if provided
             filtered = [p for p in printers if any(cfg.lower() in p.lower() for cfg in self.configured_printers)]
             if filtered:
                 return filtered
 
-        # Ignore virtual file-saver printers if real physical paper printers are attached
-        virtual_keywords = ["microsoft print to pdf", "onenote", "fax", "xps document writer", "pdf24", "cutepdf", "adobe pdf"]
-        physical_printers = [p for p in printers if not any(v in p.lower() for v in virtual_keywords)]
-        if physical_printers:
-            return physical_printers
+        # Strict physical filter: Never auto-select virtual document file-savers
+        physical_only = [p for p in printers if not any(v in p.lower() for v in virtual_keywords)]
+        if physical_only:
+            return physical_only
 
-        return printers if printers else ["Default System Printer"]
+        # If no physical printer is currently plugged in
+        logger.warning("No physical paper printers currently detected on USB/Wi-Fi/Network. Please connect a physical printer.")
+        return []
 
     def get_printer_queue_count(self, printer_name: str) -> int:
         """Query current pending print jobs for a specific printer."""
@@ -120,6 +155,24 @@ class PrinterPoolManager:
         logger.info(f"Selected Printer: '{best_printer}' (Active Queue Depth: {best_queue})")
         return best_printer, f"Assigned to {best_printer} (Queue length: {best_queue})"
 
+    def ensure_sumatra_installed(self) -> bool:
+        """Automatically fetch portable SumatraPDF.exe if not present in tools directory."""
+        if os.path.exists(SUMATRA_PATH):
+            return True
+
+        tools_dir = os.path.dirname(SUMATRA_PATH)
+        os.makedirs(tools_dir, exist_ok=True)
+        url = "https://www.sumatrapdfreader.org/dl/rel/3.5.2/SumatraPDF-3.5.2-64.exe"
+        logger.info(f"SumatraPDF not found at {SUMATRA_PATH}. Auto-downloading portable binary from '{url}'...")
+        try:
+            import urllib.request
+            urllib.request.urlretrieve(url, SUMATRA_PATH)
+            logger.info(f"Successfully downloaded SumatraPDF executable to {SUMATRA_PATH}")
+            return True
+        except Exception as err:
+            logger.error(f"Failed to auto-download SumatraPDF executable: {err}")
+            return False
+
     def print_document(
         self,
         pdf_path: str,
@@ -143,6 +196,9 @@ class PrinterPoolManager:
             return True
 
         if self.is_windows:
+            # Ensure SumatraPDF executable is available for silent PDF rendering
+            self.ensure_sumatra_installed()
+
             # Approach A: Use SumatraPDF CLI if available for exact silent rendering
             if os.path.exists(SUMATRA_PATH):
                 settings = []
@@ -174,7 +230,7 @@ class PrinterPoolManager:
                 else:
                     logger.warning(f"SumatraPDF exited with code {res.returncode}: {res.stderr}")
 
-            # Approach B: Windows ShellExecute printto verb
+            # Approach B: Windows ShellExecute printto verb (Fallback)
             try:
                 import win32api
                 win32api.ShellExecute(0, "printto", pdf_path, f'"{printer_name}"', ".", 0)

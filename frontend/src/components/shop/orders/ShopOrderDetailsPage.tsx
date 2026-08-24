@@ -223,7 +223,14 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
     : isPriority
     ? "P-1"
     : "R-1";
-  const regNo = `REG-${(details?.student_id || summaryData?.student_id || "STUDENT").slice(0, 8).toUpperCase()}`;
+  const studentName = details?.student_name || summaryData?.student_name || "Student";
+  const regNo = details?.register_number && details.register_number !== "N/A"
+    ? details.register_number
+    : summaryData?.register_number && summaryData.register_number !== "N/A"
+    ? summaryData.register_number
+    : `REG-${(details?.student_id || summaryData?.student_id || "STUDENT").slice(0, 8).toUpperCase()}`;
+  const assignedPrinter = details?.assigned_printer || summaryData?.assigned_printer || null;
+
   const shortId = orderId.slice(0, 8).toUpperCase();
   const rawQueueState = details?.queue_state || details?.status || summaryData?.status || summaryData?.queue_state || "WAITING";
   const queueState = String(rawQueueState).toUpperCase();
@@ -303,10 +310,7 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
 
       iframe.onload = () => {
         try {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-        } catch {
-          const printWin = window.open(activePdfUrl, "_blank");
+          const printWin = iframe.contentWindow;
           if (printWin) {
             printWin.focus();
             printWin.print();
@@ -362,10 +366,20 @@ export default function ShopOrderDetailsPage({ orderId }: ShopOrderDetailsPagePr
               <PaymentBadge status={paymentStatus} />
             </div>
 
-            <p className="mt-1 text-xs text-zinc-400 font-medium flex items-center gap-2">
-              <span>{regNo}</span>
+            <p className="mt-1 text-xs text-zinc-400 font-medium flex items-center gap-2 flex-wrap">
+              <span className="text-zinc-100 font-semibold">{studentName}</span>
+              <span>•</span>
+              <span className="font-mono text-amber-300/90">{regNo}</span>
               <span>•</span>
               <span>Grand Total: ₹{grandTotal.toFixed(2)}</span>
+              {assignedPrinter && (
+                <>
+                  <span>•</span>
+                  <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono text-[11px]">
+                    <Printer className="w-3 h-3" /> {assignedPrinter}
+                  </span>
+                </>
+              )}
             </p>
           </div>
         </div>

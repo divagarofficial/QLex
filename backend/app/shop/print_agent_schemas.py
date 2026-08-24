@@ -22,6 +22,7 @@ class PrintJobResponse(BaseModel):
     token: str
     is_priority: bool
     student_name: str
+    register_number: str
     created_at: datetime
     documents: List[DocumentPrintSpec]
 

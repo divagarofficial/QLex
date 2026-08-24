@@ -2,6 +2,15 @@ import os
 import sys
 import time
 import logging
+import socket
+import urllib3.util.connection as urllib_util
+
+# Force IPv4 resolution to prevent Windows IPv6 DNS resolution failures (Errno 11001)
+def allowed_gai_family():
+    return socket.AF_INET
+
+urllib_util.allowed_gai_family = allowed_gai_family
+
 import requests
 from pathlib import Path
 from typing import Dict, Any
@@ -96,12 +105,23 @@ class QLexPrintAgentDaemon:
         order_id = job["order_id"]
         token = job.get("token", "P-?")
         student_name = job.get("student_name", "Student")
+        register_number = job.get("register_number", "N/A")
         documents = job.get("documents", [])
 
-        logger.info(f"=== [START PRINT JOB] Token: {token} | Order ID: {order_id} | Student: {student_name} ===")
+        # Select target printer from pool before starting
+        first_doc = documents[0] if documents else {}
+        printer_name, _ = self.printer_pool.select_available_printer(
+            print_type=first_doc.get("print_type", "bw"),
+            paper_size=first_doc.get("paper_size", "a4")
+        )
 
-        # 1. Update backend state to PRINTING
-        self.update_job_status(order_id, "PRINTING")
+        logger.info(
+            f"=== [START PRINT JOB] Token: {token} | Student: {student_name} (Reg No: {register_number}) "
+            f"| Printer: '{printer_name}' | Order ID: {order_id} ==="
+        )
+
+        # 1. Update backend state to PRINTING with assigned printer
+        self.update_job_status(order_id, "PRINTING", assigned_printer=printer_name)
 
         downloaded_files = []
         try:
@@ -110,13 +130,8 @@ class QLexPrintAgentDaemon:
                 local_pdf_path = self.download_document(doc)
                 downloaded_files.append((local_pdf_path, doc))
 
-            # 3. Print each document using an available printer from the pool
+            # 3. Print each document using assigned printer from the pool
             for local_pdf_path, doc in downloaded_files:
-                printer_name, reason = self.printer_pool.select_available_printer(
-                    print_type=doc.get("print_type", "bw"),
-                    paper_size=doc.get("paper_size", "a4")
-                )
-
                 success = self.printer_pool.print_document(
                     pdf_path=local_pdf_path,
                     printer_name=printer_name,
@@ -131,7 +146,7 @@ class QLexPrintAgentDaemon:
 
             # 4. Mark job as COMPLETED on backend -> transitions order to READY_FOR_PICKUP & dispatches WhatsApp notification
             self.update_job_status(order_id, "COMPLETED", assigned_printer=printer_name)
-            logger.info(f"=== [COMPLETED PRINT JOB] Token: {token} | Marked READY_FOR_PICKUP ===")
+            logger.info(f"=== [COMPLETED PRINT JOB] Token: {token} | Printed on '{printer_name}' | Marked READY_FOR_PICKUP ===")
 
         except Exception as err:
             logger.error(f"Error executing print job for Token {token}: {err}", exc_info=True)
