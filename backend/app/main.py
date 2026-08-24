@@ -184,8 +184,27 @@ async def auto_settlement_scheduler():
             print(f"[AutoSettlement] Background sync error: {e}")
         await asyncio.sleep(1800)
 
+def ensure_db_schema_synced():
+    """Auto-sync database schema changes on container startup."""
+    try:
+        from sqlalchemy import text
+        from app.db.database import SessionLocal
+        db = SessionLocal()
+        try:
+            db.execute(text("ALTER TABLE shop_queue ADD COLUMN IF NOT EXISTS assigned_printer VARCHAR(100);"))
+            db.commit()
+            print("[DB Schema] Successfully verified/synced assigned_printer column in shop_queue table.")
+        except Exception as e:
+            db.rollback()
+            print(f"[DB Schema] Column auto-sync warning: {e}")
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"[DB Schema] Startup auto-sync error: {e}")
+
 @app.on_event("startup")
 async def startup_event():
+    ensure_db_schema_synced()
     if not os.getenv("VERCEL"):
         ensure_whatsapp_bot_running()
         asyncio.create_task(whatsapp_bot_health_monitor())
