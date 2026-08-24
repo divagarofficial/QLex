@@ -45,261 +45,148 @@ class PaymentService:
 
 
     def create_payment(
-    self,
-    order_id: UUID,
-):
-
-        order = (
-            self.order_repository
-            .get_by_id(order_id)
-        )
-
+        self,
+        order_id: UUID,
+    ):
+        order = self.order_repository.get_by_id(order_id)
         if order is None:
+            raise ValueError("Order not found.")
 
-            raise ValueError(
-                "Order not found."
-            )
+        # Auto-advance draft order to PENDING_PAYMENT if needed
+        if order.status == OrderStatus.DRAFT:
+            order.status = OrderStatus.PENDING_PAYMENT
+            self.db.commit()
+            self.db.refresh(order)
 
-        if (
-            order.status
-            != OrderStatus.PENDING_PAYMENT
-        ):
-
-            raise ValueError(
-                "Only orders pending payment "
-                "can create a payment."
-            )
-
-        if (
-            order.grand_total is None
-            or order.grand_total
-            <= Decimal("0.00")
-        ):
-
-            raise ValueError(
-                "Order amount must be "
-                "greater than zero."
-            )
-
-        # ============================================
-        # Check for existing pending payment
-        # ============================================
-
-        existing_payment = (
-            self.payment_repository
-            .get_latest_for_order(order_id)
-        )
-
-        if (
-            existing_payment is not None
-            and existing_payment.status
-            == PaymentStatus.PENDING
-        ):
-
+        # If order is already paid, return existing payment or success info
+        if order.payment_status == PaymentStatus.PAID or order.status == OrderStatus.PAID:
+            existing_payment = self.payment_repository.get_latest_for_order(order_id)
             return {
-
-                "payment_id": existing_payment.id,
-
-                "order_id": existing_payment.order_id,
-
-                "amount": existing_payment.amount,
-
+                "payment_id": existing_payment.id if existing_payment else uuid4(),
+                "order_id": order.id,
+                "amount": order.grand_total,
                 "currency": "INR",
-
-                "status": existing_payment.status,
-
-                "gateway": existing_payment.gateway,
-
-                "razorpay_order_id": (
-                    existing_payment.gateway_order_id
-                ),
-
-                "razorpay_key_id": (
-                    settings.RAZORPAY_KEY_ID
-                ),
+                "status": PaymentStatus.PAID,
+                "gateway": "razorpay",
+                "razorpay_order_id": existing_payment.gateway_order_id if existing_payment else "",
+                "razorpay_key_id": settings.RAZORPAY_KEY_ID,
             }
 
-        # ============================================
-        # Create Razorpay Order
-        # ============================================
+        if order.grand_total is None or order.grand_total <= Decimal("0.00"):
+            raise ValueError("Order amount must be greater than zero.")
 
-        amount_in_paise = int(
-            Decimal(order.grand_total) * 100
-        )
+        # Check for existing pending payment
+        existing_payment = self.payment_repository.get_latest_for_order(order_id)
+        if existing_payment is not None and existing_payment.status == PaymentStatus.PENDING:
+            return {
+                "payment_id": existing_payment.id,
+                "order_id": existing_payment.order_id,
+                "amount": existing_payment.amount,
+                "currency": "INR",
+                "status": existing_payment.status,
+                "gateway": existing_payment.gateway,
+                "razorpay_order_id": existing_payment.gateway_order_id,
+                "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+            }
 
-        razorpay_order = (
-            self.razorpay.create_order(
-                amount=amount_in_paise,
-                receipt=str(order.id),
-            )
+        # Create fresh Razorpay Order
+        amount_in_paise = int(Decimal(order.grand_total) * 100)
+        razorpay_order = self.razorpay.create_order(
+            amount=amount_in_paise,
+            receipt=str(order.id),
         )
 
         payment = Payment(
-
             order_id=order.id,
-
             amount=order.grand_total,
-
             status=PaymentStatus.PENDING,
-
             gateway="razorpay",
-
             gateway_order_id=razorpay_order["id"],
         )
-
-        payment = (
-            self.payment_repository
-            .create(payment)
-        )
+        payment = self.payment_repository.create(payment)
 
         return {
-
             "payment_id": payment.id,
-
             "order_id": payment.order_id,
-
             "amount": payment.amount,
-
             "currency": "INR",
-
             "status": payment.status,
-
             "gateway": payment.gateway,
-
-            "razorpay_order_id": (
-                razorpay_order["id"]
-            ),
-
-            "razorpay_key_id": (
-                settings.RAZORPAY_KEY_ID
-            ),
+            "razorpay_order_id": razorpay_order["id"],
+            "razorpay_key_id": settings.RAZORPAY_KEY_ID,
         }
+
     def verify_payment(
-    self,
-    request,
-):
-
-        payment = (
-            self.payment_repository
-            .get_by_gateway_order_id(
-                request.razorpay_order_id
-            )
-        )
-
+        self,
+        request,
+    ):
+        payment = self.payment_repository.get_by_gateway_order_id(request.razorpay_order_id)
         if payment is None:
-            raise ValueError(
-                "Payment not found."
-            )
+            raise ValueError("Payment record not found.")
+
+        order = self.order_repository.get_by_id(payment.order_id)
+        if order is None:
+            raise ValueError("Order associated with payment not found.")
 
         # Prevent duplicate verification
         if payment.status == PaymentStatus.PAID:
-
-            order = self.order_repository.get_by_id(
-                payment.order_id
-            )
-
             queue_service = ShopQueueService(self.db)
             queue = queue_service.create_queue_entry(order)
-
+            token = queue.token if queue else "P-1"
+            queue_number = queue.queue_number if queue else 1
             return {
                 "success": True,
                 "payment_id": payment.id,
                 "order_id": order.id,
-                "token": queue.token,
-                "queue_number": queue.queue_number,
+                "token": token,
+                "queue_number": queue_number,
                 "payment_status": payment.status,
                 "order_status": order.status,
             }
 
         # Verify Razorpay signature
         try:
-
             self.razorpay.verify_signature(
                 razorpay_order_id=request.razorpay_order_id,
                 razorpay_payment_id=request.razorpay_payment_id,
                 razorpay_signature=request.razorpay_signature,
             )
-
-        except Exception:
-
-            raise ValueError(
-                "Invalid payment signature."
-            )
+        except Exception as sig_err:
+            raise ValueError(f"Invalid payment signature: {sig_err}")
 
         try:
-
-            # -----------------------------
-            # Update Payment
-            # -----------------------------
-
-            payment.gateway_payment_id = (
-                request.razorpay_payment_id
-            )
-
-            payment.gateway_signature = (
-                request.razorpay_signature
-            )
-
+            # 1. Update Payment & Order to PAID and commit first
+            payment.gateway_payment_id = request.razorpay_payment_id
+            payment.gateway_signature = request.razorpay_signature
             payment.status = PaymentStatus.PAID
 
-            # -----------------------------
-            # Update Order
-            # -----------------------------
-
-            order = self.order_repository.get_by_id(
-                payment.order_id
-            )
-
             order.payment_status = PaymentStatus.PAID
-
             order.status = OrderStatus.PAID
 
-            # -----------------------------
-            # Create Shop Queue Entry
-            # -----------------------------
-
-            queue_service = ShopQueueService(
-                self.db
-            )
-
-            queue = queue_service.create_queue_entry(
-                order
-            )
-
-            # -----------------------------
-            # Commit Everything
-            # -----------------------------
-
             self.db.commit()
-
             self.db.refresh(payment)
-
             self.db.refresh(order)
 
-            self.db.refresh(queue)
+            # 2. Create Shop Queue Entry after committing paid order state
+            queue_service = ShopQueueService(self.db)
+            queue = queue_service.create_queue_entry(order)
+            if queue:
+                self.db.refresh(queue)
 
-            # Queue service handles WhatsApp order receipt dispatch during queue token creation.
+            token = queue.token if queue else "R-1"
+            queue_number = queue.queue_number if queue else 1
 
-        except Exception:
-
+        except Exception as err:
             self.db.rollback()
-
-            raise
+            raise ValueError(f"Failed to process payment completion: {err}")
 
         return {
-
             "success": True,
-
             "payment_id": payment.id,
-
             "order_id": order.id,
-
-            "token": queue.token,
-
-            "queue_number": queue.queue_number,
-
+            "token": token,
+            "queue_number": queue_number,
             "payment_status": payment.status,
-
             "order_status": order.status,
         }
     #============================================

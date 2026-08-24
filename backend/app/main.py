@@ -56,7 +56,15 @@ async def universal_cors_middleware(request, call_next):
         response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
 
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        from fastapi.responses import JSONResponse
+        response = JSONResponse(
+            status_code=500,
+            content={"detail": str(exc), "message": "Internal Server Error", "success": False}
+        )
+
     if origin:
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"

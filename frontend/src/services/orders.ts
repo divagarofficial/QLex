@@ -57,9 +57,9 @@ function headers(includeContentType = true): Record<string, string> {
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({
-      detail: "Network error. Please try again.",
+      detail: `Server error (${res.status}). Please try again.`,
     }));
-    throw new Error(errorBody.detail || `Request failed: ${res.status}`);
+    throw new Error(errorBody.detail || errorBody.message || errorBody.error || `Request failed (${res.status})`);
   }
   return res.json();
 }
