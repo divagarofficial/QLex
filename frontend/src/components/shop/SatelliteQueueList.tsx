@@ -79,7 +79,7 @@ export default function SatelliteQueueList({
       ) : (
         <div className="mt-4 space-y-3">
           {activeOrders.map((order, idx) => {
-            const tokenStr = order.token || `S-${order.queue_number || idx + 1}`;
+            const tokenStr = order.token || `S-${(order as any).queue_number || idx + 1}`;
             const firstDoc = order.documents?.[0];
             const isPrinting = order.queue_state === "PRINTING";
             const isReady = order.queue_state === "READY" || order.queue_state === "READY_FOR_PICKUP";
