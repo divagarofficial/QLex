@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import LoginHeader from "./LoginHeader";
 import PinInput from "./PinInput";
@@ -9,10 +9,15 @@ import UnlockButton from "./UnlockButton";
 import BackHomeButton from "./BackHomeButton";
 import { loginShop } from "@/services/shopAuth";
 import Popup from "@/components/popup/Popup";
-import { CheckCircle2, AlertTriangle, Lock } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Lock, Building2, Store } from "lucide-react";
 
-export default function ShopLoginPage() {
+function ShopLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialHub = searchParams.get("hub") === "satellite" ? "satellite" : "central";
+  const [selectedHub, setSelectedHub] = useState<"central" | "satellite">(initialHub);
+
   const [pin, setPin] = useState<string[]>(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -49,16 +54,19 @@ export default function ShopLoginPage() {
 
       if (res.success) {
         setIsSuccess(true);
+        const targetPath = selectedHub === "satellite" ? "/shop/satellite" : "/shop/dashboard";
+        const hubName = selectedHub === "satellite" ? "QLex Satellite Print Hub" : "QLex Central Print Hub";
+
         setPopupState({
           open: true,
           variant: "success",
           title: "Access Granted",
-          description: "Welcome to QLex Shop Portal! Opening dashboard...",
+          description: `Welcome to ${hubName}! Opening terminal dashboard...`,
         });
 
         // Delay redirect slightly for smooth popup & pulse feedback
         setTimeout(() => {
-          router.push("/shop/dashboard");
+          router.push(targetPath);
         }, 1200);
       } else {
         setIsError(true);
@@ -69,7 +77,6 @@ export default function ShopLoginPage() {
           description: res.message || "Incorrect PIN. Please try again.",
         });
 
-        // Clear PIN and reset focus after brief delay
         setPin(["", "", "", ""]);
       }
     } catch {
@@ -88,9 +95,9 @@ export default function ShopLoginPage() {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center p-4 sm:p-6 md:p-8">
-      {/* Background Ambient Corner Lighting (Gold + Blue) */}
+      {/* Background Ambient Corner Lighting */}
       <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[350px] w-[350px] sm:h-[450px] sm:w-[450px] rounded-full bg-amber-500/10 blur-[120px]" />
-      <div className="pointer-events-none absolute bottom-1/4 right-1/4 h-[300px] w-[300px] rounded-full bg-blue-500/10 blur-[100px]" />
+      <div className="pointer-events-none absolute bottom-1/4 right-1/4 h-[300px] w-[300px] rounded-full bg-emerald-500/10 blur-[100px]" />
 
       {/* Main Glass Workspace Card */}
       <motion.div
@@ -105,7 +112,36 @@ export default function ShopLoginPage() {
         {/* Ambient Top Glow Badge */}
         <div className="mb-4 flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-wider uppercase text-amber-400/90">
           <Lock className="h-3.5 w-3.5" />
-          <span>Restricted Workspace</span>
+          <span>Restricted Operator Workspace</span>
+        </div>
+
+        {/* Terminal Selection Toggle Bar */}
+        <div className="mb-6 flex rounded-2xl bg-black/60 p-1.5 border border-white/10">
+          <button
+            type="button"
+            onClick={() => setSelectedHub("central")}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
+              selectedHub === "central"
+                ? "bg-gradient-to-r from-amber-400 to-amber-600 text-obsidian shadow-lg shadow-amber-500/20"
+                : "text-white/60 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Store className="h-3.5 w-3.5" />
+            <span>Central Hub</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedHub("satellite")}
+            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
+              selectedHub === "satellite"
+                ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-obsidian shadow-lg shadow-emerald-500/20"
+                : "text-white/60 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Building2 className="h-3.5 w-3.5" />
+            <span>Satellite Hub</span>
+          </button>
         </div>
 
         {/* Header Component */}
@@ -152,5 +188,13 @@ export default function ShopLoginPage() {
         dismissOnEsc={true}
       />
     </div>
+  );
+}
+
+export default function ShopLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <ShopLoginForm />
+    </Suspense>
   );
 }

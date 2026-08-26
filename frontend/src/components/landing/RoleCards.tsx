@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Store, GraduationCap, UserCheck } from "lucide-react";
 import RoleCard from "./RoleCard";
+import ShopHubSelectionModal from "./ShopHubSelectionModal";
 
 const cards = [
   {
+    id: "admin",
     title: "Administrator",
     badge: "System Operations",
     description: "Manage platform, students, print shops, analytics and payments.",
@@ -14,14 +17,16 @@ const cards = [
     href: "/admin/login",
   },
   {
+    id: "shop",
     title: "Print Shop",
-    badge: "Queue & Print Ops",
-    description: "Receive orders, manage queue, print documents and complete collections.",
+    badge: "Terminal Operations",
+    description: "Select Central Print Hub or Satellite Print Hub terminal desk to process print jobs.",
     icon: Store,
     accent: "gold" as const,
     href: "/shop/login",
   },
   {
+    id: "student",
     title: "Student",
     badge: "Upload & Live Token",
     description: "Upload documents, customize printing, pay online and collect your order.",
@@ -30,6 +35,7 @@ const cards = [
     href: "/student/login",
   },
   {
+    id: "staff",
     title: "Faculty & Staff",
     badge: "Satellite Print Hub",
     description: "Instant document printing at QLex Satellite Print Hub. Free institutional staff printing.",
@@ -54,19 +60,32 @@ const item = {
 };
 
 export default function RoleCards() {
+  const [showShopModal, setShowShopModal] = useState(false);
+
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6 lg:gap-6"
-    >
-      {cards.map((card) => (
-        <motion.div key={card.title} variants={item} className="h-full">
-          <RoleCard {...card} />
-        </motion.div>
-      ))}
-    </motion.div>
+    <>
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6 lg:gap-6"
+      >
+        {cards.map((card) => (
+          <motion.div key={card.title} variants={item} className="h-full">
+            <RoleCard
+              {...card}
+              onClick={card.id === "shop" ? () => setShowShopModal(true) : undefined}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Shop Terminal Selection Popup Modal */}
+      <ShopHubSelectionModal
+        open={showShopModal}
+        onClose={() => setShowShopModal(false)}
+      />
+    </>
   );
 }
 
