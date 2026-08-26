@@ -315,9 +315,13 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
                 ? "Completed"
                 : order.estimated_completion_time
                 ? `Ready ~${new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                : order.estimated_wait_minutes !== undefined
+                : order.estimated_wait_minutes !== undefined && order.estimated_wait_minutes !== null && order.estimated_wait_minutes > 0
                 ? `~${order.estimated_wait_minutes} min wait`
-                : "Dynamic queue"}
+                : (() => {
+                    const mins = order.status === "printing" ? 2 : (order as any).is_priority ? 5 : 10;
+                    const comp = new Date(Date.now() + mins * 60000);
+                    return `Ready ~${comp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                  })()}
             </p>
           </div>
         </div>

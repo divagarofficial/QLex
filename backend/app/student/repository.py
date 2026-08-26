@@ -76,12 +76,13 @@ class StudentRepository:
         )
 
     def get_current_printing(self):
-        # Priority 1: Queue entry in PRINTING state for today
+        # Priority 1: Queue entry in PRINTING state for today (Central Hub only: Priority or Regular)
         printing = (
             self.db.query(ShopQueue)
             .filter(
                 ShopQueue.queue_date == date.today(),
                 ShopQueue.queue_state == QueueState.PRINTING,
+                ShopQueue.queue_type.in_([QueueType.PRIORITY, QueueType.REGULAR]),
             )
             .order_by(ShopQueue.created_at.asc())
             .first()
@@ -89,7 +90,7 @@ class StudentRepository:
         if printing:
             return printing
 
-        # Priority 2: Fallback to active order in PRINTING state
+        # Priority 2: Fallback to active order in PRINTING state (Central Hub only)
         from app.models.order import Order as OrderModel
         from app.enums.order_status import OrderStatus
         active_printing = (
@@ -97,10 +98,11 @@ class StudentRepository:
             .filter(
                 OrderModel.status == OrderStatus.PRINTING,
                 func.date(OrderModel.created_at) == date.today(),
+                ~OrderModel.shop_name.ilike("%Satellite%"),
             )
             .first()
         )
-        if active_printing and active_printing.shop_queue:
+        if active_printing and active_printing.shop_queue and active_printing.shop_queue.queue_type != QueueType.SATELLITE:
             return active_printing.shop_queue
 
         return None

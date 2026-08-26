@@ -81,7 +81,19 @@ class StudentService:
                 else str(latest_order.status)
             )
 
-        current_printing_queue = self.repository.get_current_printing()
+        if is_satellite:
+            current_printing_queue = (
+                self.repository.db.query(ShopQueue)
+                .filter(
+                    ShopQueue.queue_date == date.today(),
+                    ShopQueue.queue_type == QueueType.SATELLITE,
+                    ShopQueue.queue_state == QueueState.PRINTING,
+                )
+                .first()
+            )
+        else:
+            current_printing_queue = self.repository.get_current_printing()
+
         currently_printing_token = current_printing_queue.token if current_printing_queue else None
 
         # Calculate students ahead & estimated wait

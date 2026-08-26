@@ -203,9 +203,13 @@ export default function StudentOrderDetailClient({ orderId }: { orderId: string 
                       ? "Completed"
                       : order.estimated_completion_time
                       ? new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                      : order.estimated_wait_minutes !== undefined
+                      : order.estimated_wait_minutes !== undefined && order.estimated_wait_minutes !== null && order.estimated_wait_minutes > 0
                       ? `~${order.estimated_wait_minutes} min wait`
-                      : "Calculating..."}
+                      : (() => {
+                          const mins = order.status === "printing" ? 2 : order.is_priority ? 5 : 10;
+                          const comp = new Date(Date.now() + mins * 60000);
+                          return `~${comp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                        })()}
                   </div>
                 </div>
               </div>
