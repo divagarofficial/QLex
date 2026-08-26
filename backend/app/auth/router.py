@@ -99,9 +99,11 @@ def login(
 
     service = AuthService(db)
 
+    from app.models.user import UserRole
     return service.login(
         register_number=request.register_number,
         password=request.password,
+        required_role=UserRole.STUDENT,
     )
 
 from app.auth.schemas import LoginRequest, LoginResponse, ShopLoginRequest, ShopLoginResponse, AdminLoginRequest, AdminLoginResponse
@@ -198,9 +200,11 @@ def staff_login(
     db: Session = Depends(get_db),
 ):
     service = AuthService(db)
+    from app.models.user import UserRole
     return service.login(
         register_number=request.staff_id,
         password=request.password,
+        required_role=UserRole.STAFF,
     )
 
 

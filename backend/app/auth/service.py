@@ -150,8 +150,7 @@ class AuthService:
 
         return self.repository.create(user)
     
-    def login(self, register_number: str, password: str):
-
+    def login(self, register_number: str, password: str, required_role: UserRole | None = None):
         user = self.repository.authenticate(register_number)
 
         if user is None:
@@ -160,13 +159,21 @@ class AuthService:
         if not verify_password(password, user.password_hash):
             raise InvalidCredentialsException()
 
+        if required_role is not None and user.role != required_role:
+            if required_role == UserRole.STAFF:
+                raise ValueError("Access Denied: This portal is strictly for Staff & Faculty members. Student accounts cannot log in here.")
+            elif required_role == UserRole.STUDENT:
+                raise ValueError("Access Denied: This portal is strictly for Student accounts. Staff members must use the Staff Portal.")
+            else:
+                raise ValueError("Access Denied: Unauthorized role for this login portal.")
+
         token = create_access_token(
-    {
-        "sub": str(user.id),
-        "register_number": user.register_number,
-        "role": user.role.value,
-    }
-)
+            {
+                "sub": str(user.id),
+                "register_number": user.register_number,
+                "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+            }
+        )
 
         return {
             "access_token": token,
