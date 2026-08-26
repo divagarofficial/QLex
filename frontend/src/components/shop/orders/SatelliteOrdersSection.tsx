@@ -118,7 +118,7 @@ export default function SatelliteOrdersSection({
                           {order.documents.map((doc) => (
                             <a
                               key={doc.id}
-                              href={doc.url}
+                              href={doc.url || "#"}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-zinc-300 hover:bg-white/10 hover:text-white transition"
