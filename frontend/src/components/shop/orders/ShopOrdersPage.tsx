@@ -142,8 +142,8 @@ export default function ShopOrdersPage() {
 
         const isSatellite =
           details?.shop_name?.includes("Satellite") ||
-          queueInfo?.shop_name?.includes("Satellite") ||
-          activeInfo?.shop_name?.includes("Satellite");
+          (queueInfo as any)?.shop_name?.includes("Satellite") ||
+          (activeInfo as any)?.shop_name?.includes("Satellite");
 
         const token = activeInfo?.token
           ? activeInfo.token
