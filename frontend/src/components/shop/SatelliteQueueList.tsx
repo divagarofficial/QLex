@@ -79,6 +79,7 @@ export default function SatelliteQueueList({
       ) : (
         <div className="mt-4 space-y-3">
           {activeOrders.map((order, idx) => {
+            const tokenStr = order.token || `S-${(order as any).queue_number || idx + 1}`;
             const docsArray = Array.isArray((order as any).documents) ? (order as any).documents : [];
             const firstDoc = docsArray[0];
             const docCount = typeof order.documents === "number" ? order.documents : docsArray.length || 1;
