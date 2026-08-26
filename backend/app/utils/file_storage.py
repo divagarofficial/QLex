@@ -102,8 +102,10 @@ def generate_fallback_pdf(filename: str = "Document.pdf") -> bytes:
 
 
 async def save_file(file, destination):
+    dest_path = Path(destination)
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
 
-    async with aiofiles.open(destination, "wb") as out:
+    async with aiofiles.open(dest_path, "wb") as out:
 
         while True:
 

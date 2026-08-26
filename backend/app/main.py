@@ -59,10 +59,25 @@ async def universal_cors_middleware(request, call_next):
     try:
         response = await call_next(request)
     except Exception as exc:
+        from fastapi import HTTPException
         from fastapi.responses import JSONResponse
+        from app.common.exceptions import QLexException
+
+        if isinstance(exc, HTTPException):
+            status_code = exc.status_code
+            detail = exc.detail
+        elif isinstance(exc, (ValueError, QLexException)):
+            status_code = 400
+            detail = str(exc)
+        else:
+            import logging
+            logging.getLogger(__name__).error(f"[Unhandled Exception] {request.url.path}: {exc}", exc_info=True)
+            status_code = 500
+            detail = str(exc)
+
         response = JSONResponse(
-            status_code=500,
-            content={"detail": str(exc), "message": "Internal Server Error", "success": False}
+            status_code=status_code,
+            content={"detail": detail, "message": str(detail), "success": False}
         )
 
     if origin:
