@@ -12,6 +12,7 @@ import OrderDetailsModal from "./OrderDetailsModal";
 import EmptyState from "./EmptyState";
 import SkeletonLoader from "./SkeletonLoader";
 import PrintAgentStatusCard from "./PrintAgentStatusCard";
+import QuickActions from "./QuickActions";
 import Popup from "@/components/popup/Popup";
 
 import {
