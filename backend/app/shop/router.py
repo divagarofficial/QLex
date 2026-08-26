@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -32,13 +32,16 @@ router = APIRouter(
     response_model=list[PrintJobResponse],
 )
 def get_pending_print_jobs(
+    x_shop_name: str | None = Header(None, alias="X-Shop-Name"),
+    shop_name: str | None = None,
     db: Session = Depends(get_db),
 ):
     """
-    Called by local Print Agent daemon to fetch all pending PAID print jobs.
+    Called by local Print Agent daemon to fetch all pending PAID print jobs for the target shop.
     """
+    target_shop = x_shop_name or shop_name
     service = ShopService(db)
-    return service.get_pending_print_jobs()
+    return service.get_pending_print_jobs(shop_name=target_shop)
 
 
 @router.post(
@@ -63,16 +66,33 @@ def update_print_job_status(
     )
 
 
+@router.post(
+    "/print-agent/heartbeat",
+)
+def record_heartbeat(
+    payload: dict,
+):
+    """
+    Called by local Print Agent daemon to report live heartbeat & printer ink telemetry.
+    """
+    shop_name = payload.get("shop_name", "QLex Satellite Print Hub")
+    printers = payload.get("printers", [])
+    from .service import record_print_agent_heartbeat
+    record_print_agent_heartbeat(shop_name, printers)
+    return {"status": "ok"}
+
+
 @router.get(
     "/print-agent/health",
-    response_model=AgentHeartbeatResponse,
 )
-def get_print_agent_health_status():
+def get_print_agent_health_status(
+    shop_name: str | None = "QLex Satellite Print Hub",
+):
     """
-    Returns active connectivity state of shop print agent based on recent heartbeats.
+    Returns active connectivity state, ink/toner levels, and printer telemetry for the target hub.
     """
     from .service import get_print_agent_health
-    return get_print_agent_health()
+    return get_print_agent_health(shop_name=shop_name)
 
 
 
@@ -82,24 +102,22 @@ def get_print_agent_health_status():
     response_model=list[ShopOrderResponse],
 )
 def get_orders(
+    shop_name: str | None = None,
     db: Session = Depends(get_db),
 ):
-
     service = ShopService(db)
-
-    return service.get_orders()
+    return service.get_orders(shop_name=shop_name)
 
 @router.get(
     "/orders/today",
     response_model=list[TodayOrderResponse],
 )
 def get_todays_orders(
+    shop_name: str | None = None,
     db: Session = Depends(get_db),
 ):
-
     service = ShopService(db)
-
-    return service.get_todays_orders()
+    return service.get_todays_orders(shop_name=shop_name)
 
 @router.get(
     "/orders/{order_id}",
@@ -109,12 +127,8 @@ def get_order_details(
     order_id: UUID,
     db: Session = Depends(get_db),
 ):
-
     service = ShopService(db)
-
-    return service.get_order_details(
-        order_id
-    )
+    return service.get_order_details(order_id)
 
 @router.post(
     "/orders/{order_id}/print",
@@ -124,12 +138,8 @@ def print_order(
     order_id: UUID,
     db: Session = Depends(get_db),
 ):
-
     service = ShopService(db)
-
-    return service.print_order(
-        order_id
-    )
+    return service.print_order(order_id)
 
 @router.post(
     "/orders/{order_id}/ready",
@@ -152,9 +162,7 @@ def reject_order(
     request: RejectOrderRequest | None = None,
     db: Session = Depends(get_db),
 ):
-
     service = ShopService(db)
-
     reason = request.reason if request else None
     return service.reject_order(
         order_id,
@@ -169,12 +177,8 @@ def serve_order(
     order_id: UUID,
     db: Session = Depends(get_db),
 ):
-
     service = ShopService(db)
-
-    return service.serve_order(
-        order_id
-    )
+    return service.serve_order(order_id)
 
 @router.post(
     "/orders/{order_id}/mark-served",
@@ -188,28 +192,16 @@ def mark_served(
     Mark order as SERVED from any active state.
     Called when operator clicks Print — order exits queue immediately.
     """
-
     service = ShopService(db)
-
-    return service.mark_served(
-        order_id
-    )
+    return service.mark_served(order_id)
 
 @router.get(
     "/revenue/today",
     response_model=TodayRevenueResponse,
 )
 def get_today_revenue(
-
-    db: Session = Depends(
-        get_db
-    ),
-
+    shop_name: str | None = None,
+    db: Session = Depends(get_db),
 ):
-
     service = ShopService(db)
-
-    return (
-        service
-        .get_today_revenue()
-    )
+    return service.get_today_revenue(shop_name=shop_name)

@@ -1,7 +1,9 @@
 import type {
   LoginRequest,
+  StaffLoginRequest,
   LoginResponse,
   RegisterRequest,
+  StaffRegisterRequest,
   UserResponse,
   DepartmentsResponse,
   YearsResponse,
@@ -30,7 +32,13 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
       success: false,
       message: "Network error. Please try again.",
     }));
-    const err: any = new Error(errorBody.message || "Something went wrong.");
+    const detailMsg =
+      typeof errorBody.detail === "string"
+        ? errorBody.detail
+        : Array.isArray(errorBody.detail)
+          ? errorBody.detail.map((d: any) => d.msg || JSON.stringify(d)).join(", ")
+          : (errorBody.message || `Server Error (${res.status})`);
+    const err: any = new Error(detailMsg);
     err.status = res.status;
     err.response = { status: res.status, data: errorBody };
     throw err;
@@ -55,7 +63,13 @@ async function authGetRequest<T>(path: string, token: string): Promise<T> {
       success: false,
       message: "Network error. Please try again.",
     }));
-    const err: any = new Error(errorBody.message || "Something went wrong.");
+    const detailMsg =
+      typeof errorBody.detail === "string"
+        ? errorBody.detail
+        : Array.isArray(errorBody.detail)
+          ? errorBody.detail.map((d: any) => d.msg || JSON.stringify(d)).join(", ")
+          : (errorBody.message || `Server Error (${res.status})`);
+    const err: any = new Error(detailMsg);
     err.status = res.status;
     err.response = { status: res.status, data: errorBody };
     throw err;
@@ -70,12 +84,20 @@ export function login(data: LoginRequest): Promise<LoginResponse> {
   return request<LoginResponse>("/api/v1/auth/login", data);
 }
 
+export function loginStaff(data: StaffLoginRequest): Promise<LoginResponse> {
+  return request<LoginResponse>("/api/v1/auth/staff/login", data);
+}
+
 export function sendOTP(email: string, yearId?: string): Promise<{ success: boolean; message: string }> {
   return request<{ success: boolean; message: string }>("/api/v1/auth/send-otp", { email, year_id: yearId });
 }
 
 export function register(data: RegisterRequest): Promise<UserResponse> {
   return request<UserResponse>("/api/v1/auth/register", data);
+}
+
+export function registerStaff(data: StaffRegisterRequest): Promise<UserResponse> {
+  return request<UserResponse>("/api/v1/auth/staff/register", data);
 }
 
 /**

@@ -23,38 +23,36 @@ class OrderService:
         student_id,
         is_priority: bool,
     ):
+        from app.models.user import User
+        from app.enums.user_role import UserRole
+
+        user = self.db.get(User, student_id)
+        is_staff = user and user.role == UserRole.STAFF
+
+        shop_name = "QLex Satellite Print Hub" if is_staff else "QLex Central Print Hub"
 
         settings = self.db.query(
             PlatformSetting
         ).first()
 
-        platform_fee = settings.platform_fee
+        platform_fee = Decimal("0.00") if is_staff else (settings.platform_fee if settings else Decimal("0.00"))
 
         priority_fee = (
-            settings.priority_fee
-            if is_priority
-            else Decimal("0.00")
+            Decimal("0.00") if is_staff else (settings.priority_fee if (is_priority and settings) else Decimal("0.00"))
         )
 
         order = Order(
-
             student_id=student_id,
-
-            is_priority=is_priority,
-
+            shop_name=shop_name,
+            is_priority=is_priority if not is_staff else False,
             subtotal=Decimal("0.00"),
-
             convenience_fee=Decimal("0.00"),
-
             platform_fee=platform_fee,
-
             priority_fee=priority_fee,
-
             grand_total=platform_fee + priority_fee,
-
             draft_expires_at=datetime.utcnow()
             + timedelta(
-                hours=settings.draft_expiry_hours
+                hours=settings.draft_expiry_hours if settings else 24
             ),
         )
 
@@ -123,6 +121,7 @@ class OrderService:
         return {
             "id": order.id,
             "student_id": order.student_id,
+            "shop_name": getattr(order, "shop_name", "QLex Central Print Hub"),
             "status": order.status,
             "payment_status": order.payment_status,
             "is_priority": order.is_priority,
@@ -259,3 +258,41 @@ class OrderService:
         self.db.refresh(order)
 
         return order
+
+    def submit_staff_order(self, order_id: UUID, user_id: UUID):
+        """
+        Submits a staff print order (bypasses payment, zero cost, routed to QLex Satellite Print Hub).
+        """
+        order = self.repository.get_by_id(order_id)
+        if order is None:
+            raise ValueError("Order not found.")
+        if order.student_id != user_id:
+            raise ValueError("Unauthorized access to order.")
+
+        if not order.documents:
+            raise ValueError("Upload at least one document before submitting your order.")
+
+        from app.enums.order_status import OrderStatus
+        from app.enums.payment_status import PaymentStatus
+        from app.shop.queue_service import ShopQueueService
+
+        order.subtotal = Decimal("0.00")
+        order.convenience_fee = Decimal("0.00")
+        order.platform_fee = Decimal("0.00")
+        order.priority_fee = Decimal("0.00")
+        order.grand_total = Decimal("0.00")
+        order.payment_status = PaymentStatus.PAID
+        order.status = OrderStatus.PAID
+        order.shop_name = "QLex Satellite Print Hub"
+
+        self.db.commit()
+        self.db.refresh(order)
+
+        # Create shop queue entry for Satellite Print Hub
+        queue_service = ShopQueueService(self.db)
+        queue = queue_service.create_queue_entry(order)
+
+        summary = self.get_order_summary(order_id)
+        summary["token"] = queue.token if queue else "P-1"
+        summary["queue_number"] = queue.queue_number if queue else 1
+        return summary

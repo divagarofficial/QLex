@@ -12,8 +12,9 @@ load_dotenv(BASE_DIR / ".env")
 BACKEND_URL = os.getenv("QLEX_BACKEND_URL", "https://qlex-backend-ybnb435gbq-el.a.run.app")
 POLL_INTERVAL_SECONDS = int(os.getenv("POLL_INTERVAL_SECONDS", "3"))
 
-# Print Agent Security Key (Optional)
+# Print Agent Security Key & Shop Identification
 API_SECRET_KEY = os.getenv("PRINT_AGENT_SECRET_KEY", "qlex-print-agent-secret")
+SHOP_NAME = os.getenv("SHOP_NAME", "QLex Satellite Print Hub")
 
 # Storage directory for downloaded temp PDFs
 TEMP_DIR = BASE_DIR / "temp_downloads"

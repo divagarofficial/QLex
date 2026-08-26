@@ -38,7 +38,15 @@ import PrintAgentStatusCard from "./PrintAgentStatusCard";
 import Popup from "@/components/popup/Popup";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
-export default function ShopDashboard() {
+import { Building2, Printer } from "lucide-react";
+
+interface ShopDashboardProps {
+  defaultHub?: "QLex Central Print Hub" | "QLex Satellite Print Hub";
+}
+
+export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }: ShopDashboardProps) {
+  const [activeHub, setActiveHub] = useState<"QLex Central Print Hub" | "QLex Satellite Print Hub">(defaultHub);
+
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -72,8 +80,8 @@ export default function ShopDashboard() {
     if (isInitial) setLoading(true);
     try {
       const [ordersRes, revRes, pendRes, histRes, queueRes] = await Promise.all([
-        fetchTodaysOrders().catch(() => []),
-        fetchTodayRevenue().catch(() => ({ total_orders: 0, total_revenue: 0 })),
+        fetchTodaysOrders(activeHub).catch(() => []),
+        fetchTodayRevenue(activeHub).catch(() => ({ total_orders: 0, total_revenue: 0 })),
         fetchPendingSettlements().catch(() => []),
         fetchSettlementHistory().catch(() => []),
         fetchLiveQueueSummary().catch(() => ({
@@ -101,7 +109,7 @@ export default function ShopDashboard() {
     } finally {
       if (isInitial) setLoading(false);
     }
-  }, []);
+  }, [activeHub]);
 
   // Initial fetch and 10-second polling interval
   useEffect(() => {
@@ -255,6 +263,48 @@ export default function ShopDashboard() {
             transition={{ duration: 0.5 }}
             className="space-y-6"
           >
+            {/* Print Hub Selector Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-gradient-to-r from-white/[0.04] via-white/[0.02] to-white/[0.04] border border-white/10 backdrop-blur-xl shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-2xl ${activeHub === "QLex Satellite Print Hub" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-amber-500/15 text-amber-400 border border-amber-500/30"}`}>
+                  {activeHub === "QLex Satellite Print Hub" ? <Building2 className="h-6 w-6" /> : <Printer className="h-6 w-6" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-white/50">Shop Terminal</span>
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${activeHub === "QLex Satellite Print Hub" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"}`}>
+                      {activeHub === "QLex Satellite Print Hub" ? "Faculty & Staff Hub" : "Student Central Hub"}
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-black text-white mt-0.5">{activeHub}</h2>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 bg-black/60 p-1.5 rounded-2xl border border-white/10 w-full sm:w-auto">
+                <button
+                  onClick={() => setActiveHub("QLex Central Print Hub")}
+                  className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+                    activeHub === "QLex Central Print Hub"
+                      ? "bg-gradient-to-r from-amber-400 to-amber-600 text-obsidian shadow-lg shadow-amber-500/20 scale-[1.02]"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <span>🏢 Central Print Hub</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveHub("QLex Satellite Print Hub")}
+                  className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
+                    activeHub === "QLex Satellite Print Hub"
+                      ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-obsidian shadow-lg shadow-emerald-500/20 scale-[1.02]"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <span>🛰️ Satellite Print Hub</span>
+                </button>
+              </div>
+            </div>
+
             {/* Welcome Card */}
             <WelcomeCard />
 

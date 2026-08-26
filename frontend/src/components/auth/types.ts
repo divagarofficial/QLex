@@ -5,6 +5,11 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface StaffLoginRequest {
+  staff_id: string;
+  password: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   token_type: string;
@@ -32,12 +37,24 @@ export interface RegisterRequest {
   section_name: string;
 }
 
+export interface StaffRegisterRequest {
+  staff_id: string;
+  full_name: string;
+  phone: string;
+  email: string;
+  otp_code: string;
+  password: string;
+  confirm_password: string;
+  department_id: string;
+}
+
 export interface UserResponse {
   id: string;
   register_number: string;
   full_name: string;
   phone: string;
   email: string | null;
+  role?: string;
   department_name: string;
   year_number: number;
   section_name: string;

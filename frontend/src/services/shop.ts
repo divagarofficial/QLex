@@ -35,8 +35,11 @@ async function handleResponse<T>(res: Response): Promise<T> {
 /**
  * Fetch today's queued orders for the shop
  */
-export async function fetchTodaysOrders(): Promise<TodayOrderItem[]> {
-  const res = await fetch(`${API_BASE}/shop/orders/today`, {
+export async function fetchTodaysOrders(shopName?: string): Promise<TodayOrderItem[]> {
+  const url = shopName
+    ? `${API_BASE}/shop/orders/today?shop_name=${encodeURIComponent(shopName)}`
+    : `${API_BASE}/shop/orders/today`;
+  const res = await fetch(url, {
     method: "GET",
     headers: getAuthHeaders(),
     cache: "no-store",
@@ -116,8 +119,11 @@ export async function rejectShopOrder(orderId: string, reason?: string): Promise
 /**
  * Fetch today's shop revenue summary
  */
-export async function fetchTodayRevenue(): Promise<TodayRevenue> {
-  const res = await fetch(`${API_BASE}/shop/revenue/today`, {
+export async function fetchTodayRevenue(shopName?: string): Promise<TodayRevenue> {
+  const url = shopName
+    ? `${API_BASE}/shop/revenue/today?shop_name=${encodeURIComponent(shopName)}`
+    : `${API_BASE}/shop/revenue/today`;
+  const res = await fetch(url, {
     method: "GET",
     headers: getAuthHeaders(),
     cache: "no-store",
@@ -240,18 +246,36 @@ export async function fetchOrderSummary(orderId: string): Promise<OrderSummaryRe
   return handleResponse<OrderSummaryResponse>(res);
 }
 
+export interface PrinterTelemetry {
+  printer_name: string;
+  status: string;
+  black_toner?: number | null;
+  cyan_ink?: number | null;
+  magenta_ink?: number | null;
+  yellow_ink?: number | null;
+  paper_a4_status?: string;
+  paper_a3_status?: string;
+  is_low_ink?: boolean;
+  is_paper_jam?: boolean;
+}
+
 export interface PrintAgentHealth {
   status: string;
   is_connected: boolean;
+  shop_name?: string;
+  terminal_location?: string;
   last_seen: string;
-  active_printers: string[];
+  active_printers: (string | PrinterTelemetry)[];
 }
 
 /**
  * Fetch live connectivity status of shop Print Agent
  */
-export async function fetchPrintAgentHealth(): Promise<PrintAgentHealth> {
-  const res = await fetch(`${API_BASE}/shop/print-agent/health`, {
+export async function fetchPrintAgentHealth(shopName?: string): Promise<PrintAgentHealth> {
+  const url = shopName
+    ? `${API_BASE}/shop/print-agent/health?shop_name=${encodeURIComponent(shopName)}`
+    : `${API_BASE}/shop/print-agent/health`;
+  const res = await fetch(url, {
     method: "GET",
     headers: getAuthHeaders(),
     cache: "no-store",

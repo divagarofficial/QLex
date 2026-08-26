@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 
 from app.auth.repository import AuthRepository
-from app.auth.schemas import RegisterRequest
+from app.auth.schemas import RegisterRequest, StaffRegisterRequest
+from app.enums.user_role import UserRole
 from app.common.exceptions import (
     DuplicateEmailException,
     DuplicatePhoneException,
@@ -48,12 +49,14 @@ class AuthService:
                 raise DuplicateEmailException()
 
         # Validate Department
-        department = self.db.get(Department, request.department_id)
+        dept_uuid = UUID(request.department_id) if isinstance(request.department_id, str) else request.department_id
+        department = self.db.get(Department, dept_uuid)
         if department is None:
             raise InvalidDepartmentException()
 
         # Validate Year
-        year = self.db.get(Year, request.year_id)
+        year_uuid = UUID(request.year_id) if isinstance(request.year_id, str) else request.year_id
+        year = self.db.get(Year, year_uuid)
         if year is None:
             raise InvalidYearException()
 
@@ -90,9 +93,59 @@ class AuthService:
             phone=request.phone,
             email=request.email,
             password_hash=hash_password(request.password),
-            department_id=request.department_id,
-            year_id=request.year_id,
-            section_id=str(section.id),
+            role=UserRole.STUDENT,
+            department_id=dept_uuid,
+            year_id=year_uuid,
+            section_id=section.id,
+        )
+
+        return self.repository.create(user)
+
+    def register_staff(self, request: StaffRegisterRequest) -> User:
+        """
+        Register a new staff member.
+        """
+        from uuid import UUID
+
+        # Password confirmation
+        if request.password != request.confirm_password:
+            raise PasswordMismatchException()
+
+        # Staff ID / Register number already exists
+        if self.repository.get_by_register_number(request.staff_id):
+            raise ValueError("A user with this Staff ID already exists.")
+
+        # Phone number already exists
+        if self.repository.get_by_phone(request.phone):
+            raise DuplicatePhoneException()
+
+        # Email already exists
+        if request.email:
+            if self.repository.get_by_email(request.email):
+                raise DuplicateEmailException()
+
+        # Validate Department
+        dept_uuid = UUID(request.department_id) if isinstance(request.department_id, str) else request.department_id
+        department = self.db.get(Department, dept_uuid)
+        if department is None:
+            raise InvalidDepartmentException()
+
+        # Verify OTP code
+        from app.auth.otp_service import verify_otp
+        if not verify_otp(request.email, request.otp_code):
+            raise ValueError("Invalid or expired OTP verification code. Please request a new OTP.")
+
+        # Create Staff User
+        user = User(
+            register_number=request.staff_id,
+            full_name=request.full_name,
+            phone=request.phone,
+            email=request.email,
+            password_hash=hash_password(request.password),
+            role=UserRole.STAFF,
+            department_id=dept_uuid,
+            year_id=None,
+            section_id=None,
         )
 
         return self.repository.create(user)

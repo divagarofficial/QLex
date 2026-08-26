@@ -117,13 +117,14 @@ class ShopQueueService:
             phone = getattr(student, "phone", "") if student else ""
             email = getattr(student, "email", "") if student else ""
 
+            target_shop = getattr(order, "shop_name", None) or "QLex Central Print Hub"
             if phone:
                 whatsapp_service.send_order_placed_receipt(
                     db=self.db,
                     order=order,
                     student_name=student_name,
                     phone=phone,
-                    shop_name="Print Hub",
+                    shop_name=target_shop,
                     token_number=queue.token
                 )
             if email:
@@ -132,7 +133,7 @@ class ShopQueueService:
                     order=order,
                     student_name=student_name,
                     to_email=email,
-                    shop_name="Print Hub",
+                    shop_name=target_shop,
                     token_number=queue.token
                 )
         except Exception as notify_err:

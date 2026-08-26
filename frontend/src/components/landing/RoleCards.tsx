@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldCheck, Store, GraduationCap } from "lucide-react";
+import { ShieldCheck, Store, GraduationCap, UserCheck } from "lucide-react";
 import RoleCard from "./RoleCard";
 
 const cards = [
@@ -29,6 +29,14 @@ const cards = [
     accent: "violet" as const,
     href: "/student/login",
   },
+  {
+    title: "Faculty & Staff",
+    badge: "Satellite Print Hub",
+    description: "Instant document printing at QLex Satellite Print Hub. Free institutional staff printing.",
+    icon: UserCheck,
+    accent: "emerald" as const,
+    href: "/staff/login",
+  },
 ];
 
 const container = {
@@ -51,7 +59,7 @@ export default function RoleCards() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="mx-auto grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8"
+      className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6 lg:gap-6"
     >
       {cards.map((card) => (
         <motion.div key={card.title} variants={item} className="h-full">

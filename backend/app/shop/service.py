@@ -37,15 +37,14 @@ class ShopService:
             student_name = getattr(student, "full_name", "Student") or "Student"
             phone = getattr(student, "phone", "") or ""
             email = getattr(student, "email", "") or ""
-            token_number = getattr(queue, "token", None)
-
+            target_shop = getattr(order, "shop_name", None) or "QLex Central Print Hub"
             if phone:
                 whatsapp_service.send_status_update(
                     db=self.repository.db,
                     order_id=str(order.id),
                     student_name=student_name,
                     phone=phone,
-                    shop_name="Print Hub",
+                    shop_name=target_shop,
                     status=status_str,
                     token_number=token_number,
                     reason=reason
@@ -57,7 +56,7 @@ class ShopService:
                     order_id=str(order.id),
                     student_name=student_name,
                     to_email=email,
-                    shop_name="Print Hub",
+                    shop_name=target_shop,
                     status=status_str,
                     token_number=token_number,
                     reason=reason
@@ -74,9 +73,9 @@ class ShopService:
         """Disabled auto-timeout processing. Order status changes are purely manual by the shopkeeper."""
         pass
 
-    def get_orders(self):
+    def get_orders(self, shop_name: str | None = None):
         self.auto_process_printing_timeouts()
-        orders = self.repository.get_active_orders()
+        orders = self.repository.get_active_orders(shop_name=shop_name)
         from app.shop.queue_service import ShopQueueService
         queue_service = ShopQueueService(self.repository.db)
 
@@ -95,12 +94,12 @@ class ShopService:
 
         return orders
     
-    def get_todays_orders(self):
+    def get_todays_orders(self, shop_name: str | None = None):
         self.auto_process_printing_timeouts()
 
         queues = (
             self.repository
-            .get_today_queue()
+            .get_today_queue(shop_name=shop_name)
         )
 
         results = []
@@ -126,6 +125,24 @@ class ShopService:
             )
 
         return results
+
+    def get_today_revenue(
+        self,
+        shop_name: str | None = None,
+    ):
+        result = (
+            self.repository
+            .get_today_revenue(shop_name=shop_name)
+        )
+
+        return {
+            "total_orders": (
+                result.total_orders if result else 0
+            ),
+            "total_revenue": (
+                result.total_revenue if result else 0
+            ),
+        }
         
     def get_order_details(
     self,
@@ -477,27 +494,36 @@ class ShopService:
             ),
         }
 
-    def get_pending_print_jobs(self):
+    def get_pending_print_jobs(self, shop_name: str | None = None):
         """
         Retrieves all PAID orders in the queue that are waiting to be printed.
+        If shop_name is specified, filters only jobs for that target shop.
         Priority orders are sorted first, followed by regular orders by queue number.
         """
         from app.models.shop_queue import ShopQueue
+        from app.models.order import Order
         from app.enums.queue_state import QueueState
         from app.enums.queue_type import QueueType
         from datetime import date
 
         # Auto-process today's active orders
-        self.get_orders()
-        record_print_agent_heartbeat("shop-windows7-pc", [])
+        self.get_orders(shop_name=shop_name)
+        record_print_agent_heartbeat(shop_name or "shop-windows7-pc", [])
 
-        queues = (
+        query = (
             self.repository.db.query(ShopQueue)
+            .join(Order, ShopQueue.order_id == Order.id)
             .filter(
                 ShopQueue.queue_date == date.today(),
                 ShopQueue.queue_state == QueueState.WAITING,
             )
-            .order_by(
+        )
+
+        if shop_name:
+            query = query.filter(Order.shop_name == shop_name)
+
+        queues = (
+            query.order_by(
                 ShopQueue.queue_type == QueueType.REGULAR,  # PRIORITY first (False < True)
                 ShopQueue.queue_number.asc(),
             )
@@ -620,28 +646,52 @@ AGENT_HEARTBEAT_CACHE = {
     "last_seen": None,
     "active_printers": [],
     "agent_id": "shop-windows7-pc",
+    "shops": {},
 }
 
 
 def record_print_agent_heartbeat(agent_id: str, active_printers: list):
     from datetime import datetime
-    AGENT_HEARTBEAT_CACHE["last_seen"] = datetime.utcnow()
+    now = datetime.utcnow()
+    AGENT_HEARTBEAT_CACHE["last_seen"] = now
     AGENT_HEARTBEAT_CACHE["active_printers"] = active_printers
     AGENT_HEARTBEAT_CACHE["agent_id"] = agent_id
 
+    if "shops" not in AGENT_HEARTBEAT_CACHE:
+        AGENT_HEARTBEAT_CACHE["shops"] = {}
 
-def get_print_agent_health():
+    AGENT_HEARTBEAT_CACHE["shops"][agent_id] = {
+        "last_seen": now,
+        "active_printers": active_printers,
+    }
+
+
+def get_print_agent_health(shop_name: str | None = None):
     from datetime import datetime, timedelta
-    last_seen = AGENT_HEARTBEAT_CACHE["last_seen"]
+    now = datetime.utcnow()
+
+    shops_cache = AGENT_HEARTBEAT_CACHE.get("shops", {})
+    shop_cache = shops_cache.get(shop_name) if shop_name else None
+
+    if shop_cache and shop_cache.get("last_seen"):
+        last_seen = shop_cache["last_seen"]
+        active_printers = shop_cache["active_printers"]
+    else:
+        last_seen = AGENT_HEARTBEAT_CACHE["last_seen"]
+        active_printers = AGENT_HEARTBEAT_CACHE["active_printers"]
+
     is_connected = False
-    if last_seen and (datetime.utcnow() - last_seen) < timedelta(seconds=15):
+    if last_seen and (now - last_seen) < timedelta(seconds=15):
         is_connected = True
+
+    printers = active_printers if is_connected else []
 
     return {
         "status": "connected" if is_connected else "disconnected",
         "is_connected": is_connected,
-        "last_seen": last_seen or datetime.utcnow(),
-        "active_printers": AGENT_HEARTBEAT_CACHE["active_printers"],
+        "shop_name": shop_name or AGENT_HEARTBEAT_CACHE.get("agent_id") or "QLex Print Hub",
+        "last_seen": (last_seen or now).isoformat(),
+        "active_printers": printers,
     }
 
 

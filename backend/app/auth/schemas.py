@@ -26,8 +26,24 @@ class RegisterRequest(BaseModel):
     section_name: str = Field(min_length=1, max_length=10, description="Section name, e.g. A, B, C")
 
 
+class StaffRegisterRequest(BaseModel):
+    staff_id: str = Field(min_length=3, max_length=30, description="Staff ID (replaces Register Number)")
+    full_name: str = Field(min_length=2, max_length=150)
+    phone: str = Field(min_length=10, max_length=15)
+    email: EmailStr
+    otp_code: str = Field(min_length=6, max_length=6)
+    password: str = Field(min_length=8)
+    confirm_password: str = Field(min_length=8)
+    department_id: str
+
+
 class LoginRequest(BaseModel):
     register_number: str
+    password: str
+
+
+class StaffLoginRequest(BaseModel):
+    staff_id: str
     password: str
 
 
@@ -44,6 +60,7 @@ class UserResponse(BaseModel):
     full_name: str
     phone: str
     email: EmailStr | None
+    role: str = "student"
 
 
 class LoginResponse(BaseModel):
@@ -59,6 +76,7 @@ class CurrentUserResponse(BaseModel):
     full_name: str
     phone: str
     email: EmailStr | None
+    role: str = "student"
     department_name: str = ""
     year_number: int = 0
     section_name: str = ""

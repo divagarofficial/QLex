@@ -46,9 +46,10 @@ class EmailService:
         subject: str,
         text_body: str,
         html_body: str,
-        attachment_path: Optional[str] = None
+        attachment_path: Optional[str] = None,
+        attachment_paths: Optional[list[str]] = None
     ) -> bool:
-        """Helper to dispatch SMTP email with optional PDF attachment."""
+        """Helper to dispatch SMTP email with optional attachments."""
         if not to_email or "@" not in to_email:
             return False
 
@@ -65,7 +66,15 @@ class EmailService:
             return False
 
         try:
-            msg = MIMEMultipart("mixed" if attachment_path else "alternative")
+            all_attachments = []
+            if attachment_path and os.path.exists(attachment_path):
+                all_attachments.append(attachment_path)
+            if attachment_paths:
+                for ap in attachment_paths:
+                    if ap and os.path.exists(ap) and ap not in all_attachments:
+                        all_attachments.append(ap)
+
+            msg = MIMEMultipart("mixed" if all_attachments else "alternative")
             msg["Subject"] = subject
             msg["From"] = f"{from_name} <{from_email}>"
             msg["To"] = to_email
@@ -75,18 +84,22 @@ class EmailService:
             body_part.attach(MIMEText(html_body, "html"))
             msg.attach(body_part)
 
-            if attachment_path and os.path.exists(attachment_path):
-                with open(attachment_path, "rb") as f:
-                    part = MIMEApplication(f.read(), Name=os.path.basename(attachment_path))
-                    part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment_path)}"'
-                    msg.attach(part)
+            for ap in all_attachments:
+                try:
+                    with open(ap, "rb") as f:
+                        fname = os.path.basename(ap)
+                        part = MIMEApplication(f.read(), Name=fname)
+                        part['Content-Disposition'] = f'attachment; filename="{fname}"'
+                        msg.attach(part)
+                except Exception as attach_err:
+                    logger.error(f"[EmailService] Failed attaching file {ap}: {attach_err}")
 
             server = smtplib.SMTP(host, port, timeout=12)
             server.starttls()
             server.login(user, pwd)
             server.sendmail(from_email, [to_email], msg.as_string())
             server.quit()
-            logger.info(f"[EmailService] Successfully sent email '{subject}' to {to_email}")
+            logger.info(f"[EmailService] Successfully sent email '{subject}' with {len(all_attachments)} attachment(s) to {to_email}")
             return True
         except Exception as e:
             logger.error(f"[EmailService] Error sending email to {to_email}: {e}")
@@ -268,7 +281,17 @@ QLex • Rajalakshmi Institute of Technology
 </html>
 """
 
-                self._send_smtp_email(to_email, subject, text_body, html_body, attachment_path=pdf_path)
+                attachments_list = []
+                if pdf_path and os.path.exists(pdf_path):
+                    attachments_list.append(pdf_path)
+
+                if hasattr(order, "documents") and order.documents:
+                    for doc in order.documents:
+                        fpath = getattr(doc, "file_path", None)
+                        if fpath and os.path.exists(fpath) and fpath not in attachments_list:
+                            attachments_list.append(fpath)
+
+                self._send_smtp_email(to_email, subject, text_body, html_body, attachment_paths=attachments_list)
             except Exception as e:
                 logger.error(f"[EmailService] Worker error in send_order_placed_email: {e}")
 

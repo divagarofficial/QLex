@@ -19,6 +19,7 @@ from config import (
     BACKEND_URL,
     POLL_INTERVAL_SECONDS,
     API_SECRET_KEY,
+    SHOP_NAME,
     TEMP_DIR,
     MOCK_PRINT,
 )
@@ -36,11 +37,29 @@ class QLexPrintAgentDaemon:
 
     def __init__(self):
         self.backend_url = BACKEND_URL.rstrip("/")
-        self.headers = {"X-Print-Agent-Key": API_SECRET_KEY}
+        self.headers = {
+            "X-Print-Agent-Key": API_SECRET_KEY,
+            "X-Shop-Name": SHOP_NAME,
+        }
         self.printer_pool = PrinterPoolManager()
-        logger.info(f"Initialized QLex Print Agent Daemon")
+        logger.info(f"Initialized QLex Print Agent Daemon for Shop: '{SHOP_NAME}'")
         logger.info(f"Connecting to Backend: {self.backend_url}")
         logger.info(f"Mock Print Mode: {MOCK_PRINT}")
+
+    def send_heartbeat(self):
+        """Send periodic telemetry heartbeat including printer ink levels to backend."""
+        url = f"{self.backend_url}/shop/print-agent/heartbeat"
+        try:
+            ink_levels = self.printer_pool.get_printer_ink_levels()
+            payload = {
+                "shop_name": SHOP_NAME,
+                "printers": ink_levels,
+            }
+            resp = requests.post(url, json=payload, headers=self.headers, timeout=10)
+            if resp.status_code == 200:
+                logger.debug(f"Heartbeat synced for '{SHOP_NAME}' with {len(ink_levels)} printer telemetry records.")
+        except Exception as e:
+            logger.debug(f"Heartbeat sync error: {e}")
 
     def fetch_pending_jobs(self):
         """Poll QLex backend for pending PAID orders waiting to be printed."""
@@ -170,6 +189,7 @@ class QLexPrintAgentDaemon:
 
         while True:
             try:
+                self.send_heartbeat()
                 pending_jobs = self.fetch_pending_jobs()
                 if pending_jobs:
                     logger.info(f"Found {len(pending_jobs)} pending print job(s) in QLex queue.")

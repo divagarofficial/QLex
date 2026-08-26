@@ -4,6 +4,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Numeric,
+    String,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +24,12 @@ class Order(BaseModel):
     ForeignKey("users.id"),
     nullable=False,
 )
+
+    shop_name: Mapped[str] = mapped_column(
+        String(100),
+        default="QLex Central Print Hub",
+        nullable=False,
+    )
 
     status: Mapped[OrderStatus] = mapped_column(
         Enum(OrderStatus),

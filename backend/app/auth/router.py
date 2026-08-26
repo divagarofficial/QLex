@@ -174,6 +174,36 @@ def list_sections(
     return SectionsListResponse(sections=sections)
 
 
+from app.auth.schemas import StaffRegisterRequest, StaffLoginRequest
+
+@router.post(
+    "/staff/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def register_staff(
+    request: StaffRegisterRequest,
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    return service.register_staff(request)
+
+
+@router.post(
+    "/staff/login",
+    response_model=LoginResponse,
+)
+def staff_login(
+    request: StaffLoginRequest,
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    return service.login(
+        register_number=request.staff_id,
+        password=request.password,
+    )
+
+
 @router.get(
     "/me",
     response_model=CurrentUserResponse,
@@ -187,6 +217,7 @@ def me(
         full_name=current_user.full_name,
         phone=current_user.phone,
         email=current_user.email,
+        role=current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role),
         department_name=current_user.department.name if current_user.department else "",
         year_number=current_user.year.year_number if current_user.year else 0,
         section_name=current_user.section.name if current_user.section else "",

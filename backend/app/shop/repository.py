@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-
 from app.enums.order_status import OrderStatus
 from app.models.order import Order
 from sqlalchemy.orm import joinedload
@@ -8,23 +7,17 @@ from app.models.order_document import OrderDocument
 from app.models.order_document_service import OrderDocumentService
 from app.models.shop_queue import ShopQueue
 from app.enums.queue_state import QueueState
-from app.models.shop_queue import ShopQueue
-
-
 from sqlalchemy import func
 from app.enums.payment_status import PaymentStatus
-
 
 
 class ShopRepository:
 
     def __init__(self, db: Session):
-
         self.db = db
 
-    def get_active_orders(self):
-
-        return (
+    def get_active_orders(self, shop_name: str | None = None):
+        query = (
             self.db.query(Order)
             .outerjoin(
                 ShopQueue,
@@ -41,7 +34,6 @@ class ShopRepository:
                         OrderStatus.READY_FOR_PICKUP,
                     ]
                 ),
-                # Exclude orders already served or rejected in the queue
                 ~ShopQueue.queue_state.in_(
                     [
                         QueueState.SERVED,
@@ -50,13 +42,13 @@ class ShopRepository:
                 )
                 | (ShopQueue.id == None),
             )
-            .order_by(Order.created_at.asc())
-            .all()
         )
-    
-    def get_todays_orders(self):
+        if shop_name:
+            query = query.filter(Order.shop_name == shop_name)
+        return query.order_by(Order.created_at.asc()).all()
 
-        return (
+    def get_todays_orders(self, shop_name: str | None = None):
+        query = (
             self.db.query(Order)
             .options(
                 joinedload(Order.documents)
@@ -72,40 +64,27 @@ class ShopRepository:
                     ]
                 ),
             )
-            .order_by(
-                Order.is_priority.desc(),
-                Order.created_at.asc(),
-            )
-            .all()
         )
+        if shop_name:
+            query = query.filter(Order.shop_name == shop_name)
+        return query.order_by(
+            Order.is_priority.desc(),
+            Order.created_at.asc(),
+        ).all()
 
-    def get_order_details(
-    self,
-    order_id,
-):
-
+    def get_order_details(self, order_id):
         return (
             self.db.query(Order)
             .options(
                 joinedload(Order.documents)
-                .joinedload(
-                    OrderDocument.document_services
-                )
-                .joinedload(
-                    OrderDocumentService.service
-                )
+                .joinedload(OrderDocument.document_services)
+                .joinedload(OrderDocumentService.service)
             )
-            .filter(
-                Order.id == order_id
-            )
+            .filter(Order.id == order_id)
             .first()
         )
-    
-    def get_queue_by_order(
-    self,
-    order_id,
-):
 
+    def get_queue_by_order(self, order_id):
         return (
             self.db.query(ShopQueue)
             .filter(
@@ -114,29 +93,30 @@ class ShopRepository:
             )
             .first()
         )
-    
-    def get_current_order(self):
 
-        return (
+    def get_current_order(self, shop_name: str | None = None):
+        query = (
             self.db.query(ShopQueue)
+            .join(Order, ShopQueue.order_id == Order.id)
             .filter(
                 ShopQueue.queue_date == date.today(),
                 ShopQueue.is_current == True,
             )
-            .first()
         )
-    
-    def get_today_queue(self):
+        if shop_name:
+            query = query.filter(Order.shop_name == shop_name)
+        return query.first()
 
-        return (
+    def get_today_queue(self, shop_name: str | None = None):
+        query = (
             self.db.query(ShopQueue)
+            .join(Order, ShopQueue.order_id == Order.id)
             .options(
                 joinedload(ShopQueue.order)
                 .joinedload(Order.documents)
             )
             .filter(
                 ShopQueue.queue_date == date.today(),
-                # Only show orders that are still active (not done)
                 ShopQueue.queue_state.notin_(
                     [
                         QueueState.SERVED,
@@ -144,53 +124,45 @@ class ShopRepository:
                     ]
                 ),
             )
-            .order_by(
-                ShopQueue.queue_type.asc(),
-                ShopQueue.queue_number.asc(),
-            )
-            .all()
         )
-    
-    def get_next_waiting_order(self):
+        if shop_name:
+            query = query.filter(Order.shop_name == shop_name)
+        return query.order_by(
+            ShopQueue.queue_type.asc(),
+            ShopQueue.queue_number.asc(),
+        ).all()
 
-        return (
+    def get_next_waiting_order(self, shop_name: str | None = None):
+        query = (
             self.db.query(ShopQueue)
+            .join(Order, ShopQueue.order_id == Order.id)
             .filter(
                 ShopQueue.queue_date == date.today(),
                 ShopQueue.queue_state == QueueState.WAITING,
             )
-            .order_by(
-                ShopQueue.queue_type.asc(),
-                ShopQueue.queue_number.asc(),
-            )
-            .first()
         )
-    
-    def get_today_revenue(self):
+        if shop_name:
+            query = query.filter(Order.shop_name == shop_name)
+        return query.order_by(
+            ShopQueue.queue_type.asc(),
+            ShopQueue.queue_number.asc(),
+        ).first()
 
-        return (
+    def get_today_revenue(self, shop_name: str | None = None):
+        query = (
             self.db.query(
-                func.count(Order.id).label(
-                    "total_orders"
-                ),
+                func.count(Order.id).label("total_orders"),
                 func.coalesce(
                     func.sum(Order.subtotal),
                     0,
-                ).label(
-                    "total_revenue"
-                ),
+                ).label("total_revenue"),
             )
-            .filter(
-                func.date(Order.created_at)
-                == date.today()
-            )
-            .filter(
-                Order.payment_status
-                == PaymentStatus.PAID
-            )
-            .first()
+            .filter(func.date(Order.created_at) == date.today())
+            .filter(Order.payment_status == PaymentStatus.PAID)
         )
+        if shop_name:
+            query = query.filter(Order.shop_name == shop_name)
+        return query.first()
 
     def save(self):
-
         self.db.commit()

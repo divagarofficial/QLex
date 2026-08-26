@@ -58,14 +58,14 @@ class User(BaseModel):
         nullable=False,
     )
 
-    year_id: Mapped[str] = mapped_column(
+    year_id: Mapped[str | None] = mapped_column(
         ForeignKey("years.id"),
-        nullable=False,
+        nullable=True,
     )
 
-    section_id: Mapped[str] = mapped_column(
+    section_id: Mapped[str | None] = mapped_column(
         ForeignKey("sections.id"),
-        nullable=False,
+        nullable=True,
     )
 
     department = relationship("Department")

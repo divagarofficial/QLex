@@ -140,4 +140,19 @@ async def delete_document(
     return await service.delete_document(
         order_id=order_id,
         document_id=document_id,
+    )
+
+
+@router.post(
+    "/{order_id}/submit-staff-order",
+)
+def submit_staff_order(
+    order_id: UUID,
+    current_user=Depends(get_current_student),
+    db: Session = Depends(get_db),
+):
+    service = OrderService(db)
+    return service.submit_staff_order(
+        order_id=order_id,
+        user_id=current_user,
     )

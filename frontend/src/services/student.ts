@@ -163,4 +163,11 @@ export function fetchOrderDetails(token: string, orderId: string): Promise<Order
   return authGet<OrderDetailsResponse>(`/student/orders/${orderId}`, token);
 }
 
+/**
+ * Submit a staff print order (zero-cost, routed to QLex Satellite Print Hub).
+ */
+export function submitStaffOrder(token: string, orderId: string): Promise<any> {
+  return authPost<any>(`/orders/${orderId}/submit-staff-order`, token, {});
+}
+
 

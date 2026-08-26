@@ -7,9 +7,10 @@ import { getCurrentUser } from "@/services/auth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  redirectPath?: string;
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, redirectPath }: ProtectedRouteProps) {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -18,12 +19,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const hydrate = useAuthStore((s) => s.hydrate);
   const validatedRef = useRef(false);
 
+  const fallbackRedirect = redirectPath || (typeof window !== "undefined" && window.location.pathname.startsWith("/staff") ? "/staff/login" : "/student/login");
+
   useEffect(() => {
     // Hydrate token from localStorage on mount
     const storedToken = hydrate();
 
     if (!storedToken) {
-      router.replace("/student/login");
+      router.replace(fallbackRedirect);
       return;
     }
 
@@ -38,7 +41,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         // Only logout if backend explicitly responds with 401 (token expired/invalid)
         if (err?.response?.status === 401 || err?.status === 401) {
           logout();
-          router.replace("/student/login");
+          router.replace(fallbackRedirect);
         }
       });
   }, []); // intentionally only run once on mount

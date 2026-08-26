@@ -9,7 +9,7 @@ interface RoleCardProps {
   description: string;
   icon: LucideIcon;
   href: string;
-  accent: "blue" | "gold" | "violet";
+  accent: "blue" | "gold" | "violet" | "emerald";
 }
 
 const accentMap = {
@@ -30,6 +30,12 @@ const accentMap = {
     badge: "text-violet-400 border-violet-500/25 bg-violet-500/10",
     arrow: "group-hover:text-violet-400 group-hover:border-violet-400/40",
     glow: "rgba(124,58,237,0.08)",
+  },
+  emerald: {
+    icon: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10",
+    badge: "text-emerald-400 border-emerald-500/25 bg-emerald-500/10",
+    arrow: "group-hover:text-emerald-400 group-hover:border-emerald-400/40",
+    glow: "rgba(16,185,129,0.08)",
   },
 };
 
