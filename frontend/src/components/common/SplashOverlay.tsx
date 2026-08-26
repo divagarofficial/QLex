@@ -154,7 +154,7 @@ export default function SplashOverlay() {
             >
               {/* THIRUMALAI D PHOTO FRAME */}
               <div className="flex flex-col items-center group">
-                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full p-1 bg-gradient-to-tr from-amber-500 via-amber-300 to-cyan-400 shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-transform duration-300 group-hover:scale-105">
+                <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-amber-500 via-amber-300 to-cyan-400 shadow-[0_0_30px_rgba(245,158,11,0.55)] transition-transform duration-300 group-hover:scale-105">
                   {/* Outer Dashed Rotating Gold Ring */}
                   <div className="absolute -inset-2.5 rounded-full border border-dashed border-amber-400/50 animate-spin [animation-duration:16s] pointer-events-none" />
                   
@@ -164,13 +164,13 @@ export default function SplashOverlay() {
                       src="/thirumalai.png"
                       alt="THIRUMALAI D"
                       fill
-                      className="object-cover filter drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]"
+                      className="object-cover scale-110 filter drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]"
                       priority
                     />
                   </div>
                 </div>
                 {/* Name Badge */}
-                <div className="mt-2.5 px-3 py-1 rounded-full bg-slate-950/90 border border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.4)] backdrop-blur-md">
+                <div className="mt-2.5 px-3.5 py-1 rounded-full bg-slate-950/90 border border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.4)] backdrop-blur-md">
                   <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 uppercase">
                     THIRUMALAI D
                   </span>
@@ -180,13 +180,13 @@ export default function SplashOverlay() {
               {/* CENTER DIVIDER / ROYAL SYMBOL */}
               <div className="flex flex-col items-center justify-center space-y-1 opacity-80">
                 <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                <div className="w-0.5 h-12 bg-gradient-to-b from-amber-400 via-cyan-400 to-amber-400 rounded-full" />
+                <div className="w-0.5 h-14 bg-gradient-to-b from-amber-400 via-cyan-400 to-amber-400 rounded-full" />
                 <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
               </div>
 
               {/* DIVAGAR E PHOTO FRAME */}
               <div className="flex flex-col items-center group">
-                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-amber-300 to-amber-500 shadow-[0_0_25px_rgba(56,189,248,0.5)] transition-transform duration-300 group-hover:scale-105">
+                <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-amber-300 to-amber-500 shadow-[0_0_30px_rgba(56,189,248,0.55)] transition-transform duration-300 group-hover:scale-105">
                   {/* Outer Dashed Rotating Cyan Ring */}
                   <div className="absolute -inset-2.5 rounded-full border border-dashed border-cyan-400/50 animate-spin [animation-duration:16s] pointer-events-none" />
                   
@@ -196,13 +196,13 @@ export default function SplashOverlay() {
                       src="/divagar.png"
                       alt="DIVAGAR E"
                       fill
-                      className="object-cover filter drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]"
+                      className="object-cover scale-110 filter drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]"
                       priority
                     />
                   </div>
                 </div>
                 {/* Name Badge */}
-                <div className="mt-2.5 px-3 py-1 rounded-full bg-slate-950/90 border border-cyan-400/60 shadow-[0_0_12px_rgba(56,189,248,0.4)] backdrop-blur-md">
+                <div className="mt-2.5 px-3.5 py-1 rounded-full bg-slate-950/90 border border-cyan-400/60 shadow-[0_0_12px_rgba(56,189,248,0.4)] backdrop-blur-md">
                   <span className="text-[10px] sm:text-xs font-black tracking-widest text-cyan-300 uppercase">
                     DIVAGAR E
                   </span>
