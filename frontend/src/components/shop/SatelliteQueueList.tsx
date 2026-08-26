@@ -79,8 +79,9 @@ export default function SatelliteQueueList({
       ) : (
         <div className="mt-4 space-y-3">
           {activeOrders.map((order, idx) => {
-            const tokenStr = order.token || `S-${(order as any).queue_number || idx + 1}`;
-            const firstDoc = order.documents?.[0];
+            const docsArray = Array.isArray((order as any).documents) ? (order as any).documents : [];
+            const firstDoc = docsArray[0];
+            const docCount = typeof order.documents === "number" ? order.documents : docsArray.length || 1;
             const isPrinting = order.queue_state === "PRINTING";
             const isReady = order.queue_state === "READY" || order.queue_state === "READY_FOR_PICKUP";
 
@@ -116,7 +117,7 @@ export default function SatelliteQueueList({
                       <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
                         <span className="flex items-center gap-1">
                           <FileText className="h-3.5 w-3.5 text-emerald-400" />
-                          <span>{order.documents?.length || 1} file(s)</span>
+                          <span>{docCount} file(s)</span>
                         </span>
                         {firstDoc && (
                           <>
