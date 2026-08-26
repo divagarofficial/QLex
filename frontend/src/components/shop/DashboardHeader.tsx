@@ -8,11 +8,15 @@ import { motion } from "framer-motion";
 interface DashboardHeaderProps {
   unreadNotificationCount: number;
   onToggleNotifications: () => void;
+  hubTitle?: string;
+  isSatellite?: boolean;
 }
 
 export default function DashboardHeader({
   unreadNotificationCount,
   onToggleNotifications,
+  hubTitle = "Central Campus",
+  isSatellite = false,
 }: DashboardHeaderProps) {
   const router = useRouter();
 
@@ -30,9 +34,9 @@ export default function DashboardHeader({
 
           <div className="hidden h-6 w-px bg-white/10 sm:block" />
 
-          <div className="hidden items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300 sm:flex">
-            <Store className="h-3.5 w-3.5 text-amber-400" />
-            <span>Dashboard</span>
+          <div className={`hidden items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold sm:flex ${isSatellite ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-amber-400/20 bg-amber-500/10 text-amber-300"}`}>
+            <Store className={`h-3.5 w-3.5 ${isSatellite ? "text-emerald-400" : "text-amber-400"}`} />
+            <span>{isSatellite ? "Satellite Operations" : "Central Hub"}</span>
           </div>
         </div>
 
@@ -49,7 +53,7 @@ export default function DashboardHeader({
           >
             <Bell className="h-4 w-4" />
             {unreadNotificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-black shadow-md animate-pulse">
+              <span className={`absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-black shadow-md animate-pulse ${isSatellite ? "bg-emerald-400" : "bg-amber-500"}`}>
                 {unreadNotificationCount}
               </span>
             )}
@@ -57,14 +61,14 @@ export default function DashboardHeader({
 
           {/* Shop Name & Operator Profile */}
           <div className="hidden items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-md md:flex">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-400 text-black shadow-sm font-bold text-xs">
+            <div className={`flex h-7 w-7 items-center justify-center rounded-lg text-black shadow-sm font-bold text-xs ${isSatellite ? "bg-gradient-to-tr from-emerald-400 to-teal-300" : "bg-gradient-to-tr from-amber-500 to-yellow-400"}`}>
               <User className="h-4 w-4" />
             </div>
             <div className="text-left">
-              <p className="text-xs font-bold text-white leading-none">Central Campus</p>
+              <p className="text-xs font-bold text-white leading-none">{hubTitle}</p>
               <p className="text-[10px] text-zinc-400 leading-tight mt-0.5 flex items-center gap-1">
-                <ShieldCheck className="h-2.5 w-2.5 text-amber-400 inline" />
-                <span>Operator #0810</span>
+                <ShieldCheck className={`h-2.5 w-2.5 inline ${isSatellite ? "text-emerald-400" : "text-amber-400"}`} />
+                <span>Operator Terminal</span>
               </p>
             </div>
           </div>

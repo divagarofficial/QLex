@@ -2,47 +2,90 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Users, ShoppingBag, Tag, Landmark, ArrowRight } from "lucide-react";
+import { Users, ShoppingBag, Tag, Landmark, ArrowRight, PlusCircle, Building2 } from "lucide-react";
 
-export default function QuickActions() {
-  const actions = [
-    {
-      title: "Live Queue",
-      description: "Manage queue positions and sequence",
-      icon: Users,
-      href: "/shop/queue",
-      color: "from-blue-500/20 to-indigo-500/20",
-      borderColor: "hover:border-blue-400/50",
-      textColor: "text-blue-300",
-    },
-    {
-      title: "Orders List",
-      description: "Search, filter and inspect all orders",
-      icon: ShoppingBag,
-      href: "/shop/orders",
-      color: "from-amber-500/20 to-yellow-500/20",
-      borderColor: "hover:border-amber-400/50",
-      textColor: "text-amber-300",
-    },
-    {
-      title: "Pricing Matrix",
-      description: "Configure per-page printing costs",
-      icon: Tag,
-      href: "/shop/pricing",
-      color: "from-purple-500/20 to-pink-500/20",
-      borderColor: "hover:border-purple-400/50",
-      textColor: "text-purple-300",
-    },
-    {
-      title: "Settlements",
-      description: "View payouts and UPI settlements",
-      icon: Landmark,
-      href: "/shop/settlements",
-      color: "from-emerald-500/20 to-teal-500/20",
-      borderColor: "hover:border-emerald-400/50",
-      textColor: "text-emerald-300",
-    },
-  ];
+interface QuickActionsProps {
+  isSatellite?: boolean;
+}
+
+export default function QuickActions({ isSatellite = false }: QuickActionsProps) {
+  const actions = isSatellite
+    ? [
+        {
+          title: "Live S-Queue",
+          description: "Manage Satellite queue positions and sequence",
+          icon: Users,
+          href: "/shop/queue",
+          color: "from-emerald-500/20 to-teal-500/20",
+          borderColor: "hover:border-emerald-400/50",
+          textColor: "text-emerald-300",
+        },
+        {
+          title: "Orders List",
+          description: "Search, filter and inspect Satellite orders",
+          icon: ShoppingBag,
+          href: "/shop/orders",
+          color: "from-cyan-500/20 to-blue-500/20",
+          borderColor: "hover:border-cyan-400/50",
+          textColor: "text-cyan-300",
+        },
+        {
+          title: "New Staff Order",
+          description: "Submit zero-cost staff print job directly",
+          icon: PlusCircle,
+          href: "/staff/new-order",
+          color: "from-amber-500/20 to-yellow-500/20",
+          borderColor: "hover:border-amber-400/50",
+          textColor: "text-amber-300",
+        },
+        {
+          title: "Satellite Operations",
+          description: "Terminal Room A103 • AI & Data Science",
+          icon: Building2,
+          href: "/shop/satellite",
+          color: "from-purple-500/20 to-indigo-500/20",
+          borderColor: "hover:border-purple-400/50",
+          textColor: "text-purple-300",
+        },
+      ]
+    : [
+        {
+          title: "Live Queue",
+          description: "Manage queue positions and sequence",
+          icon: Users,
+          href: "/shop/queue",
+          color: "from-blue-500/20 to-indigo-500/20",
+          borderColor: "hover:border-blue-400/50",
+          textColor: "text-blue-300",
+        },
+        {
+          title: "Orders List",
+          description: "Search, filter and inspect all orders",
+          icon: ShoppingBag,
+          href: "/shop/orders",
+          color: "from-amber-500/20 to-yellow-500/20",
+          borderColor: "hover:border-amber-400/50",
+          textColor: "text-amber-300",
+        },
+        {
+          title: "Pricing Matrix",
+          description: "Configure per-page printing costs",
+          icon: Tag,
+          href: "/shop/pricing",
+          color: "from-purple-500/20 to-pink-500/20",
+          borderColor: "hover:border-purple-400/50",
+          textColor: "text-purple-300",
+        },
+        {
+          title: "Settlements",
+          description: "View payouts and UPI settlements",
+          icon: Landmark,
+          href: "/shop/settlements",
+          color: "from-emerald-500/20 to-teal-500/20",
+          borderColor: "hover:border-emerald-400/50",
+          textColor: "text-emerald-300",
+        },
+      ];
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
