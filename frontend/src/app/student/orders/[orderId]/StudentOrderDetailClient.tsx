@@ -171,25 +171,41 @@ export default function StudentOrderDetailClient({ orderId }: { orderId: string 
               </div>
 
               {/* Grid Metadata */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-4">
                   <span className="text-xs text-white/40">Token Assigned</span>
-                  <div className="mt-1 font-mono text-3xl font-black text-amber-400">
+                  <div className="mt-1 font-mono text-2xl sm:text-3xl font-black text-amber-400">
                     {order.token ? `Token #${order.token}` : "Regular Queue"}
                   </div>
                 </div>
 
                 <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-4">
                   <span className="text-xs text-white/40">Total Price</span>
-                  <div className="mt-1 font-mono text-3xl font-black text-emerald-400">
+                  <div className="mt-1 font-mono text-2xl sm:text-3xl font-black text-emerald-400">
                     ₹{Number(order.total_amount).toFixed(2)}
                   </div>
                 </div>
 
                 <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-4">
                   <span className="text-xs text-white/40">Order Type</span>
-                  <div className="mt-1 font-mono text-lg font-semibold text-white/90">
+                  <div className="mt-1 font-mono text-base sm:text-lg font-semibold text-white/90">
                     {order.is_priority ? "⚡ Priority Dispatch" : "Standard Print"}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-amber-400/[0.05] border border-amber-400/20 p-4">
+                  <span className="text-xs text-amber-300/70 flex items-center gap-1">
+                    <Clock size={12} className="text-amber-400" />
+                    Est. Completion
+                  </span>
+                  <div className="mt-1 font-mono text-base sm:text-lg font-black text-amber-300">
+                    {order.status === "completed" || order.status === "served"
+                      ? "Completed"
+                      : order.estimated_completion_time
+                      ? new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                      : order.estimated_wait_minutes !== undefined
+                      ? `~${order.estimated_wait_minutes} min wait`
+                      : "Calculating..."}
                   </div>
                 </div>
               </div>

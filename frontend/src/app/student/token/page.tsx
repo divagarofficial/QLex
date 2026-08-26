@@ -375,6 +375,11 @@ function MyTokenContent() {
                   yourPosition={yourPosition}
                   studentsAhead={studentsAhead}
                   estimatedWaitMinutes={estimatedWait}
+                  estimatedCompletionTime={
+                    tokenInfo?.estimated_completion_time
+                      ? new Date(tokenInfo.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                      : undefined
+                  }
                   isCurrentPrinting={isCurrentPrinting}
                 />
 

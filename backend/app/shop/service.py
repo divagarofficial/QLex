@@ -77,6 +77,7 @@ class ShopService:
         self.auto_process_printing_timeouts()
         orders = self.repository.get_active_orders(shop_name=shop_name)
         from app.shop.queue_service import ShopQueueService
+        from app.utils.estimated_time import calculate_order_estimated_time
         queue_service = ShopQueueService(self.repository.db)
 
         for order in orders:
@@ -92,6 +93,10 @@ class ShopService:
             p_status = getattr(order, "payment_status", None)
             order.payment_status = p_status.value if hasattr(p_status, "value") else (str(p_status) if p_status else "unpaid")
 
+            est = calculate_order_estimated_time(self.repository.db, order)
+            order.estimated_wait_minutes = est["estimated_wait_minutes"]
+            order.estimated_completion_time = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+
         return orders
     
     def get_todays_orders(self, shop_name: str | None = None):
@@ -102,6 +107,7 @@ class ShopService:
             .get_today_queue(shop_name=shop_name)
         )
 
+        from app.utils.estimated_time import calculate_order_estimated_time
         results = []
 
         for queue in queues:
@@ -109,6 +115,10 @@ class ShopService:
             order = queue.order
             student = getattr(order, "student", None) if order else None
             q_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
+            
+            est = calculate_order_estimated_time(self.repository.db, order) if order else {"estimated_wait_minutes": 0, "estimated_completion_time": None}
+            est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+
             results.append(
                 {
                     "token": queue.token,
@@ -121,6 +131,8 @@ class ShopService:
                     "is_priority": order.is_priority,
                     "queue_state": q_state,
                     "is_current": queue.is_current,
+                    "estimated_wait_minutes": est["estimated_wait_minutes"],
+                    "estimated_completion_time": est_comp_iso,
                 }
             )
 
@@ -156,8 +168,9 @@ class ShopService:
 
         if order is None:
 
-            raise ValueError(
-                "Order not found."
+            raise HTTPException(
+                status_code=404,
+                detail="Order not found.",
             )
 
         from app.shop.queue_service import ShopQueueService
@@ -217,6 +230,10 @@ class ShopService:
         register_number = getattr(student, "register_number", "N/A") if student else "N/A"
         assigned_printer = getattr(queue, "assigned_printer", None) if queue else None
 
+        from app.utils.estimated_time import calculate_order_estimated_time
+        est = calculate_order_estimated_time(self.repository.db, order)
+        est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+
         return {
 
             "order_id": order.id,
@@ -240,6 +257,10 @@ class ShopService:
             "is_priority": order.is_priority,
 
             "grand_total": order.grand_total,
+
+            "estimated_wait_minutes": est["estimated_wait_minutes"],
+
+            "estimated_completion_time": est_comp_iso,
 
             "documents": documents,
         }

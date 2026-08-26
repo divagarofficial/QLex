@@ -202,6 +202,8 @@ export default function ShopOrdersPage() {
           total_pages: totalPages || 1,
           total_copies: totalCopies || 1,
           is_current: queueInfo?.is_current ?? false,
+          estimated_wait_minutes: details?.estimated_wait_minutes ?? queueInfo?.estimated_wait_minutes ?? activeInfo?.estimated_wait_minutes,
+          estimated_completion_time: details?.estimated_completion_time ?? queueInfo?.estimated_completion_time ?? activeInfo?.estimated_completion_time,
         } as EnrichedShopOrder;
       });
 

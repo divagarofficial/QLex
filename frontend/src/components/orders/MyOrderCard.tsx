@@ -257,15 +257,15 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
         </div>
 
         {/* Order Details Grid */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {/* Print Shop */}
-          <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-3">
+          <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-3 sm:col-span-1">
             <div className="flex items-center gap-1.5 text-xs text-white/40">
               <Building2 size={12} />
               Print Shop
             </div>
             <p className="mt-1 text-xs font-semibold text-white/90 truncate">
-              QLex Central Print Hub
+              {order.shop_name || "QLex Central Print Hub"}
             </p>
           </div>
 
@@ -301,6 +301,23 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
             </div>
             <p className="mt-1 text-sm font-extrabold text-white">
               ₹{Number(order.total_amount).toFixed(2)}
+            </p>
+          </div>
+
+          {/* Estimated Completion Time */}
+          <div className="rounded-xl border border-amber-400/20 bg-amber-400/[0.05] p-3 col-span-2 sm:col-span-1">
+            <div className="flex items-center gap-1.5 text-xs text-amber-300/80">
+              <Clock size={12} className="text-amber-400" />
+              Estimated Time
+            </div>
+            <p className="mt-1 text-xs font-extrabold text-amber-300">
+              {order.status === "completed" || order.status === "served"
+                ? "Completed"
+                : order.estimated_completion_time
+                ? `Ready ~${new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                : order.estimated_wait_minutes !== undefined
+                ? `~${order.estimated_wait_minutes} min wait`
+                : "Dynamic queue"}
             </p>
           </div>
         </div>

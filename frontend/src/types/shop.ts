@@ -22,6 +22,7 @@ export interface TodayOrderItem {
   color_mode?: string;
   duplex_mode?: string;
   estimated_wait_minutes?: number;
+  estimated_completion_time?: string | null;
 }
 
 export interface ShopDocumentService {
@@ -62,6 +63,8 @@ export interface ShopOrderDetails {
   platform_fee?: number;
   priority_fee?: number;
   grand_total: number;
+  estimated_wait_minutes?: number;
+  estimated_completion_time?: string | null;
   documents: ShopDocumentItem[];
 }
 
@@ -115,6 +118,8 @@ export interface ActiveShopOrder {
   grand_total: number;
   is_priority: boolean;
   created_at: string;
+  estimated_wait_minutes?: number;
+  estimated_completion_time?: string | null;
   documents?: DetailedOrderDocument[];
   document_count?: number;
   total_pages?: number;
@@ -153,6 +158,7 @@ export interface EnrichedShopOrder {
   total_copies: number;
   is_current: boolean;
   estimated_wait_minutes?: number;
+  estimated_completion_time?: string | null;
   color_mode?: string;
   duplex_mode?: string;
   paper_size?: string;

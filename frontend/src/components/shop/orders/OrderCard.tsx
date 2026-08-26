@@ -240,13 +240,20 @@ export default function OrderCard({
 
       {/* Footer & Action Buttons */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-zinc-400">Grand Total:</span>
           <span className="text-sm font-black text-amber-300 font-mono">
             ₹{Number(order.grand_total || 0).toFixed(2)}
           </span>
-          <span className="text-[11px] text-zinc-400 font-medium ml-2">
-            Est. Print: ~5 mins
+          <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[11px] font-semibold text-amber-300 ml-1">
+            <Clock className="h-3 w-3 text-amber-400" />
+            {queueState === "COMPLETED" || queueState === "SERVED"
+              ? "Completed"
+              : order.estimated_completion_time
+              ? `Est. Finish: ${new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (~${order.estimated_wait_minutes ?? 5}m)`
+              : order.estimated_wait_minutes !== undefined
+              ? `Est. Finish: ~${order.estimated_wait_minutes} mins`
+              : `Est. Print: ~${Math.max(1, Math.ceil(((order.total_pages || 1) * 3 + 45) / 60))} mins`}
           </span>
         </div>
 

@@ -118,6 +118,9 @@ class OrderService:
                 }
             )
 
+        from app.utils.estimated_time import calculate_order_estimated_time
+        est = calculate_order_estimated_time(self.db, order)
+
         return {
             "id": order.id,
             "student_id": order.student_id,
@@ -130,9 +133,8 @@ class OrderService:
             "platform_fee": order.platform_fee,
             "priority_fee": order.priority_fee,
             "grand_total": order.grand_total,
-            "estimated_completion_time": (
-                order.estimated_completion_time
-            ),
+            "estimated_wait_minutes": est["estimated_wait_minutes"],
+            "estimated_completion_time": est["estimated_completion_time"],
             "draft_expires_at": (
                 order.draft_expires_at
             ),

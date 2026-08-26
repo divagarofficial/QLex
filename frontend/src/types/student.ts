@@ -5,6 +5,8 @@ export interface MyTokenResponse {
   token: string;
   status: string;
   estimated_wait_minutes: number;
+  estimated_completion_time?: string | null;
+  shop_name?: string | null;
   is_priority: boolean;
   order_id?: string | null;
   queue_number?: number | null;
@@ -35,6 +37,8 @@ export interface MyOrderItem {
   created_at: string;
   is_priority?: boolean;
   shop_name?: string | null;
+  estimated_wait_minutes?: number;
+  estimated_completion_time?: string | null;
 }
 
 export interface MyOrdersResponse {
@@ -80,6 +84,8 @@ export interface OrderDetailsResponse {
   is_priority: boolean;
   shop_name?: string;
   created_at: string;
+  estimated_wait_minutes?: number;
+  estimated_completion_time?: string | null;
   documents: OrderDocumentResponse[];
 }
 

@@ -132,23 +132,17 @@ class StudentService:
                 )
                 students_ahead = pri_waiting + reg_ahead
 
-        import math
-        from datetime import datetime
-        if status_val in ["READY", "READY_FOR_PICKUP", "SERVED", "COMPLETED", "REJECTED", "CANCELLED"]:
-            estimated_wait = 0
-        elif status_val == "PRINTING":
-            if queue and queue.ready_at:
-                rem_seconds = (queue.ready_at - datetime.utcnow()).total_seconds()
-                estimated_wait = max(1, math.ceil(rem_seconds / 60))
-            else:
-                estimated_wait = 10
-        else:
-            estimated_wait = max(1, students_ahead * 3)
+        from app.utils.estimated_time import calculate_order_estimated_time
+        est_time = calculate_order_estimated_time(self.repository.db, latest_order)
+        estimated_wait = est_time["estimated_wait_minutes"]
+        estimated_completion_iso = est_time["estimated_completion_time"].isoformat() if est_time["estimated_completion_time"] else None
 
         return {
             "token": token_str,
             "status": status_val,
             "estimated_wait_minutes": estimated_wait,
+            "estimated_completion_time": estimated_completion_iso,
+            "shop_name": getattr(latest_order, "shop_name", "QLex Central Print Hub"),
             "is_priority": is_priority_order,
             "order_id": str(latest_order.id),
             "queue_number": queue_num,
@@ -212,6 +206,7 @@ class StudentService:
         student_id,
     ):
         orders = self.repository.get_orders(student_id)
+        from app.utils.estimated_time import calculate_order_estimated_time
 
         result = []
         for order, token, document_count in orders:
@@ -226,6 +221,9 @@ class StudentService:
                 else str(order.payment_status)
             )
 
+            est = calculate_order_estimated_time(self.repository.db, order)
+            est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+
             result.append(
                 {
                     "order_id": order.id,
@@ -235,6 +233,9 @@ class StudentService:
                     "total_amount": order.grand_total,
                     "documents": document_count,
                     "is_priority": order.is_priority,
+                    "shop_name": getattr(order, "shop_name", "QLex Central Print Hub"),
+                    "estimated_wait_minutes": est["estimated_wait_minutes"],
+                    "estimated_completion_time": est_comp_iso,
                     "created_at": order.created_at,
                 }
             )
@@ -289,6 +290,10 @@ class StudentService:
             )
             token_str = f"{prefix}-{max(1, seq_num)}"
 
+        from app.utils.estimated_time import calculate_order_estimated_time
+        est = calculate_order_estimated_time(self.repository.db, order)
+        est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+
         return {
             "order_id": order.id,
             "token": token_str,
@@ -322,6 +327,10 @@ class StudentService:
             "is_priority": (
                 order.is_priority
             ),
+
+            "shop_name": getattr(order, "shop_name", "QLex Central Print Hub"),
+            "estimated_wait_minutes": est["estimated_wait_minutes"],
+            "estimated_completion_time": est_comp_iso,
 
             "created_at": (
                 order.created_at
