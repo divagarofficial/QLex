@@ -117,7 +117,8 @@ class WhatsAppService:
             # Clean & concise WhatsApp message
             msg = (
                 f"🧾 *QLex Order Confirmation*\n\n"
-                f"Hi *{student_name}*, your order *#{order_id}* at *{shop_name}* is confirmed!\n"
+                f"Hi *{student_name}*, your order *#{order_id}* is confirmed!\n"
+                f"📍 Pickup Location: *{shop_name}*\n"
                 f"📋{token_str} Total Paid: *₹{total_amount:.2f}* ({payment_status})\n\n"
                 f"📎 Attached is your official QLex PDF Receipt.\n"
                 f"We will notify you here as soon as your printing starts!\n\n"
@@ -150,6 +151,7 @@ class WhatsAppService:
             token_str = f" Token #: *{token_number}*." if token_number else ""
 
             footer_str = (
+                f"\n📍 Pickup Location: *{shop_name}*"
                 "\n\n© 2026 MINDURA TECHNOLOGIES. All rights reserved.\n"
                 "QLex • Rajalakshmi Institute of Technology"
             )

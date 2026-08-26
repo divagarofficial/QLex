@@ -239,17 +239,18 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
   doc.setTextColor(15, 23, 42);
   doc.text(createdDateStr, margin + 94, y + 28);
 
-  // Column 3: Payment Status
+  // Column 3: Pickup & Payment
   doc.setFont("helvetica", "bold");
   doc.setTextColor(100, 116, 139);
-  doc.text("PAYMENT STATUS", margin + 135, y + 7);
+  doc.text("PICKUP & PAYMENT", margin + 135, y + 7);
 
+  const shopName = details?.shop_name || order.shop_name || "QLex Central Print Hub";
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
-  doc.text("Gateway:", margin + 135, y + 14);
+  doc.text("Location:", margin + 135, y + 14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 23, 42);
-  doc.text("Razorpay UPI / Card", margin + 155, y + 14);
+  doc.text(shopName, margin + 155, y + 14);
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);

@@ -233,6 +233,10 @@ QLex • Rajalakshmi Institute of Technology
               <!-- Summary Card -->
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0f172a; border: 1px solid #334155; border-radius: 14px; padding: 16px; margin-bottom: 24px;">
                 <tr>
+                  <td style="font-size: 13px; color: #94a3b8; padding: 6px 0;">Pickup Location:</td>
+                  <td align="right" style="font-size: 14px; font-weight: 800; color: #f59e0b; padding: 6px 0;">{shop_name}</td>
+                </tr>
+                <tr>
                   <td style="font-size: 13px; color: #94a3b8; padding: 6px 0;">Order ID:</td>
                   <td align="right" style="font-size: 13px; font-weight: 700; color: #f8fafc; padding: 6px 0;">#{order_id_short}</td>
                 </tr>
@@ -253,10 +257,10 @@ QLex • Rajalakshmi Institute of Technology
               <!-- Attachment Info -->
               <div style="background-color: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.25); border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 13px; color: #38bdf8; font-weight: 600;">
-                  📎 Official QLex PDF Receipt Attached
+                  📎 Official QLex PDF Receipt & Uploaded Document(s) Attached
                 </p>
                 <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">
-                  Your detailed PDF receipt is attached to this email for reference.
+                  Your detailed PDF receipt and uploaded print files are attached to this email for your reference.
                 </p>
               </div>
             </td>
@@ -286,8 +290,16 @@ QLex • Rajalakshmi Institute of Technology
                     attachments_list.append(pdf_path)
 
                 if hasattr(order, "documents") and order.documents:
+                    from app.utils.file_storage import get_draft_directory
                     for doc in order.documents:
-                        fpath = getattr(doc, "file_path", None)
+                        fpath = getattr(doc, "storage_path", None)
+                        if not fpath or not os.path.exists(fpath):
+                            stored_name = getattr(doc, "stored_filename", "")
+                            order_obj_id = getattr(order, "id", None)
+                            if stored_name and order_obj_id:
+                                possible_path = str(get_draft_directory(order_obj_id) / stored_name)
+                                if os.path.exists(possible_path):
+                                    fpath = possible_path
                         if fpath and os.path.exists(fpath) and fpath not in attachments_list:
                             attachments_list.append(fpath)
 

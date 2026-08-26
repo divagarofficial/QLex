@@ -122,6 +122,8 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     gen_str = format_datetime_ist(datetime.now(timezone.utc))
 
     # 2. Metadata 3-Column Grid
+    target_hub_name = shop_name or getattr(order, "shop_name", None) or "QLex Central Print Hub"
+
     meta_col1 = [
         Paragraph("<font color='#64748B'><b>RECEIPT DETAILS</b></font>", body_label),
         Spacer(1, 4),
@@ -133,7 +135,7 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     raw_token = token_number if token_number else getattr(order, "token", None)
     if not raw_token or raw_token in ["Standard Queue", "Priority Queue"]:
         is_priority = bool(getattr(order, "is_priority", False))
-        prefix = "P" if is_priority else "R"
+        prefix = "S" if "Satellite" in target_hub_name else ("P" if is_priority else "R")
         order_id_str = str(getattr(order, "id", getattr(order, "order_id", "")))
         short_code = order_id_str[:4].upper() if order_id_str else "001"
         token_str = f"{prefix}-{short_code}"
@@ -146,20 +148,21 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
         token_display = token_str
 
     is_priority = bool(getattr(order, "is_priority", False))
+    priority_label = "SATELLITE PRINT" if "Satellite" in target_hub_name else ('EXPRESS PRIORITY' if is_priority else 'Standard Print')
 
     meta_col2 = [
         Paragraph("<font color='#64748B'><b>QUEUE & TOKEN INFO</b></font>", body_label),
         Spacer(1, 4),
         Paragraph(f"Pickup Token: <font color='#D97706'><b>{token_display}</b></font>", body_val_amber),
-        Paragraph(f"Priority Level: <b>{'EXPRESS PRIORITY' if is_priority else 'Standard Print'}</b>", body_val_bold),
+        Paragraph(f"Queue Type: <b>{priority_label}</b>", body_val_bold),
         Paragraph(f"Order Date: <b>{created_str}</b>", body_val_bold),
     ]
 
     meta_col3 = [
-        Paragraph("<font color='#64748B'><b>PAYMENT STATUS</b></font>", body_label),
+        Paragraph("<font color='#64748B'><b>PICKUP & PAYMENT</b></font>", body_label),
         Spacer(1, 4),
-        Paragraph("Gateway: <b>Razorpay UPI / Card</b>", body_val_bold),
-        Paragraph("Status: <font color='#10B981'><b>PAID & CONFIRMED</b></font>", body_val_emerald),
+        Paragraph(f"Pickup Location: <font color='#0F172A'><b>{target_hub_name}</b></font>", body_val_bold),
+        Paragraph("Payment Status: <font color='#10B981'><b>PAID & CONFIRMED</b></font>", body_val_emerald),
         Paragraph(f"Generated: <b>{gen_str}</b>", body_label),
     ]
 

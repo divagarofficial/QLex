@@ -6,3 +6,5 @@ class QueueType(str, Enum):
     PRIORITY = "priority"
 
     REGULAR = "regular"
+
+    SATELLITE = "satellite"

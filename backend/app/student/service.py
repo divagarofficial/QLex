@@ -41,13 +41,16 @@ class StudentService:
         queue_service = ShopQueueService(self.repository.db)
         queue = queue_service.create_queue_entry(latest_order)
 
-        # Sync queue type & token prefix if order priority changed
+        target_shop_name = getattr(latest_order, "shop_name", "") or ""
+        is_satellite = "Satellite" in target_shop_name
+
+        # Sync queue type & token prefix if order priority changed (for Central shop)
         if queue:
-            if is_priority_order and queue.token and queue.token.startswith("R-"):
+            if not is_satellite and is_priority_order and queue.token and queue.token.startswith("R-"):
                 queue.token = "P-" + queue.token[2:]
                 queue.queue_type = QueueType.PRIORITY
                 self.repository.db.commit()
-            elif not is_priority_order and queue.token and queue.token.startswith("P-"):
+            elif not is_satellite and not is_priority_order and queue.token and queue.token.startswith("P-"):
                 queue.token = "R-" + queue.token[2:]
                 queue.queue_type = QueueType.REGULAR
                 self.repository.db.commit()
@@ -56,12 +59,15 @@ class StudentService:
             queue_num = queue.queue_number
             status_val = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
         else:
-            prefix = "P" if is_priority_order else "R"
+            if is_satellite:
+                prefix = "S"
+            else:
+                prefix = "P" if is_priority_order else "R"
             from app.models.order import Order as OrderModel
             seq_num = (
                 self.repository.db.query(OrderModel)
                 .filter(
-                    OrderModel.is_priority == is_priority_order,
+                    OrderModel.shop_name == latest_order.shop_name if hasattr(OrderModel, "shop_name") else True,
                     func.date(OrderModel.created_at) >= date.today(),
                     OrderModel.created_at <= (latest_order.created_at if latest_order.created_at else func.now()),
                 )
@@ -82,7 +88,18 @@ class StudentService:
         students_ahead = 0
         if status_val in ["WAITING", "CONFIRMED", "PAID"]:
             target_created = queue.created_at if (queue and queue.created_at) else (latest_order.created_at if latest_order.created_at else func.now())
-            if is_priority_order:
+            if is_satellite:
+                students_ahead = (
+                    self.repository.db.query(ShopQueue)
+                    .filter(
+                        ShopQueue.queue_date == date.today(),
+                        ShopQueue.queue_type == QueueType.SATELLITE,
+                        ShopQueue.queue_state == QueueState.WAITING,
+                        ShopQueue.created_at < target_created,
+                    )
+                    .count()
+                )
+            elif is_priority_order:
                 students_ahead = (
                     self.repository.db.query(ShopQueue)
                     .filter(

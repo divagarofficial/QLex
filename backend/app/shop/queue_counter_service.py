@@ -35,6 +35,7 @@ class QueueCounterService:
                 queue_date=date.today(),
                 priority_last=0,
                 regular_last=0,
+                satellite_last=0,
             )
 
             self.db.add(counter)
@@ -46,6 +47,12 @@ class QueueCounterService:
             counter.priority_last += 1
 
             number = counter.priority_last
+
+        elif queue_type == QueueType.SATELLITE:
+
+            counter.satellite_last += 1
+
+            number = counter.satellite_last
 
         else:
 

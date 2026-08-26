@@ -149,7 +149,8 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
   const statusStyle = getStatusStyle(order.status);
   const paymentStyle = getPaymentStyle(order.payment_status);
 
-  // Check priority from token string (e.g. "P-001") or order status
+  // Check token type
+  const isSatelliteToken = order.token ? order.token.startsWith("S-") : false;
   const isPriorityToken = order.token ? order.token.startsWith("P-") : false;
 
   // Formatted date & time
@@ -221,12 +222,17 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
                 <span className="font-mono text-base font-bold text-white tracking-wide">
                   Order #{order.order_id.slice(0, 8)}
                 </span>
-                {isPriorityToken && (
+                {isSatelliteToken ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-400/30 px-2 py-0.5 text-[10px] font-bold text-purple-300">
+                    <ShieldCheck size={10} />
+                    SATELLITE
+                  </span>
+                ) : isPriorityToken ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
                     <Sparkles size={10} />
                     PRIORITY
                   </span>
-                )}
+                ) : null}
               </div>
               <p className="mt-0.5 text-xs text-white/40">
                 Created on {dateFormatted} at {timeFormatted}

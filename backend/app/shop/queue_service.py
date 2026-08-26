@@ -62,22 +62,19 @@ class ShopQueueService:
         if hasattr(order, "payment_status") and order.payment_status != PaymentStatus.PAID:
             return None
 
-        if order.is_priority:
+        target_shop = getattr(order, "shop_name", "") or ""
+        if "Satellite" in target_shop:
+            queue_type = QueueType.SATELLITE
+            queue_number = self.counter_service.next_number(QueueType.SATELLITE)
+            token = f"S-{queue_number}"
+        elif getattr(order, "is_priority", False):
             queue_type = QueueType.PRIORITY
+            queue_number = self.counter_service.next_number(queue_type)
+            token = f"P-{queue_number}"
         else:
             queue_type = QueueType.REGULAR
-
-        queue_number = (
-            self.counter_service.next_number(
-                queue_type
-            )
-        )
-
-        token = (
-            f"P-{queue_number}"
-            if queue_type == QueueType.PRIORITY
-            else f"R-{queue_number}"
-        )
+            queue_number = self.counter_service.next_number(queue_type)
+            token = f"R-{queue_number}"
 
         queue = ShopQueue(
             order_id=order.id,

@@ -34,6 +34,7 @@ export interface MyOrderItem {
   documents: number;
   created_at: string;
   is_priority?: boolean;
+  shop_name?: string | null;
 }
 
 export interface MyOrdersResponse {

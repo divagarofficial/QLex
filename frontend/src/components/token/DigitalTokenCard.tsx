@@ -50,7 +50,12 @@ export default function DigitalTokenCard({
             height={36}
             className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(231,200,115,0.4)]"
           />
-          {isPriority || (tokenNumber && tokenNumber.startsWith("P-")) ? (
+          {tokenNumber && tokenNumber.startsWith("S-") ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/40 text-purple-300 font-extrabold text-[11px]">
+              <ShieldCheck className="w-3 h-3 text-purple-400" />
+              Satellite Digital Ticket
+            </span>
+          ) : isPriority || (tokenNumber && tokenNumber.startsWith("P-")) ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 font-extrabold text-[11px]">
               <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
               Priority Token Ticket

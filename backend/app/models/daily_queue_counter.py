@@ -27,3 +27,9 @@ class DailyQueueCounter(BaseModel):
         default=0,
         nullable=False,
     )
+
+    satellite_last: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )

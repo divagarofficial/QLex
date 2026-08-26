@@ -53,7 +53,12 @@ export default function TokenCard({ data }: TokenCardProps) {
             
             {/* Top Bar: Label & Status Badge */}
             <div className="w-full flex items-center justify-between gap-2 mb-6">
-              {data.is_priority || (data.token && data.token.startsWith("P-")) ? (
+              {data.token && data.token.startsWith("S-") ? (
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/40 text-xs font-extrabold text-purple-300">
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Satellite Pickup Token</span>
+                </div>
+              ) : data.is_priority || (data.token && data.token.startsWith("P-")) ? (
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-xs font-extrabold text-amber-300">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                   <span>Priority Pickup Token</span>
