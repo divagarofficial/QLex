@@ -144,6 +144,71 @@ export default function SplashOverlay() {
                 THIRUMALAI D <span className="text-amber-400 font-bold mx-1">×</span> DIVAGAR E
               </h1>
             </motion.div>
+
+            {/* Line 3: FRAMED PHOTOS OF THIRUMALAI D AND DIVAGAR E */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 1.0, ease: "easeOut" }}
+              className="mt-5 mb-2 flex items-center justify-center space-x-6 sm:space-x-12 z-20"
+            >
+              {/* THIRUMALAI D PHOTO FRAME */}
+              <div className="flex flex-col items-center group">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full p-1 bg-gradient-to-tr from-amber-500 via-amber-300 to-cyan-400 shadow-[0_0_25px_rgba(245,158,11,0.5)] transition-transform duration-300 group-hover:scale-105">
+                  {/* Outer Dashed Rotating Gold Ring */}
+                  <div className="absolute -inset-2.5 rounded-full border border-dashed border-amber-400/50 animate-spin [animation-duration:16s] pointer-events-none" />
+                  
+                  {/* Photo Container */}
+                  <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-950 border-2 border-amber-300 flex items-center justify-center shadow-inner">
+                    <Image
+                      src="/thirumalai.png"
+                      alt="THIRUMALAI D"
+                      fill
+                      className="object-cover object-top filter drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]"
+                      priority
+                    />
+                  </div>
+                </div>
+                {/* Name Badge */}
+                <div className="mt-2.5 px-3 py-1 rounded-full bg-slate-950/90 border border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.4)] backdrop-blur-md">
+                  <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 uppercase">
+                    THIRUMALAI D
+                  </span>
+                </div>
+              </div>
+
+              {/* CENTER DIVIDER / ROYAL SYMBOL */}
+              <div className="flex flex-col items-center justify-center space-y-1 opacity-80">
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                <div className="w-0.5 h-12 bg-gradient-to-b from-amber-400 via-cyan-400 to-amber-400 rounded-full" />
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              </div>
+
+              {/* DIVAGAR E PHOTO FRAME */}
+              <div className="flex flex-col items-center group">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full p-1 bg-gradient-to-tr from-cyan-400 via-amber-300 to-amber-500 shadow-[0_0_25px_rgba(56,189,248,0.5)] transition-transform duration-300 group-hover:scale-105">
+                  {/* Outer Dashed Rotating Cyan Ring */}
+                  <div className="absolute -inset-2.5 rounded-full border border-dashed border-cyan-400/50 animate-spin [animation-duration:16s] pointer-events-none" />
+                  
+                  {/* Photo Container */}
+                  <div className="relative w-full h-full rounded-full overflow-hidden bg-slate-950 border-2 border-cyan-300 flex items-center justify-center shadow-inner">
+                    <Image
+                      src="/divagar.png"
+                      alt="DIVAGAR E"
+                      fill
+                      className="object-cover object-top filter drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]"
+                      priority
+                    />
+                  </div>
+                </div>
+                {/* Name Badge */}
+                <div className="mt-2.5 px-3 py-1 rounded-full bg-slate-950/90 border border-cyan-400/60 shadow-[0_0_12px_rgba(56,189,248,0.4)] backdrop-blur-md">
+                  <span className="text-[10px] sm:text-xs font-black tracking-widest text-cyan-300 uppercase">
+                    DIVAGAR E
+                  </span>
+                </div>
+              </div>
+            </motion.div>
           </div>
 
           {/* Bottom Area: Dynamic Cooler Loading Progress Bar & Founder Signature */}
