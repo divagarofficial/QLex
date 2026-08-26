@@ -42,13 +42,14 @@ export default function StaffTokenPage() {
   }, [loadData]);
 
   const activeOrder = orders.find(
-    (o) => o.status === "PAID" || o.status === "PRINTING" || o.status === "READY_FOR_PICKUP"
+    (o) => o.status === "PAID" || o.status === "PRINTING" || o.status === "READY_FOR_PICKUP" || o.status === "CONFIRMED"
   );
 
-  const tokenNumber = tokenInfo?.token || activeOrder?.token || "P-1";
+  const tokenNumber = tokenInfo?.token || activeOrder?.token || null;
+  const hasActiveToken = Boolean(tokenNumber);
 
   return (
-    <ProtectedRoute redirectPath="/staff/login">
+    <ProtectedRoute redirectPath="/staff/login" requiredRole="staff">
       <div className="min-h-screen relative overflow-hidden bg-[#030406] text-white">
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-[500px] bg-radial from-emerald-500/12 via-emerald-300/5 to-transparent blur-3xl opacity-60" />
 
@@ -65,6 +66,25 @@ export default function StaffTokenPage() {
             <div className="py-20 text-center text-white/50">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto text-emerald-400 mb-3" />
               <p className="text-sm">Loading staff queue token...</p>
+            </div>
+          ) : !hasActiveToken ? (
+            <div className="deep-glass p-10 text-center rounded-3xl border border-emerald-500/20 bg-gradient-to-b from-slate-900/60 to-slate-950/80 space-y-5">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+                <Ticket className="h-8 w-8" />
+              </div>
+              <h2 className="text-xl font-bold text-white">No Active Staff Token</h2>
+              <p className="text-xs text-white/70 max-w-md mx-auto leading-relaxed">
+                You currently have no active print orders queued at the Satellite Print Hub. Submit a staff print order to generate your priority digital queue token.
+              </p>
+              <div className="pt-3">
+                <Link
+                  href="/staff/new-order"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-emerald-500/20"
+                >
+                  <Printer className="h-4 w-4" />
+                  <span>Create New Staff Print Order</span>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="space-y-6">
@@ -83,7 +103,7 @@ export default function StaffTokenPage() {
                 </div>
 
                 <div className="inline-block px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-xs font-bold text-emerald-300">
-                  Status: {activeOrder?.status || "QUEUED AT SATELLITE HUB"}
+                  Status: {activeOrder?.status || tokenInfo?.status || "QUEUED AT SATELLITE HUB"}
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-xs">
