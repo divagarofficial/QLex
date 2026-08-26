@@ -164,7 +164,7 @@ export default function SplashOverlay() {
                       src="/thirumalai.png"
                       alt="THIRUMALAI D"
                       fill
-                      className="object-cover object-top filter drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]"
+                      className="object-cover filter drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]"
                       priority
                     />
                   </div>
@@ -196,7 +196,7 @@ export default function SplashOverlay() {
                       src="/divagar.png"
                       alt="DIVAGAR E"
                       fill
-                      className="object-cover object-top filter drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]"
+                      className="object-cover filter drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]"
                       priority
                     />
                   </div>
