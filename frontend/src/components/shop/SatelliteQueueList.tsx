@@ -105,9 +105,9 @@ export default function SatelliteQueueList({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-white">{order.student_name || "Staff Member"}</span>
-                        {order.student_register_number && (
+                        {(order.register_number || (order as any).student_register_number) && (
                           <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-mono text-zinc-300">
-                            {order.student_register_number}
+                            {order.register_number || (order as any).student_register_number}
                           </span>
                         )}
                         <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
