@@ -15,7 +15,7 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({
   unreadNotificationCount,
   onToggleNotifications,
-  hubTitle = "Central Campus",
+  hubTitle = "QLex Central Print Hub",
   isSatellite = false,
 }: DashboardHeaderProps) {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function DashboardHeader({
 
           <div className={`hidden items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold sm:flex ${isSatellite ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-amber-400/20 bg-amber-500/10 text-amber-300"}`}>
             <Store className={`h-3.5 w-3.5 ${isSatellite ? "text-emerald-400" : "text-amber-400"}`} />
-            <span>{isSatellite ? "Satellite Operations" : "Central Hub"}</span>
+            <span>{isSatellite ? "QLex Satellite Print Hub" : "QLex Central Print Hub"}</span>
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export default function DashboardHeader({
               <p className="text-xs font-bold text-white leading-none">{hubTitle}</p>
               <p className="text-[10px] text-zinc-400 leading-tight mt-0.5 flex items-center gap-1">
                 <ShieldCheck className={`h-2.5 w-2.5 inline ${isSatellite ? "text-emerald-400" : "text-amber-400"}`} />
-                <span>Operator Terminal</span>
+                <span>Operator</span>
               </p>
             </div>
           </div>

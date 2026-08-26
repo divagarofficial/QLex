@@ -214,7 +214,7 @@ export default function SatelliteShopDashboard() {
       <DashboardHeader
         unreadNotificationCount={todaysOrders.length}
         onToggleNotifications={() => setShowNotifications(true)}
-        hubTitle="Satellite Hub Terminal"
+        hubTitle="QLex Satellite Print Hub"
         isSatellite={true}
       />
 
@@ -229,7 +229,7 @@ export default function SatelliteShopDashboard() {
             transition={{ duration: 0.5 }}
             className="space-y-6"
           >
-            {/* Terminal Location Header Banner (Cleaned up, no staff creation buttons) */}
+            {/* Location Header Banner */}
             <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950/50 via-slate-900/80 to-emerald-950/50 border border-emerald-500/25 backdrop-blur-xl shadow-2xl shadow-emerald-950/30">
               <div className="flex items-center gap-3.5">
                 <div className="p-3.5 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-inner">
@@ -237,15 +237,12 @@ export default function SatelliteShopDashboard() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400">Terminal Location</span>
-                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Room A103 • AI & Data Science
-                    </span>
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400">Hub Address</span>
                   </div>
-                  <h2 className="text-xl font-black text-white mt-0.5">QLex Satellite Print Hub Operations Desk</h2>
+                  <h2 className="text-xl font-black text-white mt-0.5">QLex Satellite Print Hub</h2>
                   <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                    <span>First Floor, A Block — Sequential S-Token Terminal Dispatch (S-1, S-2, S-3...)</span>
+                    <span>A103, Department of Artificial Intelligence and Data Science, First Floor, A Block</span>
                   </p>
                 </div>
               </div>

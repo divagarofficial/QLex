@@ -152,7 +152,7 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(203, 213, 225); // Slate 300
-  doc.text("Central Campus Print & Digital Token Terminal", margin + 31, y + 24.5);
+  doc.text("QLex Central Print Hub", margin + 31, y + 24.5);
 
   // Status Badge (Top Right)
   doc.setFillColor(16, 185, 129); // Emerald (#10B981)

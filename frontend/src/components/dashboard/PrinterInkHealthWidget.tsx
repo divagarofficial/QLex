@@ -90,7 +90,7 @@ export default function PrinterInkHealthWidget() {
           </div>
           <p className="text-xs text-white/70 flex items-center gap-1.5 pt-0.5">
             <MapPin className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-            <span>Terminal: <strong className="text-white">QLex Satellite Print Hub</strong> • <span className="text-emerald-300">Room A103, 1st Floor, A-Block</span></span>
+            <span><strong className="text-white">QLex Satellite Print Hub</strong> • <span className="text-emerald-300">A103, Department of Artificial Intelligence and Data Science, First Floor, A Block</span></span>
           </p>
         </div>
 

@@ -19,8 +19,8 @@ const cards = [
   {
     id: "shop",
     title: "Print Shop",
-    badge: "Terminal Operations",
-    description: "Select Central Print Hub or Satellite Print Hub terminal desk to process print jobs.",
+    badge: "Print Hub Portal",
+    description: "Select QLex Central Print Hub or QLex Satellite Print Hub to process print jobs.",
     icon: Store,
     accent: "gold" as const,
     href: "/shop/login",

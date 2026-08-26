@@ -47,13 +47,13 @@ export default function ShopHubSelectionModal({ open, onClose }: ShopHubSelectio
             <div className="text-center sm:text-left">
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
                 <Store className="h-3.5 w-3.5 text-amber-400" />
-                <span>Select Terminal Workspace</span>
+                <span>Select Print Hub</span>
               </div>
               <h2 className="mt-3 text-2xl font-black text-white sm:text-3xl tracking-tight">
-                Which Print Hub Terminal are you operating?
+                Which Print Hub are you operating?
               </h2>
               <p className="mt-1.5 text-xs text-zinc-400 sm:text-sm">
-                Choose your specific shop terminal below to access your dedicated operations flow.
+                Choose your specific print hub below to access operations.
               </p>
             </div>
 
@@ -71,7 +71,7 @@ export default function ShopHubSelectionModal({ open, onClose }: ShopHubSelectio
                       <Store className="h-6 w-6" />
                     </div>
                     <span className="rounded-full border border-amber-400/30 bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-300 uppercase tracking-wider">
-                      Student Central Hub
+                      QLex Central Print Hub
                     </span>
                   </div>
 
@@ -79,7 +79,7 @@ export default function ShopHubSelectionModal({ open, onClose }: ShopHubSelectio
                     QLex Central Print Hub
                   </h3>
                   <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                    Main campus terminal operations desk. Manages student priority & regular queue tokens (<code className="text-amber-300">P-</code> & <code className="text-amber-300">R-</code>), online payments, settlements, and pricing matrix.
+                    RIT Campus Road, Opposite to A Block, RIT Main Campus. Manages student priority & regular queue tokens (<code className="text-amber-300">P-</code> & <code className="text-amber-300">R-</code>), online payments, settlements, and pricing.
                   </p>
                 </div>
 
@@ -101,7 +101,7 @@ export default function ShopHubSelectionModal({ open, onClose }: ShopHubSelectio
                       <Building2 className="h-6 w-6" />
                     </div>
                     <span className="rounded-full border border-emerald-400/30 bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-wider">
-                      Faculty & Staff Hub
+                      QLex Satellite Print Hub
                     </span>
                   </div>
 
@@ -109,7 +109,7 @@ export default function ShopHubSelectionModal({ open, onClose }: ShopHubSelectio
                     QLex Satellite Print Hub
                   </h3>
                   <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                    Terminal Operations Desk at Room A103 (AI & Data Science). Manages sequential <code className="text-emerald-300">S-</code> tokens, zero-cost staff print jobs, live queue, and hardware ink telemetry.
+                    A103, Department of Artificial Intelligence and Data Science, First Floor, A Block. Manages sequential <code className="text-emerald-300">S-</code> tokens and faculty print jobs.
                   </p>
                 </div>
 

@@ -150,7 +150,7 @@ export default function SatelliteShopQueuePage() {
       <DashboardHeader
         unreadNotificationCount={todaysOrders.length}
         onToggleNotifications={() => setShowNotifications(true)}
-        hubTitle="Satellite Hub Terminal"
+        hubTitle="QLex Satellite Print Hub"
         isSatellite={true}
       />
 

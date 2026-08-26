@@ -508,7 +508,7 @@ class ShopService:
 
         # Auto-process today's active orders
         self.get_orders(shop_name=shop_name)
-        record_print_agent_heartbeat(shop_name or "shop-windows7-pc", [])
+        record_print_agent_heartbeat(shop_name or "QLex Central Print Hub", [])
 
         query = (
             self.repository.db.query(ShopQueue)

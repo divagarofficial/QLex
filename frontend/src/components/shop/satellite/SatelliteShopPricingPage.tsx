@@ -60,7 +60,7 @@ export default function SatelliteShopPricingPage() {
             </div>
             <h3 className="text-lg font-bold text-white">Institution-Funded Quota</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              All faculty members and department staff receive complimentary printing privileges at QLex Satellite Print Hub (Terminal A103). No payment is required per transaction.
+              All faculty members and department staff receive complimentary printing privileges at QLex Satellite Print Hub (A103, Dept of AI & Data Science). No payment is required per transaction.
             </p>
             <div className="pt-2 border-t border-white/10 text-xs text-emerald-300 font-semibold flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />

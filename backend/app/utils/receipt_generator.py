@@ -106,7 +106,7 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     # Title & Subtitles
     banner_drawing.add(String(78, 56, "MINDURA TECHNOLOGIES", fontName="Helvetica-Bold", fontSize=15, fillColor=colors.white))
     banner_drawing.add(String(78, 40, "QLex • Rajalakshmi Institute of Technology", fontName="Helvetica-Bold", fontSize=10, fillColor=COLOR_AMBER))
-    banner_drawing.add(String(78, 26, "Central Campus Print & Digital Token Terminal", fontName="Helvetica", fontSize=8.5, fillColor=colors.HexColor('#CBD5E1')))
+    banner_drawing.add(String(78, 26, "QLex Central Print Hub", fontName="Helvetica", fontSize=8.5, fillColor=colors.HexColor('#CBD5E1')))
 
     # Status Badge (Top Right)
     banner_drawing.add(Rect(390, 42, 132, 26, rx=4, ry=4, fillColor=COLOR_EMERALD, strokeColor=None))
@@ -354,7 +354,7 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
         if idx % 2 == 0:
             barcode_drawing.add(Rect(curr_x, 8, w * 1.0, 12, fillColor=COLOR_NAVY, strokeColor=None))
         curr_x += w * 1.0 + 0.8
-    barcode_drawing.add(String(269, 0, f"SEC-AUTH • {short_id} • QLEX-TERMINAL-2026", fontName="Courier-Bold", fontSize=6.5, textAnchor="middle", fillColor=COLOR_SLATE_500))
+    barcode_drawing.add(String(269, 0, f"SEC-AUTH • {short_id} • QLEX-HUB-2026", fontName="Courier-Bold", fontSize=6.5, textAnchor="middle", fillColor=COLOR_SLATE_500))
 
     elements.append(barcode_drawing)
     elements.append(Spacer(1, 8))

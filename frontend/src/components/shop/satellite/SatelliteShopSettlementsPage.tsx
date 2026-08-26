@@ -46,7 +46,7 @@ export default function SatelliteShopSettlementsPage() {
       <DashboardHeader
         unreadNotificationCount={todaysOrders.length}
         onToggleNotifications={() => {}}
-        hubTitle="Satellite Hub Terminal"
+        hubTitle="QLex Satellite Print Hub"
         isSatellite={true}
       />
 
@@ -83,7 +83,7 @@ export default function SatelliteShopSettlementsPage() {
           <div className="p-6 rounded-3xl border border-emerald-500/20 bg-emerald-950/15 space-y-2">
             <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-400">Today's Staff Print Jobs</span>
             <div className="text-3xl font-black text-white">{todaysOrders.length}</div>
-            <p className="text-xs text-zinc-400">Processed at Terminal Desk A103</p>
+            <p className="text-xs text-zinc-400">Processed at A103, Dept of AI & Data Science</p>
           </div>
 
           <div className="p-6 rounded-3xl border border-white/10 bg-white/5 space-y-2">

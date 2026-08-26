@@ -55,7 +55,7 @@ export default function WelcomeCard() {
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Operations Desk</span>
+            <span>QLex Central Print Hub</span>
           </div>
 
           <h2 className="mt-1 bg-gradient-to-r from-white via-amber-100 to-champagne-300 bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl">
@@ -64,7 +64,7 @@ export default function WelcomeCard() {
 
           <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-zinc-400 sm:text-sm">
             <Store className="h-4 w-4 text-amber-400/80 inline" />
-            <span>QLex Central Campus Print Shop</span>
+            <span>RIT Campus Road, Opposite to A Block, RIT Main Campus</span>
           </p>
         </div>
 

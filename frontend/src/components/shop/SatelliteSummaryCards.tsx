@@ -48,9 +48,9 @@ export default function SatelliteSummaryCards({
       iconColor: "text-purple-400",
     },
     {
-      title: "Terminal Station",
-      value: "Room A103",
-      subtext: "Dept of AI & Data Science • First Floor",
+      title: "Hub Location",
+      value: "A103",
+      subtext: "Dept of AI & Data Science • First Floor, A Block",
       icon: MapPin,
       color: "from-amber-500/20 to-yellow-500/20",
       borderColor: "border-amber-400/30",

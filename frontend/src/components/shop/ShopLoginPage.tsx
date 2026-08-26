@@ -115,7 +115,7 @@ function ShopLoginForm() {
           <span>Restricted Operator Workspace</span>
         </div>
 
-        {/* Terminal Selection Toggle Bar */}
+        {/* Hub Selection Toggle Bar */}
         <div className="mb-6 flex rounded-2xl bg-black/60 p-1.5 border border-white/10">
           <button
             type="button"
@@ -127,7 +127,7 @@ function ShopLoginForm() {
             }`}
           >
             <Store className="h-3.5 w-3.5" />
-            <span>Central Hub</span>
+            <span>QLex Central Print Hub</span>
           </button>
 
           <button
@@ -140,7 +140,7 @@ function ShopLoginForm() {
             }`}
           >
             <Building2 className="h-3.5 w-3.5" />
-            <span>Satellite Hub</span>
+            <span>QLex Satellite Print Hub</span>
           </button>
         </div>
 

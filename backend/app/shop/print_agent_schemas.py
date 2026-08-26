@@ -41,7 +41,7 @@ class PrintAgentStatusResponse(BaseModel):
 
 
 class AgentHeartbeatRequest(BaseModel):
-    agent_id: str = "shop-windows7-pc"
+    agent_id: str = "QLex Central Print Hub"
     active_printers: List[str] = []
     mock_mode: bool = False
 

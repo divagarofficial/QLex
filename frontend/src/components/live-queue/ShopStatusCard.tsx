@@ -27,9 +27,9 @@ export default function ShopStatusCard({
             </div>
             <div>
               <h3 className="text-lg font-bold text-white/90">
-                QLex Print Hub
+                QLex Central Print Hub
               </h3>
-              <p className="text-xs text-white/40">Central Campus Terminal</p>
+              <p className="text-xs text-white/40">RIT Campus Road, Opposite to A Block, RIT Main Campus</p>
             </div>
           </div>
 
