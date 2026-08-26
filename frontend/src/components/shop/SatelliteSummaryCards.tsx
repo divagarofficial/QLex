@@ -1,8 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Clock, CheckCircle2, Printer, PlusCircle } from "lucide-react";
-import Link from "next/link";
+import { Clock, CheckCircle2, Printer, MapPin } from "lucide-react";
 import type { TodayOrderItem } from "@/types/shop";
 
 interface SatelliteSummaryCardsProps {
@@ -22,7 +21,7 @@ export default function SatelliteSummaryCards({
 
   const cards = [
     {
-      title: "Active Queue Jobs",
+      title: "Active S-Queue Jobs",
       value: activeQueueCount.toString(),
       subtext: "Pending S-Token orders in queue",
       icon: Clock,
@@ -47,6 +46,15 @@ export default function SatelliteSummaryCards({
       color: "from-purple-500/20 to-indigo-500/20",
       borderColor: "border-purple-400/30",
       iconColor: "text-purple-400",
+    },
+    {
+      title: "Terminal Station",
+      value: "Room A103",
+      subtext: "Dept of AI & Data Science • First Floor",
+      icon: MapPin,
+      color: "from-amber-500/20 to-yellow-500/20",
+      borderColor: "border-amber-400/30",
+      iconColor: "text-amber-400",
     },
   ];
 
@@ -90,37 +98,6 @@ export default function SatelliteSummaryCards({
           </motion.div>
         );
       })}
-
-      {/* 4th Action Card: New Staff Print Order Shortcut */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
-        className="deep-glass group relative overflow-hidden rounded-3xl p-5 border border-emerald-500/40 shadow-xl bg-gradient-to-br from-emerald-950/40 via-slate-900/60 to-emerald-950/40 hover:scale-[1.02] transition-all duration-300"
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent opacity-60" />
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
-            Terminal Action
-          </span>
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 shadow-inner">
-            <PlusCircle className="h-5 w-5" />
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-col justify-between">
-          <Link
-            href="/staff/new-order"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 text-xs transition duration-200 shadow-lg shadow-emerald-500/20"
-          >
-            <span>+ New Staff Print Order</span>
-          </Link>
-          <p className="mt-2 text-[11px] text-zinc-400 text-center">
-            Create zero-cost staff print job
-          </p>
-        </div>
-      </motion.div>
     </div>
   );
 }

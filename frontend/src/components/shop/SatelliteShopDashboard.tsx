@@ -6,14 +6,12 @@ import { motion } from "framer-motion";
 import DashboardHeader from "./DashboardHeader";
 import SatelliteSummaryCards from "./SatelliteSummaryCards";
 import NextOrderCard from "./NextOrderCard";
-import QueueOverview from "./QueueOverview";
-import RecentOrders from "./RecentOrders";
+import SatelliteQueueList from "./SatelliteQueueList";
 import NotificationPanel from "./NotificationPanel";
 import OrderDetailsModal from "./OrderDetailsModal";
 import EmptyState from "./EmptyState";
 import SkeletonLoader from "./SkeletonLoader";
 import PrintAgentStatusCard from "./PrintAgentStatusCard";
-import QuickActions from "./QuickActions";
 import Popup from "@/components/popup/Popup";
 
 import {
@@ -26,8 +24,7 @@ import {
 } from "@/services/shop";
 
 import type { TodayOrderItem, LiveQueueSummary } from "@/types/shop";
-import { Building2, MapPin, CheckCircle2, AlertTriangle, Sparkles, PlusCircle } from "lucide-react";
-import Link from "next/link";
+import { Building2, MapPin, CheckCircle2, AlertTriangle } from "lucide-react";
 
 const SATELLITE_HUB = "QLex Satellite Print Hub";
 
@@ -241,7 +238,7 @@ export default function SatelliteShopDashboard() {
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400">Shop Terminal</span>
                     <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Faculty & Staff Hub
+                      Faculty & Staff Terminal Desk
                     </span>
                   </div>
                   <h2 className="text-lg font-black text-white mt-0.5">QLex Satellite Print Hub</h2>
@@ -265,8 +262,8 @@ export default function SatelliteShopDashboard() {
               </div>
             </div>
 
-            {/* Terminal Header Banner */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl bg-gradient-to-r from-emerald-950/50 via-slate-900/80 to-emerald-950/50 border border-emerald-500/25 backdrop-blur-xl shadow-2xl shadow-emerald-950/30">
+            {/* Terminal Location Header Banner (Cleaned up, no staff creation buttons) */}
+            <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950/50 via-slate-900/80 to-emerald-950/50 border border-emerald-500/25 backdrop-blur-xl shadow-2xl shadow-emerald-950/30">
               <div className="flex items-center gap-3.5">
                 <div className="p-3.5 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-inner">
                   <Building2 className="h-7 w-7" />
@@ -278,27 +275,14 @@ export default function SatelliteShopDashboard() {
                       Room A103 • AI & Data Science
                     </span>
                   </div>
-                  <h2 className="text-xl font-black text-white mt-0.5">QLex Satellite Print Hub</h2>
+                  <h2 className="text-xl font-black text-white mt-0.5">QLex Satellite Print Hub Operations Desk</h2>
                   <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                    <span>First Floor, A Block — Sequential S-Token Terminal (Zero-Cost Staff Allowance)</span>
+                    <span>First Floor, A Block — Sequential S-Token Terminal Dispatch (S-1, S-2, S-3...)</span>
                   </p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <Link
-                  href="/staff/new-order"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition duration-200 shadow-lg shadow-emerald-500/20 cursor-pointer"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  <span>+ Create Staff Order</span>
-                </Link>
-              </div>
             </div>
-
-            {/* Quick Action Navigation Cards */}
-            <QuickActions isSatellite={true} />
 
             {/* Satellite Stat Cards */}
             <SatelliteSummaryCards todaysOrders={todaysOrders} />
@@ -318,13 +302,15 @@ export default function SatelliteShopDashboard() {
               <EmptyState />
             )}
 
-            {/* Queue Overview */}
-            <QueueOverview todaysOrders={todaysOrders} liveQueue={liveQueue} />
-
-            {/* Recent Orders List */}
-            <RecentOrders
+            {/* Unified Satellite S-Token Queue List */}
+            <SatelliteQueueList
               todaysOrders={todaysOrders}
+              onPrint={handlePrintOrder}
+              onReady={handleReadyOrder}
+              onServe={handleServeOrder}
+              onReject={handleRejectOrder}
               onInspect={(id) => setInspectOrderId(id)}
+              actionLoading={actionLoading}
             />
 
             {/* Hardware Status & Telemetry */}
