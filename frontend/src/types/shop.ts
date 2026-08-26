@@ -9,10 +9,19 @@ export interface TodayOrderItem {
   student_name?: string;
   register_number?: string;
   assigned_printer?: string;
-  documents: number;
+  documents?: number;
   is_priority: boolean;
   queue_state: QueueState;
   is_current: boolean;
+  created_at?: string;
+  grand_total?: number;
+  payment_status?: string;
+  document_count?: number;
+  total_pages?: number;
+  paper_size?: string;
+  color_mode?: string;
+  duplex_mode?: string;
+  estimated_wait_minutes?: number;
 }
 
 export interface ShopDocumentService {
@@ -95,6 +104,7 @@ export interface QueueStateResponse {
 
 export interface ActiveShopOrder {
   id: string;
+  student_id?: string;
   status: string;
   student_name?: string;
   register_number?: string;
@@ -105,6 +115,9 @@ export interface ActiveShopOrder {
   grand_total: number;
   is_priority: boolean;
   created_at: string;
+  documents?: DetailedOrderDocument[];
+  document_count?: number;
+  total_pages?: number;
 }
 
 export interface DetailedOrderDocument {
@@ -139,6 +152,10 @@ export interface EnrichedShopOrder {
   total_pages: number;
   total_copies: number;
   is_current: boolean;
+  estimated_wait_minutes?: number;
+  color_mode?: string;
+  duplex_mode?: string;
+  paper_size?: string;
 }
 
 export interface DashboardData {

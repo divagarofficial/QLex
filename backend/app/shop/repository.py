@@ -17,12 +17,16 @@ class ShopRepository:
         self.db = db
 
     def get_active_orders(self, shop_name: str | None = None):
+        from app.models.user import User
+        from app.enums.user_role import UserRole
+
         query = (
             self.db.query(Order)
             .outerjoin(
                 ShopQueue,
                 ShopQueue.order_id == Order.id,
             )
+            .outerjoin(User, Order.student_id == User.id)
             .filter(
                 func.date(Order.created_at) == date.today(),
                 Order.payment_status == PaymentStatus.PAID,
@@ -43,13 +47,27 @@ class ShopRepository:
                 | (ShopQueue.id == None),
             )
         )
-        if shop_name:
+        if shop_name == "QLex Central Print Hub":
+            query = query.filter(
+                Order.shop_name == "QLex Central Print Hub",
+                (User.role != UserRole.STAFF) | (User.role == None)
+            )
+        elif shop_name == "QLex Satellite Print Hub":
+            query = query.filter(
+                (Order.shop_name == "QLex Satellite Print Hub") | (User.role == UserRole.STAFF)
+            )
+        elif shop_name:
             query = query.filter(Order.shop_name == shop_name)
+
         return query.order_by(Order.created_at.asc()).all()
 
     def get_todays_orders(self, shop_name: str | None = None):
+        from app.models.user import User
+        from app.enums.user_role import UserRole
+
         query = (
             self.db.query(Order)
+            .outerjoin(User, Order.student_id == User.id)
             .options(
                 joinedload(Order.documents)
             )
@@ -65,8 +83,18 @@ class ShopRepository:
                 ),
             )
         )
-        if shop_name:
+        if shop_name == "QLex Central Print Hub":
+            query = query.filter(
+                Order.shop_name == "QLex Central Print Hub",
+                (User.role != UserRole.STAFF) | (User.role == None)
+            )
+        elif shop_name == "QLex Satellite Print Hub":
+            query = query.filter(
+                (Order.shop_name == "QLex Satellite Print Hub") | (User.role == UserRole.STAFF)
+            )
+        elif shop_name:
             query = query.filter(Order.shop_name == shop_name)
+
         return query.order_by(
             Order.is_priority.desc(),
             Order.created_at.asc(),
@@ -108,9 +136,13 @@ class ShopRepository:
         return query.first()
 
     def get_today_queue(self, shop_name: str | None = None):
+        from app.models.user import User
+        from app.enums.user_role import UserRole
+
         query = (
             self.db.query(ShopQueue)
             .join(Order, ShopQueue.order_id == Order.id)
+            .outerjoin(User, Order.student_id == User.id)
             .options(
                 joinedload(ShopQueue.order)
                 .joinedload(Order.documents)
@@ -125,8 +157,23 @@ class ShopRepository:
                 ),
             )
         )
-        if shop_name:
+        if shop_name == "QLex Central Print Hub":
+            query = query.filter(
+                Order.shop_name == "QLex Central Print Hub",
+                ShopQueue.queue_type != QueueType.SATELLITE,
+                ~ShopQueue.token.like("S-%"),
+                (User.role != UserRole.STAFF) | (User.role == None)
+            )
+        elif shop_name == "QLex Satellite Print Hub":
+            query = query.filter(
+                (Order.shop_name == "QLex Satellite Print Hub") |
+                (ShopQueue.queue_type == QueueType.SATELLITE) |
+                (ShopQueue.token.like("S-%")) |
+                (User.role == UserRole.STAFF)
+            )
+        elif shop_name:
             query = query.filter(Order.shop_name == shop_name)
+
         return query.order_by(
             ShopQueue.queue_type.asc(),
             ShopQueue.queue_number.asc(),

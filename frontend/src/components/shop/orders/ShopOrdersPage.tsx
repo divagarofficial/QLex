@@ -42,7 +42,6 @@ import SkeletonLoader from "./SkeletonLoader";
 import Popup from "@/components/popup/Popup";
 
 export default function ShopOrdersPage() {
-  const [activeHub, setActiveHub] = useState<"central" | "satellite">("central");
   // Loading & State
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -93,9 +92,9 @@ export default function ShopOrdersPage() {
     try {
       // Parallel requests to backend APIs
       const [todayRes, activeRes, revenueRes] = await Promise.all([
-        fetchTodaysOrders().catch(() => []),
-        fetchActiveShopOrders().catch(() => []),
-        fetchTodayRevenue().catch(() => ({ total_orders: 0, total_revenue: 0 })),
+        fetchTodaysOrders("QLex Central Print Hub").catch(() => []),
+        fetchActiveShopOrders("QLex Central Print Hub").catch(() => []),
+        fetchTodayRevenue("QLex Central Print Hub").catch(() => ({ total_orders: 0, total_revenue: 0 })),
       ]);
 
       setTodaysOrders(todayRes);
@@ -462,12 +461,12 @@ export default function ShopOrdersPage() {
   );
 
   const priorityList = useMemo(
-    () => sortedOrders.filter((o) => o.is_priority && !o.token.startsWith("S-") && o.queue_state !== "SERVED" && o.queue_state !== "COMPLETED"),
+    () => sortedOrders.filter((o) => o.is_priority && !o.token.startsWith("S-") && !(o as any).shop_name?.includes("Satellite") && o.queue_state !== "SERVED" && o.queue_state !== "COMPLETED"),
     [sortedOrders]
   );
 
   const regularList = useMemo(
-    () => sortedOrders.filter((o) => !o.is_priority && !o.token.startsWith("S-") && o.queue_state !== "SERVED" && o.queue_state !== "COMPLETED"),
+    () => sortedOrders.filter((o) => !o.is_priority && !o.token.startsWith("S-") && !(o as any).shop_name?.includes("Satellite") && o.queue_state !== "SERVED" && o.queue_state !== "COMPLETED"),
     [sortedOrders]
   );
 
@@ -534,33 +533,6 @@ export default function ShopOrdersPage() {
             completedToday={summaryCounts.completed}
           />
 
-          {/* Terminal Hub Selector Bar */}
-          <div className="flex items-center gap-2 bg-black/60 p-1.5 rounded-2xl border border-white/10 w-full sm:w-auto">
-            <button
-              onClick={() => setActiveHub("central")}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                activeHub === "central"
-                  ? "bg-gradient-to-r from-amber-400 to-amber-600 text-obsidian shadow-lg shadow-amber-500/20"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <Store className="h-3.5 w-3.5" />
-              <span>Central Hub Queue (P & R)</span>
-            </button>
-
-            <button
-              onClick={() => setActiveHub("satellite")}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                activeHub === "satellite"
-                  ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-obsidian shadow-lg shadow-emerald-500/20"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <Building2 className="h-3.5 w-3.5" />
-              <span>Satellite Hub S-Queue</span>
-            </button>
-          </div>
-
           {/* Search & Filters */}
           <div className="space-y-3">
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -600,15 +572,6 @@ export default function ShopOrdersPage() {
             <EmptyState
               type={hasActiveFilters ? "no-results" : "no-orders"}
               onResetFilters={handleResetFilters}
-            />
-          ) : activeHub === "satellite" ? (
-            <SatelliteOrdersSection
-              orders={satelliteList}
-              onPrint={handlePrintOrder}
-              onReady={handleReadyOrder}
-              onServe={handleServeOrder}
-              onRejectTrigger={(o) => setRejectingOrder(o)}
-              isActionLoading={actionLoading}
             />
           ) : (
             <div className="space-y-8">

@@ -12,6 +12,7 @@ import OrderDetailsModal from "./OrderDetailsModal";
 import EmptyState from "./EmptyState";
 import SkeletonLoader from "./SkeletonLoader";
 import PrintAgentStatusCard from "./PrintAgentStatusCard";
+import QuickActions from "./QuickActions";
 import Popup from "@/components/popup/Popup";
 
 import {
@@ -95,7 +96,7 @@ export default function SatelliteShopDashboard() {
 
   // Determine HERO Order for Satellite Hub
   const activeQueueOrders = todaysOrders.filter(
-    (o) => o.queue_state !== "SERVED" && o.queue_state !== "REJECTED"
+    (o) => o.queue_state !== "SERVED" && o.queue_state !== "REJECTED" && (o.token?.startsWith("S-") || (o as any).shop_name?.includes("Satellite"))
   );
 
   let heroOrder = activeQueueOrders.find(
@@ -228,40 +229,6 @@ export default function SatelliteShopDashboard() {
             transition={{ duration: 0.5 }}
             className="space-y-6"
           >
-            {/* Print Hub Selector Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900/60 to-emerald-950/40 border border-emerald-500/20 backdrop-blur-xl shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <Building2 className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400">Shop Terminal</span>
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Faculty & Staff Terminal Desk
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-black text-white mt-0.5">QLex Satellite Print Hub</h2>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 bg-black/60 p-1.5 rounded-2xl border border-white/10 w-full sm:w-auto">
-                <button
-                  onClick={() => router.push("/shop/dashboard")}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer text-white/60 hover:text-white hover:bg-white/5"
-                >
-                  <span>🏢 Central Print Hub</span>
-                </button>
-
-                <button
-                  onClick={() => router.push("/shop/satellite")}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-emerald-400 to-teal-500 text-obsidian shadow-lg shadow-emerald-500/20 scale-[1.02]"
-                >
-                  <span>🛰️ Satellite Print Hub</span>
-                </button>
-              </div>
-            </div>
-
             {/* Terminal Location Header Banner (Cleaned up, no staff creation buttons) */}
             <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950/50 via-slate-900/80 to-emerald-950/50 border border-emerald-500/25 backdrop-blur-xl shadow-2xl shadow-emerald-950/30">
               <div className="flex items-center gap-3.5">
@@ -312,6 +279,9 @@ export default function SatelliteShopDashboard() {
               onInspect={(id) => setInspectOrderId(id)}
               actionLoading={actionLoading}
             />
+
+            {/* Quick Action Navigation Cards */}
+            <QuickActions isSatellite={true} />
 
             {/* Hardware Status & Telemetry */}
             <PrintAgentStatusCard />

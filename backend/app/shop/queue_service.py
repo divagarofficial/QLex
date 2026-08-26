@@ -63,7 +63,17 @@ class ShopQueueService:
             return None
 
         target_shop = getattr(order, "shop_name", "") or ""
-        if "Satellite" in target_shop:
+        from app.models.user import User
+        from app.enums.user_role import UserRole
+
+        student = getattr(order, "student", None)
+        if not student and getattr(order, "student_id", None):
+            student = self.db.query(User).filter(User.id == order.student_id).first()
+
+        is_staff_user = student and getattr(student, "role", None) == UserRole.STAFF
+
+        if "Satellite" in target_shop or is_staff_user:
+            order.shop_name = "QLex Satellite Print Hub"
             queue_type = QueueType.SATELLITE
             queue_number = self.counter_service.next_number(QueueType.SATELLITE)
             token = f"S-{queue_number}"

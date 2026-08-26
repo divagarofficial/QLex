@@ -35,7 +35,7 @@ export default function SatelliteQueueList({
 }: SatelliteQueueListProps) {
   // Filter active queue items (waiting or printing or ready)
   const activeOrders = todaysOrders.filter(
-    (o) => o.queue_state !== "SERVED" && o.queue_state !== "REJECTED"
+    (o) => o.queue_state !== "SERVED" && o.queue_state !== "REJECTED" && (o.token?.startsWith("S-") || (o as any).shop_name?.includes("Satellite"))
   );
 
   return (

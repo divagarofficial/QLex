@@ -225,8 +225,11 @@ export async function fetchLiveQueueSummary(): Promise<LiveQueueSummary> {
 /**
  * Fetch all active shop orders
  */
-export async function fetchActiveShopOrders(): Promise<ActiveShopOrder[]> {
-  const res = await fetch(`${API_BASE}/shop/orders`, {
+export async function fetchActiveShopOrders(shopName?: string): Promise<ActiveShopOrder[]> {
+  const url = shopName
+    ? `${API_BASE}/shop/orders?shop_name=${encodeURIComponent(shopName)}`
+    : `${API_BASE}/shop/orders`;
+  const res = await fetch(url, {
     method: "GET",
     headers: getAuthHeaders(),
     cache: "no-store",
