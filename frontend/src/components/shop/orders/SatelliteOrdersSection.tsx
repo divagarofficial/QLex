@@ -108,7 +108,7 @@ export default function SatelliteOrdersSection({
                         </div>
                         <div>
                           <span className="text-[10px] uppercase font-bold text-zinc-500 block">Print Spec</span>
-                          <span className="font-bold text-white">{firstDoc?.print_type === "color" ? "Color" : "Black & White"} • {firstDoc?.print_side || "Single-sided"}</span>
+                          <span className="font-bold text-white">{String(firstDoc?.print_type || "").toUpperCase().includes("COLOR") ? "Color" : "Black & White"} • {firstDoc?.print_side || "Single-sided"}</span>
                         </div>
                       </div>
 
