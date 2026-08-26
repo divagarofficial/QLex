@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import DashboardHeader from "./DashboardHeader";
 import WelcomeCard from "./WelcomeCard";
@@ -45,6 +46,7 @@ interface ShopDashboardProps {
 }
 
 export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }: ShopDashboardProps) {
+  const router = useRouter();
   const [activeHub, setActiveHub] = useState<"QLex Central Print Hub" | "QLex Satellite Print Hub">(defaultHub);
 
   const [loading, setLoading] = useState(true);
@@ -293,7 +295,7 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
                 </button>
 
                 <button
-                  onClick={() => setActiveHub("QLex Satellite Print Hub")}
+                  onClick={() => router.push("/shop/satellite")}
                   className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
                     activeHub === "QLex Satellite Print Hub"
                       ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-obsidian shadow-lg shadow-emerald-500/20 scale-[1.02]"
