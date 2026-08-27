@@ -14,6 +14,7 @@ import RecentOrders from "./RecentOrders";
 import RecentPayments from "./RecentPayments";
 import NotificationsPanel from "./NotificationsPanel";
 import QuickActions from "./QuickActions";
+import SupportCard from "@/components/common/SupportCard";
 import SkeletonLoader from "./SkeletonLoader";
 import EmptyState from "./EmptyState";
 import Popup from "@/components/popup/Popup";
@@ -205,6 +206,11 @@ function AdminDashboardContent() {
 
               {/* 8. Quick Navigation Shortcuts */}
               <QuickActions />
+
+              {/* 9. Platform Support & Help Desk */}
+              <div className="mt-8">
+                <SupportCard />
+              </div>
             </motion.div>
           )}
         </main>

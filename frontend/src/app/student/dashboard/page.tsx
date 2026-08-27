@@ -23,6 +23,7 @@ import ActiveOrderCard from "@/components/dashboard/ActiveOrderCard";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import QuickStats from "@/components/dashboard/QuickStats";
 import SkeletonLoader from "@/components/dashboard/SkeletonLoader";
+import SupportCard from "@/components/common/SupportCard";
 import Popup from "@/components/popup/Popup";
 import type { MyOrderItem, MyTokenResponse } from "@/types/student";
 
@@ -225,6 +226,11 @@ export default function StudentDashboard() {
             >
               <RecentActivity orders={orders} />
               <QuickStats orders={orders} />
+            </motion.div>
+
+            {/* Support & Assistance Card */}
+            <motion.div variants={sectionVariants}>
+              <SupportCard />
             </motion.div>
           </motion.div>
         </div>

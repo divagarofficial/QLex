@@ -13,6 +13,7 @@ import { fetchMyOrders, fetchMyToken } from "@/services/student";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import SkeletonLoader from "@/components/dashboard/SkeletonLoader";
 import PrinterInkHealthWidget from "@/components/dashboard/PrinterInkHealthWidget";
+import SupportCard from "@/components/common/SupportCard";
 import Popup from "@/components/popup/Popup";
 import type { MyOrderItem, MyTokenResponse } from "@/types/student";
 
@@ -354,6 +355,11 @@ export default function StaffDashboard() {
                   </div>
                 )}
               </div>
+            </motion.div>
+
+            {/* Support & Assistance Card */}
+            <motion.div variants={sectionVariants}>
+              <SupportCard />
             </motion.div>
           </motion.div>
         </div>

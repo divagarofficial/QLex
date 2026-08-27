@@ -21,6 +21,28 @@ export default function Footer() {
         {/* Hairline divider */}
         <div className="h-px w-20 bg-gradient-to-r from-transparent via-[#E7C873]/30 to-transparent" />
 
+        {/* Support & Founders Contact Info */}
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-white/50 font-mono">
+          <div className="flex items-center gap-1.5">
+            <span className="text-amber-400 font-bold">Mail:</span>
+            <a href="mailto:minduratechnologies@gmail.com" className="hover:text-amber-300 transition-colors">
+              minduratechnologies@gmail.com
+            </a>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-cyan-400 font-bold">Divagar E (Founder):</span>
+            <a href="tel:+919360087608" className="hover:text-cyan-300 transition-colors">
+              +91 9360087608
+            </a>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-cyan-400 font-bold">Thirumalai D (Founder):</span>
+            <a href="tel:+917550231600" className="hover:text-cyan-300 transition-colors">
+              +91 7550231600
+            </a>
+          </div>
+        </div>
+
         <p className="text-[11px] tracking-wide text-white/30 sm:text-xs">
           &copy; 2026{" "}
           <span className="font-semibold tracking-wider text-white/40">

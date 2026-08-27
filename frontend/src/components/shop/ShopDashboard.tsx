@@ -36,6 +36,7 @@ import type {
 } from "@/types/shop";
 
 import PrintAgentStatusCard from "./PrintAgentStatusCard";
+import SupportCard from "@/components/common/SupportCard";
 import Popup from "@/components/popup/Popup";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
@@ -311,6 +312,9 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
 
             {/* Auto-Print Agent Live Status & Control */}
             <PrintAgentStatusCard />
+
+            {/* Support & Assistance */}
+            <SupportCard />
           </motion.div>
         )}
       </main>

@@ -17,6 +17,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SupportCard from "@/components/common/SupportCard";
 
 interface DashboardSidebarProps {
   serverStatus?: string;
@@ -94,8 +95,13 @@ export default function DashboardSidebar({
         })}
       </nav>
 
+      {/* Support Info Sidebar Card */}
+      <div className="mt-4 pt-3 border-t border-white/10">
+        <SupportCard variant="compact" />
+      </div>
+
       {/* System Status Footer Card */}
-      <div className="mt-auto pt-4 border-t border-white/10">
+      <div className="mt-3 pt-3 border-t border-white/10">
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 backdrop-blur-md">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-bold text-zinc-300 flex items-center gap-1.5">
