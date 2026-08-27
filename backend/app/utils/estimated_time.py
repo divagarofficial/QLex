@@ -6,6 +6,7 @@ from sqlalchemy import func
 from app.enums.order_status import OrderStatus
 from app.enums.queue_state import QueueState
 from app.enums.queue_type import QueueType
+from app.enums.payment_status import PaymentStatus
 from app.models.order import Order
 from app.models.shop_queue import ShopQueue
 
@@ -14,12 +15,17 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
     """
     Calculates dynamic estimated wait time in minutes and estimated completion datetime
     for a given order based on document page counts, print setup overhead, and queue position.
+    CRITICAL: Only includes TODAY'S orders (queue_date == date.today() and order created_at == date.today())
+    when calculating queue wait times.
     """
     try:
+        now = datetime.utcnow()
+        today = date.today()
+
         if not order:
             return {
                 "estimated_wait_minutes": 5,
-                "estimated_completion_time": datetime.utcnow() + timedelta(minutes=5),
+                "estimated_completion_time": now + timedelta(minutes=5),
             }
 
         status_str = (
@@ -37,24 +43,11 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
             "REJECTED",
             "PAYMENT_FAILED",
         ]:
-            comp_time = order.updated_at or order.created_at or datetime.utcnow()
+            comp_time = order.updated_at or order.created_at or now
             return {
                 "estimated_wait_minutes": 0,
                 "estimated_completion_time": comp_time,
             }
-
-        # Fetch shop queue entry if present
-        queue = getattr(order, "shop_queue", None)
-        if not queue:
-            queue = db.query(ShopQueue).filter(ShopQueue.order_id == order.id).first()
-
-        queue_state_str = (
-            queue.queue_state.value
-            if (queue and hasattr(queue.queue_state, "value"))
-            else (str(queue.queue_state).upper() if queue else status_str)
-        )
-
-        now = datetime.utcnow()
 
         def to_naive_utc(dt):
             if not dt:
@@ -62,6 +55,33 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
             if hasattr(dt, "tzinfo") and dt.tzinfo is not None:
                 return dt.replace(tzinfo=None)
             return dt
+
+        order_created_naive = to_naive_utc(order.created_at)
+
+        # If order was created on a previous day and is not actively printing today, return 0 wait time
+        if order_created_naive.date() < today and status_str not in ["PRINTING", "IN_PROGRESS"]:
+            return {
+                "estimated_wait_minutes": 0,
+                "estimated_completion_time": order_created_naive,
+            }
+
+        # Fetch today's shop queue entry if present
+        queue = getattr(order, "shop_queue", None)
+        if not queue or getattr(queue, "queue_date", None) != today:
+            queue = (
+                db.query(ShopQueue)
+                .filter(
+                    ShopQueue.order_id == order.id,
+                    ShopQueue.queue_date == today,
+                )
+                .first()
+            )
+
+        queue_state_str = (
+            queue.queue_state.value
+            if (queue and hasattr(queue.queue_state, "value"))
+            else (str(queue.queue_state).upper() if queue else status_str)
+        )
 
         now_naive = now
 
@@ -76,7 +96,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
                     estimated_wait = 2
             else:
                 pages = 0
-                if order.documents:
+                if getattr(order, "documents", None):
                     for doc in order.documents:
                         p = getattr(doc, "page_count", 1) or 1
                         c = getattr(doc, "copies", 1) or 1
@@ -103,16 +123,18 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
             else (order.created_at if order.created_at else now)
         )
         target_created = to_naive_utc(raw_target_created)
-        target_date = target_created.date()
 
-        # Collect queue entries ahead of this order
+        # Collect queue entries ahead of this order STRICTLY FOR TODAY ONLY (today date)
         queues_ahead = []
 
         if is_satellite:
             all_sat_queues = (
                 db.query(ShopQueue)
+                .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
-                    ShopQueue.queue_date == target_date,
+                    ShopQueue.queue_date == today,
+                    func.date(ShopQueue.created_at) == today,
+                    func.date(Order.created_at) == today,
                     ShopQueue.queue_type == QueueType.SATELLITE,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -124,8 +146,11 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
         elif is_priority:
             all_pri_queues = (
                 db.query(ShopQueue)
+                .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
-                    ShopQueue.queue_date == target_date,
+                    ShopQueue.queue_date == today,
+                    func.date(ShopQueue.created_at) == today,
+                    func.date(Order.created_at) == today,
                     ShopQueue.queue_type == QueueType.PRIORITY,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -137,8 +162,11 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
         else:
             pri_waiting = (
                 db.query(ShopQueue)
+                .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
-                    ShopQueue.queue_date == target_date,
+                    ShopQueue.queue_date == today,
+                    func.date(ShopQueue.created_at) == today,
+                    func.date(Order.created_at) == today,
                     ShopQueue.queue_type == QueueType.PRIORITY,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -146,8 +174,11 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
             )
             reg_waiting = (
                 db.query(ShopQueue)
+                .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
-                    ShopQueue.queue_date == target_date,
+                    ShopQueue.queue_date == today,
+                    func.date(ShopQueue.created_at) == today,
+                    func.date(Order.created_at) == today,
                     ShopQueue.queue_type == QueueType.REGULAR,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -160,7 +191,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
 
         total_wait_seconds = 0
 
-        # Calculate print time for all orders ahead
+        # Calculate print time for all orders ahead (strictly today's orders)
         for q_ahead in queues_ahead:
             ahead_order = getattr(q_ahead, "order", None)
             if not ahead_order:
