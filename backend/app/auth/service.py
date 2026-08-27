@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.auth.repository import AuthRepository
@@ -105,8 +106,6 @@ class AuthService:
         """
         Register a new staff member.
         """
-        from uuid import UUID
-
         # Password confirmation
         if request.password != request.confirm_password:
             raise PasswordMismatchException()
