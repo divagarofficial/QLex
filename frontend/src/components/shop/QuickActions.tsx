@@ -31,7 +31,7 @@ export default function QuickActions({ isSatellite = false }: QuickActionsProps)
         },
         {
           title: "Staff Quotas & Policy",
-          description: "View faculty print rules and allocation limits",
+          description: "View staff print rules and allocation limits",
           icon: Tag,
           href: "/shop/satellite/pricing",
           color: "from-amber-500/20 to-yellow-500/20",

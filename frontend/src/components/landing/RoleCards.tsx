@@ -36,7 +36,7 @@ const cards = [
   },
   {
     id: "staff",
-    title: "Faculty & Staff",
+    title: "Staff",
     badge: "Satellite Print Hub",
     description: "Instant document printing at QLex Satellite Print Hub. Free institutional staff printing.",
     icon: UserCheck,

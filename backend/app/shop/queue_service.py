@@ -119,7 +119,8 @@ class ShopQueueService:
         try:
             from app.services.whatsapp_service import whatsapp_service
             from app.services.email_service import email_service
-            student = getattr(order, "student", None)
+            if not student and getattr(order, "student_id", None):
+                student = self.db.query(User).filter(User.id == order.student_id).first()
             student_name = getattr(student, "full_name", "Student") if student else "Student"
             phone = getattr(student, "phone", "") if student else ""
             email = getattr(student, "email", "") if student else ""

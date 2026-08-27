@@ -57,7 +57,7 @@ export default function StaffAuthCard() {
 
       setResult({
         type: "success",
-        title: "Welcome Back, Faculty & Staff!",
+        title: "Welcome Back, Staff!",
         message: "Authentication successful. Redirecting to your staff portal...",
         buttons: [
           {
@@ -207,7 +207,7 @@ export default function StaffAuthCard() {
 
               <div className="flex items-center gap-2 text-[10px] sm:text-[11px] font-medium tracking-[0.3em] uppercase text-emerald-400/80">
                 <UserCheck className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Faculty & Staff Portal</span>
+                <span>Staff Portal</span>
               </div>
             </motion.div>
 

@@ -163,7 +163,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
       newErrors.otp_code = "Enter the 6-digit OTP code sent to your email.";
     }
     if (!password || password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
+      newErrors.password = "Password must be at least 8 digits.";
     }
     if (password !== confirmPassword) {
       newErrors.confirm_password = "Passwords do not match.";
@@ -418,7 +418,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <GlassInput
-              label="Password"
+              label="Password (Min. 8 digits)"
               type="password"
               value={password}
               onChange={setPassword}
@@ -426,6 +426,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
               autoComplete="new-password"
               disabled={loading}
               required
+              placeholder="Minimum 8 digits"
               icon={Lock}
             />
             <GlassInput
@@ -437,6 +438,7 @@ export default function RegisterForm({ onSuccess, onError }: RegisterFormProps) 
               autoComplete="new-password"
               disabled={loading}
               required
+              placeholder="Minimum 8 digits"
               icon={Lock}
             />
           </div>

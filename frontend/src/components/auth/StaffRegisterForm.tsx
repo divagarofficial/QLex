@@ -120,7 +120,7 @@ export default function StaffRegisterForm({ onSuccess, onError }: StaffRegisterF
       newErrors.otp_code = "Enter the 6-digit OTP code sent to your email.";
     }
     if (!password || password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
+      newErrors.password = "Password must be at least 8 digits.";
     }
     if (password !== confirmPassword) {
       newErrors.confirm_password = "Passwords do not match.";
@@ -170,7 +170,7 @@ export default function StaffRegisterForm({ onSuccess, onError }: StaffRegisterF
           </div>
           <div className="flex-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-              Faculty & Staff Account Registration
+              Staff Account Registration
             </span>
             <p className="mt-0.5 text-xs text-white/70 leading-relaxed">
               Institutional staff accounts receive direct routing to <strong className="text-emerald-300">QLex Satellite Print Hub</strong> with zero cost printing.
@@ -320,7 +320,7 @@ export default function StaffRegisterForm({ onSuccess, onError }: StaffRegisterF
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <GlassInput
-              label="Password"
+              label="Password (Min. 8 digits)"
               type="password"
               value={password}
               onChange={setPassword}
@@ -328,6 +328,7 @@ export default function StaffRegisterForm({ onSuccess, onError }: StaffRegisterF
               autoComplete="new-password"
               disabled={loading}
               required
+              placeholder="Minimum 8 digits"
               icon={Lock}
             />
             <GlassInput
@@ -339,6 +340,7 @@ export default function StaffRegisterForm({ onSuccess, onError }: StaffRegisterF
               autoComplete="new-password"
               disabled={loading}
               required
+              placeholder="Minimum 8 digits"
               icon={Lock}
             />
           </div>

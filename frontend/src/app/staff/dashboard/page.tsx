@@ -149,10 +149,10 @@ export default function StaffDashboard() {
                   <div className="space-y-2">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
                       <UserCheck className="h-3.5 w-3.5" />
-                      <span>Faculty & Staff Portal</span>
+                      <span>Staff Portal</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-                      Welcome, <span className="text-emerald-400">{user?.full_name || "Faculty Member"}</span>
+                      Welcome, <span className="text-emerald-400">{user?.full_name || "Staff Member"}</span>
                     </h1>
                     <p className="text-sm text-white/70 max-w-xl">
                       Staff ID: <code className="text-emerald-300 font-semibold">{user?.register_number || "STF"}</code> • Department: <span className="text-white/90 font-medium">{user?.department_name || "Institutional Staff"}</span>

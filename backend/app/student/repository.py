@@ -114,7 +114,6 @@ class StudentRepository:
                 ShopQueue.queue_date == date.today(),
                 ShopQueue.queue_type == QueueType.PRIORITY,
                 ShopQueue.queue_state == QueueState.WAITING,
-                ShopQueue.is_current == False,
             )
             .order_by(ShopQueue.queue_number.asc())
             .all()
@@ -127,7 +126,6 @@ class StudentRepository:
                 ShopQueue.queue_date == date.today(),
                 ShopQueue.queue_type == QueueType.REGULAR,
                 ShopQueue.queue_state == QueueState.WAITING,
-                ShopQueue.is_current == False,
             )
             .order_by(ShopQueue.queue_number.asc())
             .all()

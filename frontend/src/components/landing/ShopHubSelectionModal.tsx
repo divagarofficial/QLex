@@ -109,7 +109,7 @@ export default function ShopHubSelectionModal({ open, onClose }: ShopHubSelectio
                     QLex Satellite Print Hub
                   </h3>
                   <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                    A103, Department of Artificial Intelligence and Data Science, First Floor, A Block. Manages sequential <code className="text-emerald-300">S-</code> tokens and faculty print jobs.
+                    A103, Department of Artificial Intelligence and Data Science, First Floor, A Block. Manages sequential <code className="text-emerald-300">S-</code> tokens and staff print jobs.
                   </p>
                 </div>
 

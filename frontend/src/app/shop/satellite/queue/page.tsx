@@ -3,7 +3,7 @@ import SatelliteShopQueuePage from "@/components/shop/satellite/SatelliteShopQue
 
 export const metadata: Metadata = {
   title: "Live S-Queue — QLex Satellite Print Hub",
-  description: "Sequential S-Token queue management for Faculty & Staff print jobs.",
+  description: "Sequential S-Token queue management for Staff print jobs.",
 };
 
 export default function Page() {

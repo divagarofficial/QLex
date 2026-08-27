@@ -37,7 +37,7 @@ export default function SatelliteShopPricingPage() {
                   Zero-Cost Staff Printing
                 </span>
               </div>
-              <h1 className="text-2xl font-black text-white mt-0.5">Staff & Faculty Printing Rules</h1>
+              <h1 className="text-2xl font-black text-white mt-0.5">Staff Printing Rules</h1>
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@ export default function SatelliteShopPricingPage() {
             </div>
             <h3 className="text-lg font-bold text-white">Institution-Funded Quota</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              All faculty members and department staff receive complimentary printing privileges at QLex Satellite Print Hub (A103, Dept of AI & Data Science). No payment is required per transaction.
+              All department staff receive complimentary printing privileges at QLex Satellite Print Hub (A103, Dept of AI & Data Science). No payment is required per transaction.
             </p>
             <div className="pt-2 border-t border-white/10 text-xs text-emerald-300 font-semibold flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
@@ -130,7 +130,7 @@ export default function SatelliteShopPricingPage() {
                   <th className="py-3 px-4">Job Type</th>
                   <th className="py-3 px-4">Paper Format</th>
                   <th className="py-3 px-4">Internal Transfer Value</th>
-                  <th className="py-3 px-4">Faculty Cost</th>
+                  <th className="py-3 px-4">Staff Cost</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-zinc-200 font-medium">

@@ -144,7 +144,7 @@ export default function SatelliteShopDashboard() {
         open: true,
         variant: "success",
         title: "Ready for Pickup",
-        description: "Order marked as Ready for Pickup. Staff/Faculty notified.",
+        description: "Order marked as Ready for Pickup. Staff notified.",
       });
       await loadDashboardData(false);
     } catch (err: unknown) {

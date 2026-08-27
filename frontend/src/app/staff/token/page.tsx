@@ -109,7 +109,7 @@ export default function StaffTokenPage() {
                 <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-4 text-left text-xs">
                   <div>
                     <span className="text-white/50">Staff Member</span>
-                    <p className="font-bold text-white mt-0.5">{user?.full_name || "Faculty Member"}</p>
+                    <p className="font-bold text-white mt-0.5">{user?.full_name || "Staff Member"}</p>
                     <p className="text-[11px] text-emerald-400 font-mono">{user?.register_number || "STF"}</p>
                   </div>
 

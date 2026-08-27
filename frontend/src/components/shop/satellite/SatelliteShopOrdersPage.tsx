@@ -362,7 +362,7 @@ export default function SatelliteShopOrdersPage() {
             <ShoppingBag className="h-10 w-10 text-emerald-500/40 mx-auto" />
             <h3 className="text-lg font-bold text-white">No Satellite Orders Found</h3>
             <p className="text-xs text-zinc-400 max-w-sm mx-auto">
-              There are currently no staff or faculty print orders matching your selected criteria.
+              There are currently no staff print orders matching your selected criteria.
             </p>
           </div>
         ) : (
@@ -391,7 +391,7 @@ export default function SatelliteShopOrdersPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="text-lg font-bold text-white">{order.student_name}</h3>
                           <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-extrabold text-emerald-300 uppercase">
-                            Faculty / Staff
+                            Staff
                           </span>
                         </div>
                         <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">

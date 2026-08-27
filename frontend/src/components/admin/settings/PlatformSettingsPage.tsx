@@ -75,7 +75,7 @@ const DEFAULT_INTEGRATIONS: IntegrationItem[] = [
     id: "oauth",
     name: "Google OAuth 2.0 Identity",
     category: "Authentication",
-    description: "Single Sign-On (SSO) integration for faculty and student domain logins",
+    description: "Single Sign-On (SSO) integration for staff and student domain logins",
     status: "configuration_required",
     iconName: "oauth",
     isBackendSupported: true,

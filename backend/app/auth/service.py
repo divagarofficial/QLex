@@ -160,7 +160,7 @@ class AuthService:
 
         if required_role is not None and user.role != required_role:
             if required_role == UserRole.STAFF:
-                raise ValueError("Access Denied: This portal is strictly for Staff & Faculty members. Student accounts cannot log in here.")
+                raise ValueError("Access Denied: This portal is strictly for Staff members. Student accounts cannot log in here.")
             elif required_role == UserRole.STUDENT:
                 raise ValueError("Access Denied: This portal is strictly for Student accounts. Staff members must use the Staff Portal.")
             else:
