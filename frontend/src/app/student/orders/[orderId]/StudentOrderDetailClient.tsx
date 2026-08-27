@@ -199,17 +199,40 @@ export default function StudentOrderDetailClient({ orderId }: { orderId: string 
                     Est. Completion
                   </span>
                   <div className="mt-1 font-mono text-base sm:text-lg font-black text-amber-300">
-                    {order.status === "completed" || order.status === "served"
-                      ? "Completed"
-                      : order.estimated_completion_time
-                      ? new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                      : order.estimated_wait_minutes !== undefined && order.estimated_wait_minutes !== null && order.estimated_wait_minutes > 0
-                      ? `~${order.estimated_wait_minutes} min wait`
-                      : (() => {
-                          const mins = order.status === "printing" ? 2 : order.is_priority ? 5 : 10;
-                          const comp = new Date(Date.now() + mins * 60000);
-                          return `~${comp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-                        })()}
+                    {(() => {
+                      const status = (order.status || "").toLowerCase();
+                      if (status === "completed" || status === "served") return "Completed";
+                      if (status === "ready_for_pickup" || status === "ready") return "Ready for Pickup";
+                      if (status === "cancelled") return "Cancelled";
+                      if (status === "expired") return "Expired";
+                      if (status === "rejected") return "Rejected";
+                      if (status === "payment_failed") return "Payment Failed";
+
+                      if (order.estimated_completion_time) {
+                        const compDate = new Date(order.estimated_completion_time);
+                        if (!isNaN(compDate.getTime())) {
+                          const now = new Date();
+                          const isToday = compDate.toDateString() === now.toDateString();
+                          if (isToday) {
+                            return compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                          } else if (compDate > now) {
+                            return `${compDate.toLocaleDateString([], { month: "short", day: "numeric" })}, ${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                          } else {
+                            return order.estimated_wait_minutes && order.estimated_wait_minutes > 0
+                              ? `~${order.estimated_wait_minutes} min wait`
+                              : "Ready soon";
+                          }
+                        }
+                      }
+
+                      if (order.estimated_wait_minutes !== undefined && order.estimated_wait_minutes !== null && order.estimated_wait_minutes > 0) {
+                        return `~${order.estimated_wait_minutes} min wait`;
+                      }
+
+                      const mins = status === "printing" ? 2 : order.is_priority ? 5 : 10;
+                      const comp = new Date(Date.now() + mins * 60000);
+                      return `~${comp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                    })()}
                   </div>
                 </div>
               </div>

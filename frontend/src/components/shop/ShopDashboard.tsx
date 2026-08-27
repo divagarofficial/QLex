@@ -311,7 +311,7 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
             <QuickActions />
 
             {/* Auto-Print Agent Live Status & Control */}
-            <PrintAgentStatusCard />
+            <PrintAgentStatusCard shopName="QLex Central Print Hub" />
 
             {/* Support & Assistance */}
             <SupportCard />

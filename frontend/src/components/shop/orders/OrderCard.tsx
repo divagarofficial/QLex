@@ -247,13 +247,29 @@ export default function OrderCard({
           </span>
           <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[11px] font-semibold text-amber-300 ml-1">
             <Clock className="h-3 w-3 text-amber-400" />
-            {queueState === "COMPLETED" || queueState === "SERVED"
-              ? "Completed"
-              : order.estimated_completion_time
-              ? `Est. Finish: ${new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} (~${order.estimated_wait_minutes ?? 5}m)`
-              : order.estimated_wait_minutes !== undefined
-              ? `Est. Finish: ~${order.estimated_wait_minutes} mins`
-              : `Est. Print: ~${Math.max(1, Math.ceil(((order.total_pages || 1) * 3 + 45) / 60))} mins`}
+            {(() => {
+              const qState = (queueState || "").toUpperCase();
+              if (qState === "COMPLETED" || qState === "SERVED") return "Completed";
+              if (qState === "READY_FOR_PICKUP" || qState === "READY") return "Ready for Pickup";
+              if (qState === "CANCELLED") return "Cancelled";
+
+              if (order.estimated_completion_time) {
+                const compDate = new Date(order.estimated_completion_time);
+                if (!isNaN(compDate.getTime())) {
+                  const now = new Date();
+                  const isToday = compDate.toDateString() === now.toDateString();
+                  const timeStr = isToday
+                    ? compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                    : `${compDate.toLocaleDateString([], { month: "short", day: "numeric" })}, ${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                  return `Est. Finish: ${timeStr} (~${order.estimated_wait_minutes ?? 5}m)`;
+                }
+              }
+
+              if (order.estimated_wait_minutes !== undefined) {
+                return `Est. Finish: ~${order.estimated_wait_minutes} mins`;
+              }
+              return `Est. Print: ~${Math.max(1, Math.ceil(((order.total_pages || 1) * 3 + 45) / 60))} mins`;
+            })()}
           </span>
         </div>
 

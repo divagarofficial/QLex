@@ -281,7 +281,7 @@ export default function SatelliteShopDashboard() {
             <QuickActions isSatellite={true} />
 
             {/* Hardware Status & Telemetry */}
-            <PrintAgentStatusCard />
+            <PrintAgentStatusCard shopName="QLex Satellite Print Hub" />
           </motion.div>
         )}
       </main>

@@ -3,7 +3,7 @@ import os
 import subprocess
 import time
 import logging
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from config import SUMATRA_PATH, MOCK_PRINT, PRINTER_POOL
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s")

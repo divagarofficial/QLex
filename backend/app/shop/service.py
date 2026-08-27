@@ -529,7 +529,8 @@ class ShopService:
 
         # Auto-process today's active orders
         self.get_orders(shop_name=shop_name)
-        record_print_agent_heartbeat(shop_name or "QLex Central Print Hub", [])
+        if shop_name:
+            record_print_agent_heartbeat(shop_name, [])
 
         query = (
             self.repository.db.query(ShopQueue)
@@ -684,19 +685,25 @@ AGENT_HEARTBEAT_CACHE = {
 
 
 def record_print_agent_heartbeat(agent_id: str, active_printers: list):
+    if not agent_id:
+        return
     from datetime import datetime
     now = datetime.utcnow()
-    AGENT_HEARTBEAT_CACHE["last_seen"] = now
-    AGENT_HEARTBEAT_CACHE["active_printers"] = active_printers
-    AGENT_HEARTBEAT_CACHE["agent_id"] = agent_id
 
     if "shops" not in AGENT_HEARTBEAT_CACHE:
         AGENT_HEARTBEAT_CACHE["shops"] = {}
 
+    existing_printers = AGENT_HEARTBEAT_CACHE["shops"].get(agent_id, {}).get("active_printers", [])
+    printers_to_store = active_printers if active_printers else existing_printers
+
     AGENT_HEARTBEAT_CACHE["shops"][agent_id] = {
         "last_seen": now,
-        "active_printers": active_printers,
+        "active_printers": printers_to_store,
     }
+    # Maintain global last_seen for legacy untargeted queries
+    AGENT_HEARTBEAT_CACHE["last_seen"] = now
+    AGENT_HEARTBEAT_CACHE["active_printers"] = printers_to_store
+    AGENT_HEARTBEAT_CACHE["agent_id"] = agent_id
 
 
 def get_print_agent_health(shop_name: str | None = None):
@@ -704,14 +711,27 @@ def get_print_agent_health(shop_name: str | None = None):
     now = datetime.utcnow()
 
     shops_cache = AGENT_HEARTBEAT_CACHE.get("shops", {})
-    shop_cache = shops_cache.get(shop_name) if shop_name else None
 
-    if shop_cache and shop_cache.get("last_seen"):
-        last_seen = shop_cache["last_seen"]
-        active_printers = shop_cache["active_printers"]
+    if shop_name:
+        shop_cache = shops_cache.get(shop_name)
+        if shop_cache and shop_cache.get("last_seen"):
+            last_seen = shop_cache["last_seen"]
+            active_printers = shop_cache["active_printers"]
+        else:
+            last_seen = None
+            active_printers = []
     else:
-        last_seen = AGENT_HEARTBEAT_CACHE["last_seen"]
-        active_printers = AGENT_HEARTBEAT_CACHE["active_printers"]
+        # If no specific shop specified, find the most recent active shop
+        latest_time = None
+        active_printers = []
+        for s_data in shops_cache.values():
+            if s_data.get("last_seen"):
+                if latest_time is None or s_data["last_seen"] > latest_time:
+                    latest_time = s_data["last_seen"]
+                    active_printers = s_data.get("active_printers", [])
+        last_seen = latest_time or AGENT_HEARTBEAT_CACHE.get("last_seen")
+        if not active_printers:
+            active_printers = AGENT_HEARTBEAT_CACHE.get("active_printers", [])
 
     is_connected = False
     if last_seen and (now - last_seen) < timedelta(seconds=15):

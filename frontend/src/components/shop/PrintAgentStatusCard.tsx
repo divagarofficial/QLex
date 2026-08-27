@@ -5,7 +5,11 @@ import { Printer, CheckCircle2, XCircle, Cpu, Zap, RefreshCw, Droplets, AlertTri
 import { motion } from "framer-motion";
 import { fetchPrintAgentHealth, type PrintAgentHealth, type PrinterTelemetry } from "@/services/shop";
 
-export default function PrintAgentStatusCard() {
+interface PrintAgentStatusCardProps {
+  shopName?: string;
+}
+
+export default function PrintAgentStatusCard({ shopName = "QLex Central Print Hub" }: PrintAgentStatusCardProps) {
   const [autoPrintEnabled, setAutoPrintEnabled] = useState(true);
   const [health, setHealth] = useState<PrintAgentHealth>({
     status: "disconnected",
@@ -17,7 +21,7 @@ export default function PrintAgentStatusCard() {
 
   const checkHealth = async () => {
     try {
-      const data = await fetchPrintAgentHealth("QLex Central Print Hub");
+      const data = await fetchPrintAgentHealth(shopName);
       setHealth(data);
     } catch {
       setHealth({
@@ -35,7 +39,7 @@ export default function PrintAgentStatusCard() {
     checkHealth();
     const interval = setInterval(checkHealth, 5000); // Poll health every 5 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [shopName]);
 
   const isConnected = health.is_connected;
 

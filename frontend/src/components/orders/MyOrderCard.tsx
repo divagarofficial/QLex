@@ -311,17 +311,42 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
               Estimated Time
             </div>
             <p className="mt-1 text-xs font-extrabold text-amber-300">
-              {order.status === "completed" || order.status === "served"
-                ? "Completed"
-                : order.estimated_completion_time
-                ? `Ready ~${new Date(order.estimated_completion_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                : order.estimated_wait_minutes !== undefined && order.estimated_wait_minutes !== null && order.estimated_wait_minutes > 0
-                ? `~${order.estimated_wait_minutes} min wait`
-                : (() => {
-                    const mins = order.status === "printing" ? 2 : (order as any).is_priority ? 5 : 10;
-                    const comp = new Date(Date.now() + mins * 60000);
-                    return `Ready ~${comp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-                  })()}
+              {(() => {
+                const status = (order.status || "").toLowerCase();
+                if (status === "completed" || status === "served") return "Completed";
+                if (status === "ready_for_pickup" || status === "ready") return "Ready for Pickup";
+                if (status === "cancelled") return "Cancelled";
+                if (status === "expired") return "Expired";
+                if (status === "rejected") return "Rejected";
+                if (status === "payment_failed") return "Payment Failed";
+
+                // Active statuses (paid, waiting, accepted, printing, draft, pending_payment)
+                if (order.estimated_completion_time) {
+                  const compDate = new Date(order.estimated_completion_time);
+                  if (!isNaN(compDate.getTime())) {
+                    const now = new Date();
+                    const isToday = compDate.toDateString() === now.toDateString();
+                    if (isToday) {
+                      return `Ready ~${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                    } else if (compDate > now) {
+                      return `Ready ~${compDate.toLocaleDateString([], { month: "short", day: "numeric" })}, ${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                    } else {
+                      // Past date safeguard
+                      return order.estimated_wait_minutes && order.estimated_wait_minutes > 0
+                        ? `~${order.estimated_wait_minutes} min wait`
+                        : "Ready soon";
+                    }
+                  }
+                }
+
+                if (order.estimated_wait_minutes !== undefined && order.estimated_wait_minutes !== null && order.estimated_wait_minutes > 0) {
+                  return `~${order.estimated_wait_minutes} min wait`;
+                }
+
+                const mins = status === "printing" ? 2 : (order as any).is_priority ? 5 : 10;
+                const comp = new Date(Date.now() + mins * 60000);
+                return `Ready ~${comp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+              })()}
             </p>
           </div>
         </div>

@@ -86,7 +86,7 @@ def record_heartbeat(
     "/print-agent/health",
 )
 def get_print_agent_health_status(
-    shop_name: str | None = "QLex Satellite Print Hub",
+    shop_name: str | None = None,
 ):
     """
     Returns active connectivity state, ink/toner levels, and printer telemetry for the target hub.
