@@ -11,6 +11,8 @@ class DocumentPrintSpec(BaseModel):
     url: str
     file_size: int
     page_count: int
+    custom_pages: Optional[str] = None
+    printable_page_count: Optional[int] = 1
     paper_size: str
     print_type: str  # "bw" or "color"
     print_side: str  # "single" or "double"

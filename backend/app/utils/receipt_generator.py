@@ -202,12 +202,19 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     total_fees_to_distribute = convenience_fee + platform_fee
 
     if documents:
+        from app.utils.pdf import get_printable_page_count
         total_pages_in_pdf = 0
         for d in documents:
             if isinstance(d, dict):
-                pgs = int(d.get("page_count") or d.get("total_pages") or 1) * int(d.get("copies") or 1)
+                cp = d.get("custom_pages")
+                tot_p = int(d.get("page_count") or d.get("total_pages") or 1)
+                pr_p = int(d.get("printable_page_count") or get_printable_page_count(cp, tot_p))
+                pgs = pr_p * int(d.get("copies") or 1)
             else:
-                pgs = int(getattr(d, "page_count", 1) or getattr(d, "total_pages", 1) or 1) * int(getattr(d, "copies", 1) or 1)
+                cp = getattr(d, "custom_pages", None)
+                tot_p = int(getattr(d, "page_count", 1) or getattr(d, "total_pages", 1) or 1)
+                pr_p = int(getattr(d, "printable_page_count", 0) or get_printable_page_count(cp, tot_p))
+                pgs = pr_p * int(getattr(d, "copies", 1) or 1)
             total_pages_in_pdf += pgs
         if total_pages_in_pdf <= 0:
             total_pages_in_pdf = 1
@@ -227,7 +234,9 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
                 is_color = bool(d.get("is_color"))
                 is_duplex = bool(d.get("is_double_sided") or d.get("is_duplex"))
                 copies = int(d.get("copies") or 1)
-                pages = int(d.get("page_count") or d.get("total_pages") or 1)
+                cp = d.get("custom_pages")
+                tot_p = int(d.get("page_count") or d.get("total_pages") or 1)
+                pages = int(d.get("printable_page_count") or get_printable_page_count(cp, tot_p))
                 doc_raw_total = float(d.get("price") or d.get("document_total") or d.get("total_price") or 0.0)
             else:
                 file_name_str = (
@@ -243,7 +252,9 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
                 is_color = bool(getattr(d, "is_color", False))
                 is_duplex = bool(getattr(d, "is_double_sided", False) or getattr(d, "is_duplex", False))
                 copies = int(getattr(d, "copies", 1) or 1)
-                pages = int(getattr(d, "page_count", 1) or getattr(d, "total_pages", 1) or 1)
+                cp = getattr(d, "custom_pages", None)
+                tot_p = int(getattr(d, "page_count", 1) or getattr(d, "total_pages", 1) or 1)
+                pages = int(getattr(d, "printable_page_count", 0) or get_printable_page_count(cp, tot_p))
                 doc_raw_total = float(getattr(d, "price", 0.0) or getattr(d, "document_total", 0.0) or getattr(d, "total_price", 0.0) or 0.0)
 
             if doc_raw_total == 0.0 and len(documents) == 1:

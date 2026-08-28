@@ -177,6 +177,13 @@ class UploadService:
             request.copies
         )
 
+        document.custom_pages = (
+            getattr(request, "custom_pages", None)
+        )
+
+        from app.utils.pdf import get_printable_page_count
+        printable_pages = get_printable_page_count(document.custom_pages, document.page_count)
+
 
         # Get the configured print price
 
@@ -307,16 +314,14 @@ class UploadService:
             )
 
 
-        # Calculate document total
+        # Calculate document total using printable_pages
 
         document.document_total = (
 
             self.pricing_service
             .calculate_document_total(
 
-                page_count=(
-                    document.page_count
-                ),
+                page_count=printable_pages,
 
                 copies=(
                     document.copies
@@ -345,8 +350,7 @@ class UploadService:
         )
 
 
-        # Recalculate order subtotal
-# and convenience fee for all documents
+        # Recalculate order subtotal and convenience fee for all documents
 
         subtotal = Decimal("0.00")
 
@@ -355,8 +359,7 @@ class UploadService:
 
         for current_document in order.documents:
 
-            # Use the newly calculated total
-            # for the currently updated document
+            cur_printable = get_printable_page_count(current_document.custom_pages, current_document.page_count)
 
             if current_document.id == document.id:
 
@@ -369,9 +372,7 @@ class UploadService:
                     self.pricing_service
                     .calculate_document_convenience_fee(
 
-                        page_count=(
-                            document.page_count
-                        ),
+                        page_count=printable_pages,
 
                         copies=(
                             document.copies
@@ -402,9 +403,7 @@ class UploadService:
                     self.pricing_service
                     .calculate_document_convenience_fee(
 
-                        page_count=(
-                            current_document.page_count
-                        ),
+                        page_count=cur_printable,
 
                         copies=(
                             current_document.copies

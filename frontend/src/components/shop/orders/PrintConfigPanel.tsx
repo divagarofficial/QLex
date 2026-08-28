@@ -118,6 +118,15 @@ export default function PrintConfigPanel({
   const handleSaveChanges = async () => {
     setIsUpdating(true);
     try {
+      const customPagesPayload =
+        rangeMode === "ALL"
+          ? "ALL"
+          : rangeMode === "ODD"
+          ? "ODD"
+          : rangeMode === "EVEN"
+          ? "EVEN"
+          : customRangeInput;
+
       await updateDocumentSettings(orderId, document.id, {
         paper_size: paperSize as PaperSize,
         print_type: printType as PrintType,
@@ -125,6 +134,7 @@ export default function PrintConfigPanel({
         copies,
         spiral_binding: spiralBinding,
         soft_binding: softBinding,
+        custom_pages: customPagesPayload,
       });
 
       onShowNotice(

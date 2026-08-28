@@ -21,6 +21,10 @@ class UploadedDocumentResponse(BaseModel):
 
     copies: int
 
+    custom_pages: str | None = None
+
+    printable_page_count: int = 1
+
     document_total: Decimal
 
     model_config = {
@@ -49,6 +53,8 @@ class UpdateDocumentRequest(BaseModel):
 
     soft_binding: bool = False
 
+    custom_pages: str | None = None
+
 
 class DocumentResponse(BaseModel):
 
@@ -67,6 +73,10 @@ class DocumentResponse(BaseModel):
     print_side: PrintSide
 
     copies: int
+
+    custom_pages: str | None = None
+
+    printable_page_count: int = 1
 
     document_total: Decimal
 

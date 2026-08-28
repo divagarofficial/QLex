@@ -81,6 +81,7 @@ function defaultDocSettings(): DocPrintSettings {
     copies: 1,
     spiralBinding: false,
     softBinding: false,
+    customPages: "ALL",
   };
 }
 
@@ -339,8 +340,10 @@ export default function NewOrderPage() {
       const shopPrice = pricing ? Number(pricing.shop_price) : 0;
       const convFee = pricing ? Number(pricing.convenience_fee) : 0;
 
-      printCost += doc.page_count * s.copies * shopPrice;
-      convenienceFee += doc.page_count * s.copies * convFee;
+      const printableCount = getPrintablePageCount(s.customPages, doc.page_count);
+
+      printCost += printableCount * s.copies * shopPrice;
+      convenienceFee += printableCount * s.copies * convFee;
     }
 
     // Services: use the first doc's settings for binding (it's a global service)
@@ -403,8 +406,10 @@ export default function NewOrderPage() {
         const shopPrice = pricing ? Number(pricing.shop_price) : 0;
         const convFeeRate = pricing ? Number(pricing.convenience_fee) : 0;
 
-        docPrintCost = doc.page_count * s.copies * shopPrice;
-        docConvFee = doc.page_count * s.copies * convFeeRate;
+        const printableCount = getPrintablePageCount(s.customPages, doc.page_count);
+
+        docPrintCost = printableCount * s.copies * shopPrice;
+        docConvFee = printableCount * s.copies * convFeeRate;
       }
 
       const totalForDoc = docPrintCost + bindingPerDoc + docConvFee + platformFeeSharePerDoc;
@@ -412,6 +417,8 @@ export default function NewOrderPage() {
       return {
         ...doc,
         document_total: totalForDoc,
+        custom_pages: s?.customPages,
+        printable_page_count: s ? getPrintablePageCount(s.customPages, doc.page_count) : doc.page_count,
       };
     });
   }, [documentSummaries, docSettings, pricingConfigs, services, platformFees, orderSummary]);
@@ -485,6 +492,7 @@ export default function NewOrderPage() {
           copies: s.copies,
           spiral_binding: s.spiralBinding,
           soft_binding: s.softBinding,
+          custom_pages: s.customPages,
         });
       }
       const summary = await getOrderSummary(orderId);

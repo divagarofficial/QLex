@@ -83,6 +83,8 @@ export interface UploadedDocumentResponse {
   id: string;
   original_filename: string;
   page_count: number;
+  custom_pages?: string | null;
+  printable_page_count?: number;
   file_size?: number;
   url?: string | null;
   copies: number;
@@ -102,11 +104,14 @@ export interface UpdateDocumentRequest {
   copies: number;
   spiral_binding: boolean;
   soft_binding: boolean;
+  custom_pages?: string | null;
 }
 
 export interface DocumentResponse {
   id: string;
   page_count: number;
+  custom_pages?: string | null;
+  printable_page_count?: number;
   file_size?: number;
   url?: string | null;
   paper_size: string;
@@ -130,6 +135,8 @@ export interface OrderDocumentSummary {
   id: string;
   original_filename: string;
   page_count: number;
+  custom_pages?: string | null;
+  printable_page_count?: number;
   file_size?: number;
   url?: string | null;
   paper_size: string;

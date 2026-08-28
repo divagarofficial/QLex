@@ -47,6 +47,37 @@ export interface DocPrintSettings {
   copies: number;
   spiralBinding: boolean;
   softBinding: boolean;
+  customPages?: string;
+}
+
+export function getPrintablePageCount(customPages: string | undefined, totalPages: number): number {
+  if (!customPages || customPages.trim().toUpperCase() === "ALL") return totalPages;
+  const mode = customPages.trim().toUpperCase();
+  if (mode === "ODD") return Math.ceil(totalPages / 2);
+  if (mode === "EVEN") return Math.floor(totalPages / 2);
+
+  try {
+    const set = new Set<number>();
+    customPages.split(",").forEach((part) => {
+      const trimmed = part.trim();
+      if (trimmed.includes("-")) {
+        const [sStr, eStr] = trimmed.split("-");
+        const s = parseInt(sStr, 10);
+        const e = parseInt(eStr, 10);
+        if (!isNaN(s) && !isNaN(e) && s <= e) {
+          for (let i = s; i <= e; i++) {
+            if (i >= 1 && i <= totalPages) set.add(i);
+          }
+        }
+      } else {
+        const val = parseInt(trimmed, 10);
+        if (!isNaN(val) && val >= 1 && val <= totalPages) set.add(val);
+      }
+    });
+    return set.size > 0 ? set.size : totalPages;
+  } catch {
+    return totalPages;
+  }
 }
 
 // ── Props ─────────────────────────────────────────────────────
@@ -82,8 +113,73 @@ function DocSettingsPanel({
     onChange({ ...settings, ...patch });
   }
 
+  const printableCount = getPrintablePageCount(settings.customPages, doc.page_count);
+  const currentMode = !settings.customPages || settings.customPages === "ALL"
+    ? "ALL"
+    : settings.customPages === "ODD"
+    ? "ODD"
+    : settings.customPages === "EVEN"
+    ? "EVEN"
+    : "CUSTOM";
+
   return (
     <div className="space-y-5 pt-4">
+      {/* Customized Pages Selection Section */}
+      <div className="rounded-2xl border border-champagne-500/20 bg-champagne-500/10 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-champagne-400 uppercase tracking-wide">
+            <span className="text-sm">📑</span>
+            <span>Customized Pages Selection</span>
+          </div>
+          <span className="text-xs font-black text-champagne-400 font-mono">
+            {printableCount} of {doc.page_count} pages selected
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            { id: "ALL", label: "All Pages" },
+            { id: "ODD", label: "Odd Pages" },
+            { id: "EVEN", label: "Even Pages" },
+            { id: "CUSTOM", label: "Custom Range" },
+          ].map((mode) => (
+            <button
+              key={mode.id}
+              type="button"
+              onClick={() => {
+                if (mode.id === "ALL") update({ customPages: "ALL" });
+                else if (mode.id === "ODD") update({ customPages: "ODD" });
+                else if (mode.id === "EVEN") update({ customPages: "EVEN" });
+                else update({ customPages: settings.customPages && settings.customPages !== "ALL" && settings.customPages !== "ODD" && settings.customPages !== "EVEN" ? settings.customPages : "1-5" });
+              }}
+              className={cn(
+                "rounded-xl border px-3 py-2 text-xs font-semibold backdrop-blur-md transition-all text-center cursor-pointer",
+                currentMode === mode.id
+                  ? "border-champagne-400 bg-champagne-500/25 text-champagne-300 shadow-md shadow-champagne-500/20"
+                  : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+              )}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+
+        {currentMode === "CUSTOM" && (
+          <div className="pt-2 space-y-1">
+            <label className="text-[11px] font-semibold text-white/70">
+              Enter customized page range sequence (comma separated or ranges):
+            </label>
+            <input
+              type="text"
+              value={settings.customPages && settings.customPages !== "ALL" && settings.customPages !== "ODD" && settings.customPages !== "EVEN" ? settings.customPages : ""}
+              onChange={(e) => update({ customPages: e.target.value })}
+              placeholder="e.g. 1-5, 8, 11-15"
+              className="w-full rounded-xl border border-white/10 bg-zinc-950/90 px-3 py-2 text-xs text-white placeholder-white/30 focus:border-champagne-400/50 focus:outline-none focus:ring-1 focus:ring-champagne-400/30 font-mono"
+            />
+          </div>
+        )}
+      </div>
+
       {/* Print Type */}
       <div>
         <div className="flex items-center gap-2 mb-2">

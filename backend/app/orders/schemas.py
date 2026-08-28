@@ -87,6 +87,10 @@ class OrderDocumentSummary(BaseModel):
 
     page_count: int
 
+    custom_pages: str | None = None
+
+    printable_page_count: int = 1
+
     file_size: int = 0
 
     url: str | None = None

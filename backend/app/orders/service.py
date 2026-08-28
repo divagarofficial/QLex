@@ -92,6 +92,9 @@ class OrderService:
                     }
                 )
 
+            from app.utils.pdf import get_printable_page_count
+            printable_cnt = get_printable_page_count(document.custom_pages, document.page_count)
+
             documents.append(
                 {
                     "id": document.id,
@@ -104,6 +107,8 @@ class OrderService:
                     "url": document.url,
                     "file_size": document.file_size,
                     "page_count": document.page_count,
+                    "custom_pages": document.custom_pages,
+                    "printable_page_count": printable_cnt,
                     "paper_size": document.paper_size,
                     "print_type": document.print_type,
                     "print_side": document.print_side,

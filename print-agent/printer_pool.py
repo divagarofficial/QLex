@@ -260,18 +260,70 @@ class PrinterPoolManager:
         print_type: str = "bw",      # "bw" or "color"
         print_side: str = "single",  # "single" or "double"
         paper_size: str = "a4",
+        custom_pages: str = None,
     ) -> bool:
         """
         Silently prints a PDF document using native system print utilities.
         """
         logger.info(
             f"Printing document: {os.path.basename(pdf_path)} -> Printer: '{printer_name}' "
-            f"[Copies: {copies}, Type: {print_type}, Side: {print_side}, Size: {paper_size}]"
+            f"[Copies: {copies}, Type: {print_type}, Side: {print_side}, Size: {paper_size}, CustomPages: {custom_pages}]"
         )
+
+        target_pdf_path = pdf_path
+        sliced_temp_created = False
+        if custom_pages and str(custom_pages).strip().upper() != "ALL":
+            try:
+                import fitz
+                doc = fitz.open(pdf_path)
+                total_pages = doc.page_count
+
+                pages_set = set()
+                mode = str(custom_pages).strip().upper()
+                if mode == "ODD":
+                    pages_set = {p for p in range(1, total_pages + 1) if p % 2 != 0}
+                elif mode == "EVEN":
+                    pages_set = {p for p in range(1, total_pages + 1) if p % 2 == 0}
+                else:
+                    for part in str(custom_pages).split(","):
+                        trimmed = part.strip()
+                        if "-" in trimmed:
+                            subparts = trimmed.split("-")
+                            if len(subparts) == 2 and subparts[0].strip().isdigit() and subparts[1].strip().isdigit():
+                                s, e = int(subparts[0].strip()), int(subparts[1].strip())
+                                for p in range(s, e + 1):
+                                    if 1 <= p <= total_pages:
+                                        pages_set.add(p)
+                        elif trimmed.isdigit():
+                            val = int(trimmed)
+                            if 1 <= val <= total_pages:
+                                pages_set.add(val)
+
+                if pages_set:
+                    pages_list = sorted(list(pages_set))
+                    sliced_path = pdf_path.replace(".pdf", "_sliced.pdf")
+                    new_doc = fitz.open()
+                    for p in pages_list:
+                        new_doc.insert_pdf(doc, from_page=p - 1, to_page=p - 1)
+                    new_doc.save(sliced_path)
+                    new_doc.close()
+                    target_pdf_path = sliced_path
+                    sliced_temp_created = True
+                    logger.info(f"Sliced PDF '{os.path.basename(pdf_path)}' to {len(pages_list)} pages ({pages_list}) -> '{os.path.basename(sliced_path)}'")
+                doc.close()
+            except Exception as e:
+                logger.warning(f"Could not slice PDF with PyMuPDF fitz: {e}. Falling back to full PDF.")
+
+        pdf_path = target_pdf_path
 
         if MOCK_PRINT or "Mock" in printer_name:
             logger.info(f"[MOCK PRINT SUCCESS] Printed {os.path.basename(pdf_path)} on '{printer_name}'")
             time.sleep(1)  # Simulate printing time
+            if sliced_temp_created and os.path.exists(pdf_path):
+                try:
+                    os.remove(pdf_path)
+                except Exception:
+                    pass
             return True
 
         if self.is_windows:

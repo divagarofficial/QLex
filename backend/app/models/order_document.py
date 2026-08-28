@@ -74,6 +74,11 @@ class OrderDocument(BaseModel):
         nullable=False,
     )
 
+    custom_pages: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     display_order: Mapped[int] = mapped_column(
     Integer,
     default=1,

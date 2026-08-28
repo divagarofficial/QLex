@@ -157,7 +157,8 @@ class QLexPrintAgentDaemon:
                     copies=doc.get("copies", 1),
                     print_type=doc.get("print_type", "bw"),
                     print_side=doc.get("print_side", "single"),
-                    paper_size=doc.get("paper_size", "a4")
+                    paper_size=doc.get("paper_size", "a4"),
+                    custom_pages=doc.get("custom_pages")
                 )
 
                 if not success:

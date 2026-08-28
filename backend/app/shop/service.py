@@ -592,6 +592,9 @@ class ShopService:
                     else str(doc.print_side)
                 )
 
+                from app.utils.pdf import get_printable_page_count
+                printable_cnt = get_printable_page_count(doc.custom_pages, doc.page_count)
+
                 documents_spec.append(
                     {
                         "id": doc.id,
@@ -600,6 +603,8 @@ class ShopService:
                         "url": doc.url,
                         "file_size": doc.file_size,
                         "page_count": doc.page_count,
+                        "custom_pages": doc.custom_pages,
+                        "printable_page_count": printable_cnt,
                         "paper_size": paper_size_val,
                         "print_type": print_type_val,
                         "print_side": print_side_val,

@@ -54,6 +54,12 @@ def init_db_tables():
                 with engine.connect() as conn:
                     from sqlalchemy import text
                     conn.execute(text("ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS allow_first_year_personal_email BOOLEAN DEFAULT TRUE NOT NULL;"))
+                    conn.execute(text("ALTER TABLE order_documents ADD COLUMN IF NOT EXISTS custom_pages VARCHAR(255);"))
+                    try:
+                        conn.execute(text("ALTER TYPE queuetype ADD VALUE IF NOT EXISTS 'satellite';"))
+                        conn.execute(text("ALTER TYPE queuetype ADD VALUE IF NOT EXISTS 'SATELLITE';"))
+                    except Exception:
+                        pass
                     conn.commit()
             except Exception as mig_err:
                 print(f"[DB Init Warning] Column migration warning: {mig_err}")

@@ -160,7 +160,10 @@ export default function OrderInformation({
                     <span className="font-mono text-slate-200 truncate">{doc.file_name}</span>
                   </div>
                   <span className="text-slate-400 shrink-0 flex items-center gap-2">
-                    <span>{doc.page_count} pages • {doc.copies} copy(ies)</span>
+                    <span>
+                      {doc.custom_pages && doc.custom_pages !== "ALL" ? `Custom Pages: ${doc.custom_pages} • ` : ""}
+                      {doc.printable_page_count || doc.page_count} of {doc.page_count} pages • {doc.copies} copy(ies)
+                    </span>
                     <span className="font-mono font-bold text-emerald-400">₹{displayPrice.toFixed(2)}</span>
                   </span>
                 </div>

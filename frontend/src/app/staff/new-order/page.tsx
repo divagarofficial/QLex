@@ -23,6 +23,8 @@ export default function StaffNewOrderPage() {
   const [printType, setPrintType] = useState<"bw" | "color">("bw");
   const [printSide, setPrintSide] = useState<"single" | "double">("double");
   const [paperSize, setPaperSize] = useState<"a4" | "a3">("a4");
+  const [rangeMode, setRangeMode] = useState<"ALL" | "ODD" | "EVEN" | "CUSTOM">("ALL");
+  const [customRangeInput, setCustomRangeInput] = useState<string>("1-5, 8");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +93,7 @@ export default function StaffNewOrderPage() {
       const uploadedDocs = uploadData.documents || [];
 
       // Step 3: Update document print configuration
+      const pagesPayload = rangeMode === "ALL" ? "ALL" : rangeMode === "ODD" ? "ODD" : rangeMode === "EVEN" ? "EVEN" : customRangeInput;
       for (const doc of uploadedDocs) {
         await fetch(`${API_BASE}/orders/${orderId}/documents/${doc.id}`, {
           method: "PATCH",
@@ -103,6 +106,7 @@ export default function StaffNewOrderPage() {
             print_type: printType,
             print_side: printSide,
             paper_size: paperSize,
+            custom_pages: pagesPayload,
           }),
         });
       }
@@ -201,6 +205,53 @@ export default function StaffNewOrderPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-white/70">
                   2. Select Print Options
                 </label>
+
+                {/* Customized Pages Selection */}
+                <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-1.5">
+                      <span>📑</span>
+                      <span>Customized Pages Selection</span>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {[
+                      { id: "ALL", label: "All Pages" },
+                      { id: "ODD", label: "Odd Pages" },
+                      { id: "EVEN", label: "Even Pages" },
+                      { id: "CUSTOM", label: "Custom Range" },
+                    ].map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => setRangeMode(mode.id as any)}
+                        className={`rounded-xl border px-3 py-2 text-xs font-semibold backdrop-blur-md transition-all text-center cursor-pointer ${
+                          rangeMode === mode.id
+                            ? "border-emerald-400 bg-emerald-500/25 text-emerald-300 shadow-md shadow-emerald-500/20"
+                            : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+                        }`}
+                      >
+                        {mode.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {rangeMode === "CUSTOM" && (
+                    <div className="pt-2 space-y-1">
+                      <label className="text-[11px] font-semibold text-white/70">
+                        Enter customized page range sequence (comma separated or ranges):
+                      </label>
+                      <input
+                        type="text"
+                        value={customRangeInput}
+                        onChange={(e) => setCustomRangeInput(e.target.value)}
+                        placeholder="e.g. 1-5, 8, 11-15"
+                        className="w-full rounded-xl border border-white/10 bg-zinc-950/90 px-3 py-2 text-xs text-white placeholder-white/30 focus:border-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-emerald-400/30 font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Copies */}
