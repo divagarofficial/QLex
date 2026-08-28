@@ -28,7 +28,6 @@ class ShopRepository:
             )
             .outerjoin(User, Order.student_id == User.id)
             .filter(
-                func.date(Order.created_at) == date.today(),
                 Order.payment_status == PaymentStatus.PAID,
                 Order.status.in_(
                     [
@@ -68,19 +67,28 @@ class ShopRepository:
         query = (
             self.db.query(Order)
             .outerjoin(User, Order.student_id == User.id)
+            .outerjoin(ShopQueue, ShopQueue.order_id == Order.id)
             .options(
                 joinedload(Order.documents)
             )
             .filter(
-                func.date(Order.created_at) == date.today(),
                 Order.payment_status == PaymentStatus.PAID,
                 Order.status.in_(
                     [
                         OrderStatus.PAID,
+                        OrderStatus.ACCEPTED,
                         OrderStatus.PRINTING,
                         OrderStatus.READY_FOR_PICKUP,
                     ]
                 ),
+                ~ShopQueue.queue_state.in_(
+                    [
+                        QueueState.SERVED,
+                        QueueState.REJECTED,
+                    ]
+                )
+                | (ShopQueue.id == None)
+                | (func.date(Order.created_at) == date.today()),
             )
         )
         if shop_name == "QLex Central Print Hub":

@@ -22,11 +22,14 @@ class ShopQueueService:
 
     def cleanup_previous_days_queue(self):
         """
-        Removes all queue entries and tokens from previous days (queue_date < date.today()).
-        Guarantees that each day is a 100% fresh start with queue numbers resetting to 1.
+        Removes SERVED or REJECTED queue entries from previous days (queue_date < date.today()).
+        Preserves unserved active orders (WAITING/PRINTING/READY) so no pending order is lost!
         """
         today = date.today()
-        self.db.query(ShopQueue).filter(ShopQueue.queue_date < today).delete(synchronize_session=False)
+        self.db.query(ShopQueue).filter(
+            ShopQueue.queue_date < today,
+            ShopQueue.queue_state.in_([QueueState.SERVED, QueueState.REJECTED])
+        ).delete(synchronize_session=False)
         self.db.commit()
 
     def create_queue_entry(
