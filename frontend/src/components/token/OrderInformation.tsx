@@ -21,6 +21,8 @@ interface DocumentDetail {
   file_name: string;
   copies: number;
   page_count: number;
+  custom_pages?: string;
+  printable_page_count?: number;
   paper_size?: string;
   print_type?: string;
   print_side?: string;

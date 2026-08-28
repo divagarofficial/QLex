@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import OrderProgressBar from "@/components/orders/OrderProgressBar";
 import UploadSection from "@/components/orders/UploadSection";
-import PrintOptions from "@/components/orders/PrintOptions";
+import PrintOptions, { getPrintablePageCount } from "@/components/orders/PrintOptions";
 import type { DocPrintSettings } from "@/components/orders/PrintOptions";
 import ReviewSection from "@/components/orders/ReviewSection";
 import PaymentSection from "@/components/orders/PaymentSection";
