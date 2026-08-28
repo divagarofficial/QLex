@@ -270,7 +270,11 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
             color_type = "Color" if is_color else "B&W"
             side_type = "Duplex" if is_duplex else "Single Sided"
             specs_str = f"{paper_size} • {color_type} • {side_type}"
-            qty_str = f"{copies} copy • {pages} pgs" if copies == 1 else f"{copies} copies • {pages} pgs"
+            if cp and str(cp).upper() != "ALL":
+                specs_str += f"<br/><font color='#D97706'><b>Range: {cp}</b></font>"
+                qty_str = f"{copies} copy • {pages} printed pgs" if copies == 1 else f"{copies} copies • {pages} printed pgs"
+            else:
+                qty_str = f"{copies} copy • {pages} pgs" if copies == 1 else f"{copies} copies • {pages} pgs"
 
             table_rows.append([
                 Paragraph(f"{idx:02d}", body_label),

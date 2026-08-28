@@ -89,8 +89,9 @@ export default function NextOrderCard({
   // Estimated print time (roughly 3 seconds per page + 10s setup)
   const estMinutes = Math.max(1, Math.ceil((totalPages * 3 + 10) / 60));
 
-  const isPrinting = orderItem.queue_state === "PRINTING";
-  const isReady = orderItem.queue_state === "READY";
+  const qs = (orderItem.queue_state || "").toUpperCase();
+  const isPrinting = qs === "PRINTING";
+  const isReady = qs === "READY" || qs === "READY_FOR_PICKUP";
   const studentRegisterNo = `REG-${orderItem.student_id.slice(0, 8).toUpperCase()}`;
 
   const handleDownload = () => {

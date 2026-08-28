@@ -96,15 +96,23 @@ export default function SatelliteShopDashboard() {
 
   // Determine HERO Order for Satellite Hub
   const activeQueueOrders = todaysOrders.filter(
-    (o) => o.queue_state !== "SERVED" && o.queue_state !== "REJECTED" && (o.token?.startsWith("S-") || (o as any).shop_name?.includes("Satellite"))
+    (o) => {
+      const qs = (o.queue_state || "").toUpperCase();
+      return qs !== "SERVED" && qs !== "REJECTED" && (o.token?.startsWith("S-") || (o as any).shop_name?.includes("Satellite"));
+    }
   );
 
-  let heroOrder = activeQueueOrders.find(
-    (o) => o.queue_state === "PRINTING" || o.queue_state === "READY" || o.queue_state === "READY_FOR_PICKUP"
-  );
+  let heroOrder = activeQueueOrders.find((o) => {
+    const qs = (o.queue_state || "").toUpperCase();
+    return qs === "PRINTING" || qs === "READY" || qs === "READY_FOR_PICKUP";
+  });
 
   if (!heroOrder) {
-    heroOrder = activeQueueOrders.find((o) => o.is_current && o.queue_state === "WAITING");
+    heroOrder = activeQueueOrders.find((o) => o.is_current && (o.queue_state || "").toUpperCase() === "WAITING");
+  }
+
+  if (!heroOrder) {
+    heroOrder = activeQueueOrders.find((o) => (o.queue_state || "").toUpperCase() === "WAITING");
   }
 
   if (!heroOrder && activeQueueOrders.length > 0) {

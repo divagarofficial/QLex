@@ -127,23 +127,27 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
   // 1. Any order currently PRINTING or READY (stay on Hero card until served)
   // 2. Current active WAITING order (is_current == true)
   const activeQueueOrders = todaysOrders.filter(
-    (o) => o.queue_state !== "SERVED" && o.queue_state !== "REJECTED" && !o.token?.startsWith("S-")
+    (o) => {
+      const qs = (o.queue_state || "").toUpperCase();
+      return qs !== "SERVED" && qs !== "REJECTED" && !o.token?.startsWith("S-");
+    }
   );
 
-  let heroOrder = activeQueueOrders.find(
-    (o) => o.queue_state === "PRINTING" || o.queue_state === "READY" || o.queue_state === "READY_FOR_PICKUP"
-  );
+  let heroOrder = activeQueueOrders.find((o) => {
+    const qs = (o.queue_state || "").toUpperCase();
+    return qs === "PRINTING" || qs === "READY" || qs === "READY_FOR_PICKUP";
+  });
 
   if (!heroOrder) {
-    heroOrder = activeQueueOrders.find((o) => o.is_current && o.queue_state === "WAITING");
+    heroOrder = activeQueueOrders.find((o) => o.is_current && (o.queue_state || "").toUpperCase() === "WAITING");
   }
 
   if (!heroOrder) {
-    heroOrder = activeQueueOrders.find((o) => o.is_priority && o.queue_state === "WAITING");
+    heroOrder = activeQueueOrders.find((o) => o.is_priority && (o.queue_state || "").toUpperCase() === "WAITING");
   }
 
   if (!heroOrder) {
-    heroOrder = activeQueueOrders.find((o) => !o.is_priority && o.queue_state === "WAITING");
+    heroOrder = activeQueueOrders.find((o) => !o.is_priority && (o.queue_state || "").toUpperCase() === "WAITING");
   }
 
   if (!heroOrder && activeQueueOrders.length > 0) {

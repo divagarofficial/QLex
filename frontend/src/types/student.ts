@@ -65,6 +65,8 @@ export interface OrderDocumentResponse {
   file_name: string;
   copies: number;
   page_count: number;
+  custom_pages?: string | null;
+  printable_page_count?: number;
   paper_size: string;
   print_type: string;
   print_side: string;

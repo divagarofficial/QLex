@@ -15,6 +15,7 @@ import ReceiptModal from "@/components/token/ReceiptModal";
 import SkeletonLoader from "@/components/token/SkeletonLoader";
 import Popup from "@/components/popup/Popup";
 
+import { getPrintablePageCount } from "@/components/orders/PrintOptions";
 import type { OrderDetailsResponse } from "@/types/student";
 
 export default function StudentOrderDetailClient({ orderId }: { orderId: string }) {
@@ -266,8 +267,13 @@ export default function StudentOrderDetailClient({ orderId }: { orderId: string 
                           >
                             <div>
                               <div className="font-semibold text-white/90">{doc.file_name}</div>
-                              <div className="text-white/40 mt-0.5">
-                                {doc.print_type} • {doc.print_side} • {doc.paper_size} • {doc.copies} Copies ({doc.page_count} pages)
+                              <div className="text-white/50 mt-1 flex flex-wrap items-center gap-2">
+                                <span>{doc.print_type} • {doc.print_side} • {doc.paper_size} • {doc.copies} Copies ({doc.page_count} PDF pages)</span>
+                                {doc.custom_pages && doc.custom_pages !== "ALL" && (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-400/10 px-2 py-0.5 font-mono text-[11px] font-bold text-amber-300 border border-amber-400/20">
+                                    Range: {doc.custom_pages} ({doc.printable_page_count ?? getPrintablePageCount(doc.custom_pages, doc.page_count)} printed pages)
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="font-mono font-bold text-emerald-400 text-sm">

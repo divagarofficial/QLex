@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import type { MyOrderItem, OrderDetailsResponse, OrderDocumentResponse } from "@/types/student";
+import { getPrintablePageCount } from "@/components/orders/PrintOptions";
 
 interface ReceiptPDFInput {
   order: MyOrderItem;
@@ -314,14 +315,18 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
     doc.setFont("helvetica", "bold");
     doc.text(fileNameStr, margin + 12, y + 6);
 
-    // Specs
+    // Specs & Printable Pages
     doc.setFont("helvetica", "normal");
     doc.setTextColor(71, 85, 105);
-    const optsStr = `${docItem.paper_size || "A4"} • ${docItem.print_type || "B&W"} • ${docItem.print_side || "Duplex"}`;
+    const printablePages = docItem.printable_page_count ?? (docItem.custom_pages ? getPrintablePageCount(docItem.custom_pages, docItem.page_count) : (docItem.page_count || 1));
+    let optsStr = `${docItem.paper_size || "A4"} • ${docItem.print_type || "B&W"} • ${docItem.print_side || "Duplex"}`;
+    if (docItem.custom_pages && docItem.custom_pages !== "ALL") {
+      optsStr += ` [Range: ${docItem.custom_pages}]`;
+    }
     doc.text(optsStr, margin + 90, y + 6);
 
     // Qty
-    const qtyStr = `${docItem.copies || 1} copy • ${docItem.page_count || 1} pgs`;
+    const qtyStr = `${docItem.copies || 1} copy • ${printablePages} pgs`;
     doc.text(qtyStr, margin + 140, y + 6);
 
     // Amount

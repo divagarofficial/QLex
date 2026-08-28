@@ -463,17 +463,26 @@ export default function ShopOrdersPage() {
   );
 
   const priorityList = useMemo(
-    () => sortedOrders.filter((o) => o.is_priority && !o.token.startsWith("S-") && !(o as any).shop_name?.includes("Satellite") && o.queue_state !== "SERVED" && o.queue_state !== "COMPLETED"),
+    () => sortedOrders.filter((o) => {
+      const qs = (o.queue_state || "").toUpperCase();
+      return o.is_priority && !o.token.startsWith("S-") && !(o as any).shop_name?.includes("Satellite") && qs !== "SERVED" && qs !== "COMPLETED" && qs !== "REJECTED";
+    }),
     [sortedOrders]
   );
 
   const regularList = useMemo(
-    () => sortedOrders.filter((o) => !o.is_priority && !o.token.startsWith("S-") && !(o as any).shop_name?.includes("Satellite") && o.queue_state !== "SERVED" && o.queue_state !== "COMPLETED"),
+    () => sortedOrders.filter((o) => {
+      const qs = (o.queue_state || "").toUpperCase();
+      return !o.is_priority && !o.token.startsWith("S-") && !(o as any).shop_name?.includes("Satellite") && qs !== "SERVED" && qs !== "COMPLETED" && qs !== "REJECTED";
+    }),
     [sortedOrders]
   );
 
   const completedList = useMemo(
-    () => enrichedOrders.filter((o) => o.queue_state === "SERVED" || o.queue_state === "COMPLETED"),
+    () => enrichedOrders.filter((o) => {
+      const qs = (o.queue_state || "").toUpperCase();
+      return qs === "SERVED" || qs === "COMPLETED";
+    }),
     [enrichedOrders]
   );
 

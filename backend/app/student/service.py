@@ -306,6 +306,7 @@ class StudentService:
         est = calculate_order_estimated_time(self.repository.db, order)
         est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
 
+        from app.utils.pdf import get_printable_page_count
         return {
             "order_id": order.id,
             "token": token_str,
@@ -365,6 +366,9 @@ class StudentService:
         "page_count": (
             doc.page_count
         ),
+
+        "custom_pages": doc.custom_pages,
+        "printable_page_count": get_printable_page_count(doc.custom_pages, doc.page_count),
 
         "paper_size": (
             doc.paper_size.value

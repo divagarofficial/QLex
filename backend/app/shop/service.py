@@ -114,7 +114,7 @@ class ShopService:
 
             order = queue.order
             student = getattr(order, "student", None) if order else None
-            q_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
+            q_state = (queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)).upper()
             
             est = calculate_order_estimated_time(self.repository.db, order) if order else {"estimated_wait_minutes": 0, "estimated_completion_time": None}
             est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
@@ -174,6 +174,7 @@ class ShopService:
             )
 
         from app.shop.queue_service import ShopQueueService
+        from app.utils.pdf import get_printable_page_count
         queue_service = ShopQueueService(self.repository.db)
         queue = queue_service.create_queue_entry(order)
         token = queue.token if queue else ""
@@ -196,6 +197,7 @@ class ShopService:
                     }
                 )
 
+            printable_cnt = get_printable_page_count(document.custom_pages, document.page_count)
             documents.append(
                 {
                     "id": document.id,
@@ -203,6 +205,8 @@ class ShopService:
                     "stored_filename": document.stored_filename,
                     "url": document.url,
                     "page_count": document.page_count,
+                    "custom_pages": document.custom_pages,
+                    "printable_page_count": printable_cnt,
                     "copies": document.copies,
                     "print_type": document.print_type,
                     "paper_size": document.paper_size,
