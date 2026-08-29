@@ -81,23 +81,21 @@ export default function SplashOverlay() {
             <div className="absolute bottom-1/3 left-1/4 w-2 h-2 rounded-full bg-amber-300 animate-ping [animation-duration:3.5s]" />
           </div>
 
-          {/* Top Header: RIT Institute Logo */}
+          {/* Top Header: RIT Institute Logo (Transparent, No Box) */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="relative z-10 flex justify-center items-center w-full pt-2"
+            className="relative z-10 flex justify-center items-center w-full pt-4 px-4"
           >
-            <div className="bg-white/95 backdrop-blur-md px-6 py-2.5 rounded-2xl shadow-[0_0_25px_rgba(255,255,255,0.25)] border border-white/30">
-              <Image
-                src="/rit-logo.png"
-                alt="Rajalakshmi Institute of Technology"
-                width={240}
-                height={75}
-                className="object-contain h-12 sm:h-14 w-auto"
-                priority
-              />
-            </div>
+            <Image
+              src="/rit-logo.png"
+              alt="Rajalakshmi Institute of Technology"
+              width={340}
+              height={120}
+              className="object-contain h-14 sm:h-20 w-auto filter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+              priority
+            />
           </motion.div>
 
           {/* Center Royal Artifact & Empire Titles */}
