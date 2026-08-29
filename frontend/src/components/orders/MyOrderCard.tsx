@@ -150,8 +150,7 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
   const paymentStyle = getPaymentStyle(order.payment_status);
 
   // Check token type
-  const isSatelliteToken = order.token ? order.token.startsWith("S-") : false;
-  const isPriorityToken = order.token ? order.token.startsWith("P-") : false;
+  const isPriorityToken = order.is_priority || (order.token ? order.token.startsWith("P-") : false);
 
   // Formatted date & time
   const createdDate = new Date(order.created_at);
@@ -222,17 +221,12 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
                 <span className="font-mono text-base font-bold text-white tracking-wide">
                   Order #{order.order_id.slice(0, 8)}
                 </span>
-                {isSatelliteToken ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-400/30 px-2 py-0.5 text-[10px] font-bold text-purple-300">
-                    <ShieldCheck size={10} />
-                    SATELLITE
-                  </span>
-                ) : isPriorityToken ? (
+                {isPriorityToken && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
                     <Sparkles size={10} />
                     PRIORITY
                   </span>
-                ) : null}
+                )}
               </div>
               <p className="mt-0.5 text-xs text-white/40">
                 Created on {dateFormatted} at {timeFormatted}
@@ -320,22 +314,18 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
                 if (status === "rejected") return "Rejected";
                 if (status === "payment_failed") return "Payment Failed";
 
-                // Active statuses (paid, waiting, accepted, printing, draft, pending_payment)
+                // Safeguard: Check if order is from a previous day
+                const now = new Date();
+                const isPreviousDay = createdDate.toDateString() !== now.toDateString() && createdDate < now;
+                if (isPreviousDay) {
+                  return "Expired";
+                }
+
+                // Active orders from today only
                 if (order.estimated_completion_time) {
                   const compDate = new Date(order.estimated_completion_time);
-                  if (!isNaN(compDate.getTime())) {
-                    const now = new Date();
-                    const isToday = compDate.toDateString() === now.toDateString();
-                    if (isToday) {
-                      return `Ready ~${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-                    } else if (compDate > now) {
-                      return `Ready ~${compDate.toLocaleDateString([], { month: "short", day: "numeric" })}, ${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-                    } else {
-                      // Past date safeguard
-                      return order.estimated_wait_minutes && order.estimated_wait_minutes > 0
-                        ? `~${order.estimated_wait_minutes} min wait`
-                        : "Ready soon";
-                    }
+                  if (!isNaN(compDate.getTime()) && compDate > now) {
+                    return `Ready ~${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
                   }
                 }
 
@@ -343,9 +333,7 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
                   return `~${order.estimated_wait_minutes} min wait`;
                 }
 
-                const mins = status === "printing" ? 2 : (order as any).is_priority ? 5 : 10;
-                const comp = new Date(Date.now() + mins * 60000);
-                return `Ready ~${comp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                return status === "printing" ? "Printing..." : "Queued";
               })()}
             </p>
           </div>

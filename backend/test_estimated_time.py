@@ -41,11 +41,18 @@ def test_yesterday_active_order_estimated_time():
 
     res = calculate_order_estimated_time(db, order)
 
+    assert res["estimated_wait_minutes"] == 0
+    assert res["estimated_completion_time"] is None
+
+def test_today_active_order_estimated_time():
+    now = datetime.utcnow()
+    order = DummyOrder(id="order-789", created_at=now, status=OrderStatus.PAID)
+    db = DummySession()
+
+    res = calculate_order_estimated_time(db, order)
+
     assert res["estimated_wait_minutes"] >= 1
     assert res["estimated_completion_time"] is not None
-    # Verify completion time is in the future relative to current UTC time (not set to yesterday!)
-    now = datetime.utcnow()
-    assert res["estimated_completion_time"] >= now - timedelta(seconds=5)
 
 def test_completed_order_estimated_time():
     yesterday = datetime.utcnow() - timedelta(days=1)
@@ -55,4 +62,4 @@ def test_completed_order_estimated_time():
     res = calculate_order_estimated_time(db, order)
 
     assert res["estimated_wait_minutes"] == 0
-    assert res["estimated_completion_time"] == yesterday
+    assert res["estimated_completion_time"] is None

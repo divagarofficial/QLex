@@ -137,6 +137,7 @@ class StudentRepository:
     ):
         from app.shop.queue_service import ShopQueueService
         queue_service = ShopQueueService(self.db)
+        queue_service.cleanup_previous_days_queue()
 
         orders = (
             self.db.query(Order)
@@ -145,8 +146,15 @@ class StudentRepository:
             .all()
         )
 
+        today = date.today()
         result = []
         for order in orders:
+            # Mark uncompleted past-day orders as expired
+            if order.created_at and hasattr(order.created_at, "date") and order.created_at.date() < today:
+                if order.status in [OrderStatus.PAID, OrderStatus.ACCEPTED, OrderStatus.PRINTING, OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT]:
+                    order.status = OrderStatus.EXPIRED
+                    self.db.commit()
+
             queue = (
                 self.db.query(ShopQueue)
                 .filter(
@@ -155,13 +163,17 @@ class StudentRepository:
                 .first()
             )
             from app.enums.payment_status import PaymentStatus
-            if not queue and order.status not in [OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT, OrderStatus.CANCELLED, OrderStatus.EXPIRED, OrderStatus.PAYMENT_FAILED] and getattr(order, "payment_status", None) == PaymentStatus.PAID and order.created_at and hasattr(order.created_at, "date") and order.created_at.date() == date.today():
+            if not queue and order.status not in [OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT, OrderStatus.CANCELLED, OrderStatus.EXPIRED, OrderStatus.PAYMENT_FAILED] and getattr(order, "payment_status", None) == PaymentStatus.PAID and order.created_at and hasattr(order.created_at, "date") and order.created_at.date() == today:
                 queue = queue_service.create_queue_entry(order)
             token = queue.token if queue else None
 
+            # Skip staff tokens or satellite shop tokens for student views if any remain
+            if token and token.startswith("S-"):
+                continue
+
             if not token and getattr(order, "payment_status", None) == PaymentStatus.PAID:
                 prefix = "P" if order.is_priority else "R"
-                target_date = order.created_at.date() if (order.created_at and hasattr(order.created_at, "date")) else date.today()
+                target_date = order.created_at.date() if (order.created_at and hasattr(order.created_at, "date")) else today
                 seq_num = (
                     self.db.query(Order)
                     .filter(

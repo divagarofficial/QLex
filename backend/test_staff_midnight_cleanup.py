@@ -1,6 +1,6 @@
 import sys
 import os
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from uuid import uuid4
 from decimal import Decimal
 
@@ -42,7 +42,8 @@ def test_staff_midnight_cleanup():
         db.commit()
 
     # 2. Simulate a Staff Order created YESTERDAY (queue_date < today)
-    yesterday = date.today() - timedelta(days=1)
+    yesterday_dt = datetime.utcnow() - timedelta(days=1)
+    yesterday = yesterday_dt.date()
     past_order = Order(
         id=uuid4(),
         student_id=staff.id,
@@ -51,7 +52,8 @@ def test_staff_midnight_cleanup():
         payment_status=PaymentStatus.PAID,
         is_priority=False,
         subtotal=Decimal("0.00"),
-        grand_total=Decimal("0.00")
+        grand_total=Decimal("0.00"),
+        created_at=yesterday_dt
     )
     db.add(past_order)
     db.commit()

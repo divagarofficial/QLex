@@ -36,7 +36,7 @@ class ShopQueueService:
             self.db.query(Order)
             .filter(
                 func.date(Order.created_at) < today,
-                Order.status.in_([OrderStatus.PAID, OrderStatus.ACCEPTED, OrderStatus.PRINTING])
+                Order.status.in_([OrderStatus.PAID, OrderStatus.ACCEPTED, OrderStatus.PRINTING, OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT])
             )
             .all()
         )

@@ -24,29 +24,8 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
 
         if not order:
             return {
-                "estimated_wait_minutes": 5,
-                "estimated_completion_time": now + timedelta(minutes=5),
-            }
-
-        status_str = (
-            order.status.value if hasattr(order.status, "value") else str(order.status)
-        ).upper()
-
-        # Terminal states -> 0 wait time
-        if status_str in [
-            "COMPLETED",
-            "SERVED",
-            "READY_FOR_PICKUP",
-            "READY",
-            "CANCELLED",
-            "EXPIRED",
-            "REJECTED",
-            "PAYMENT_FAILED",
-        ]:
-            comp_time = order.updated_at or order.created_at or now
-            return {
                 "estimated_wait_minutes": 0,
-                "estimated_completion_time": comp_time,
+                "estimated_completion_time": None,
             }
 
         def to_naive_utc(dt):
@@ -57,6 +36,41 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
             return dt
 
         order_created_naive = to_naive_utc(order.created_at)
+        order_date = order_created_naive.date() if order_created_naive else today
+
+        # Previous day's orders must be expired and return 0 wait time / None completion
+        if order_date < today:
+            if hasattr(order, "status") and order.status in [OrderStatus.PAID, OrderStatus.ACCEPTED, OrderStatus.PRINTING, OrderStatus.DRAFT, OrderStatus.PENDING_PAYMENT]:
+                try:
+                    order.status = OrderStatus.EXPIRED
+                    db.commit()
+                except Exception:
+                    pass
+            return {
+                "estimated_wait_minutes": 0,
+                "estimated_completion_time": None,
+            }
+
+        status_str = (
+            order.status.value if hasattr(order.status, "value") else str(order.status)
+        ).upper()
+
+        # Terminal / Non-active states -> 0 wait time, None completion time
+        if status_str in [
+            "COMPLETED",
+            "SERVED",
+            "READY_FOR_PICKUP",
+            "READY",
+            "CANCELLED",
+            "EXPIRED",
+            "REJECTED",
+            "PAYMENT_FAILED",
+            "DRAFT",
+        ]:
+            return {
+                "estimated_wait_minutes": 0,
+                "estimated_completion_time": None,
+            }
 
         # Fetch shop queue entry if present
         queue = getattr(order, "shop_queue", None)
@@ -125,6 +139,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
                 db.query(ShopQueue)
                 .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
+                    ShopQueue.queue_date == today,
                     ShopQueue.queue_type == QueueType.SATELLITE,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -138,6 +153,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
                 db.query(ShopQueue)
                 .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
+                    ShopQueue.queue_date == today,
                     ShopQueue.queue_type == QueueType.PRIORITY,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -151,6 +167,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
                 db.query(ShopQueue)
                 .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
+                    ShopQueue.queue_date == today,
                     ShopQueue.queue_type == QueueType.PRIORITY,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -160,6 +177,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
                 db.query(ShopQueue)
                 .join(Order, ShopQueue.order_id == Order.id)
                 .filter(
+                    ShopQueue.queue_date == today,
                     ShopQueue.queue_type == QueueType.REGULAR,
                     ShopQueue.queue_state.in_([QueueState.WAITING, QueueState.PRINTING]),
                 )
@@ -209,10 +227,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
             "estimated_completion_time": completion_time,
         }
     except Exception:
-        # High-reliability fallback
-        now = datetime.utcnow()
-        default_mins = 5 if getattr(order, "is_priority", False) else 10
         return {
-            "estimated_wait_minutes": default_mins,
-            "estimated_completion_time": now + timedelta(minutes=default_mins),
+            "estimated_wait_minutes": 0,
+            "estimated_completion_time": None,
         }
