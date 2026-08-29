@@ -65,7 +65,6 @@ class ShopQueueService:
         if hasattr(order, "payment_status") and order.payment_status != PaymentStatus.PAID:
             return None
 
-        target_shop = getattr(order, "shop_name", "") or ""
         from app.models.user import User
         from app.enums.user_role import UserRole
 
@@ -75,19 +74,21 @@ class ShopQueueService:
 
         is_staff_user = student and getattr(student, "role", None) == UserRole.STAFF
 
-        if "Satellite" in target_shop or is_staff_user:
+        if is_staff_user:
             order.shop_name = "QLex Satellite Print Hub"
             queue_type = QueueType.SATELLITE
             queue_number = self.counter_service.next_number(QueueType.SATELLITE)
             token = f"S-{queue_number}"
-        elif getattr(order, "is_priority", False):
-            queue_type = QueueType.PRIORITY
-            queue_number = self.counter_service.next_number(queue_type)
-            token = f"P-{queue_number}"
         else:
-            queue_type = QueueType.REGULAR
-            queue_number = self.counter_service.next_number(queue_type)
-            token = f"R-{queue_number}"
+            order.shop_name = "QLex Central Print Hub"
+            if getattr(order, "is_priority", False):
+                queue_type = QueueType.PRIORITY
+                queue_number = self.counter_service.next_number(queue_type)
+                token = f"P-{queue_number}"
+            else:
+                queue_type = QueueType.REGULAR
+                queue_number = self.counter_service.next_number(queue_type)
+                token = f"R-{queue_number}"
 
         queue = ShopQueue(
             order_id=order.id,

@@ -48,12 +48,11 @@ class ShopRepository:
         )
         if shop_name == "QLex Central Print Hub":
             query = query.filter(
-                Order.shop_name == "QLex Central Print Hub",
                 (User.role != UserRole.STAFF) | (User.role == None)
             )
         elif shop_name == "QLex Satellite Print Hub":
             query = query.filter(
-                (Order.shop_name == "QLex Satellite Print Hub") | (User.role == UserRole.STAFF)
+                User.role == UserRole.STAFF
             )
         elif shop_name:
             query = query.filter(Order.shop_name == shop_name)
@@ -93,12 +92,11 @@ class ShopRepository:
         )
         if shop_name == "QLex Central Print Hub":
             query = query.filter(
-                Order.shop_name == "QLex Central Print Hub",
                 (User.role != UserRole.STAFF) | (User.role == None)
             )
         elif shop_name == "QLex Satellite Print Hub":
             query = query.filter(
-                (Order.shop_name == "QLex Satellite Print Hub") | (User.role == UserRole.STAFF)
+                User.role == UserRole.STAFF
             )
         elif shop_name:
             query = query.filter(Order.shop_name == shop_name)

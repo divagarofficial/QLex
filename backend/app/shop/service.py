@@ -547,13 +547,11 @@ class ShopService:
 
         if shop_name == "QLex Central Print Hub":
             query = query.filter(
-                Order.shop_name == "QLex Central Print Hub",
                 ShopQueue.queue_type != QueueType.SATELLITE,
                 ~ShopQueue.token.like("S-%")
             )
         elif shop_name == "QLex Satellite Print Hub":
             query = query.filter(
-                (Order.shop_name == "QLex Satellite Print Hub") |
                 (ShopQueue.queue_type == QueueType.SATELLITE) |
                 (ShopQueue.token.like("S-%"))
             )
