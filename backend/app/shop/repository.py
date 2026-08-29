@@ -28,6 +28,7 @@ class ShopRepository:
             )
             .outerjoin(User, Order.student_id == User.id)
             .filter(
+                func.date(Order.created_at) == date.today(),
                 Order.payment_status == PaymentStatus.PAID,
                 Order.status.in_(
                     [

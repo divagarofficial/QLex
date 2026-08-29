@@ -22,39 +22,31 @@ class ShopQueueService:
 
     def cleanup_previous_days_queue(self):
         """
-        Auto-purges queue entries from previous days (queue_date < date.today()).
-        - Staff/Satellite order queue MUST vanish at 12 AM midnight everyday:
-          Purges ALL previous days' Satellite queue entries (QueueType.SATELLITE / S-% token)
-          and marks active staff orders from previous days as EXPIRED.
-        - Deletes SERVED or REJECTED queue entries from previous days.
+        Auto-purges queue entries and active orders from previous days (created_at < date.today() or queue_date < date.today()).
+        - All uncompleted orders from previous days are marked EXPIRED so they do not carry over to today's queue.
+        - Deletes all previous days' queue entries (queue_date < date.today()).
         """
         from app.enums.order_status import OrderStatus
+        from app.models.order import Order
+        from sqlalchemy import func
         today = date.today()
 
-        # 1. Expire active staff orders from previous days (queue_date < today)
-        prev_staff_queues = (
-            self.db.query(ShopQueue)
+        # 1. Expire all uncompleted orders created on previous days (created_at < today)
+        old_active_orders = (
+            self.db.query(Order)
             .filter(
-                ShopQueue.queue_date < today,
-                (ShopQueue.queue_type == QueueType.SATELLITE) | (ShopQueue.token.like("S-%"))
+                func.date(Order.created_at) < today,
+                Order.status.in_([OrderStatus.PAID, OrderStatus.ACCEPTED, OrderStatus.PRINTING])
             )
             .all()
         )
 
-        for sq in prev_staff_queues:
-            if sq.order and sq.order.status in [OrderStatus.PAID, OrderStatus.ACCEPTED, OrderStatus.PRINTING]:
-                sq.order.status = OrderStatus.EXPIRED
+        for o in old_active_orders:
+            o.status = OrderStatus.EXPIRED
 
-        # 2. Delete ALL previous day Satellite queue entries so staff queue vanishes at 12 AM
+        # 2. Delete ALL previous day queue entries so today starts with a clean queue
         self.db.query(ShopQueue).filter(
-            ShopQueue.queue_date < today,
-            (ShopQueue.queue_type == QueueType.SATELLITE) | (ShopQueue.token.like("S-%"))
-        ).delete(synchronize_session=False)
-
-        # 3. Delete SERVED or REJECTED queue entries from previous days
-        self.db.query(ShopQueue).filter(
-            ShopQueue.queue_date < today,
-            ShopQueue.queue_state.in_([QueueState.SERVED, QueueState.REJECTED])
+            ShopQueue.queue_date < today
         ).delete(synchronize_session=False)
 
         self.db.commit()
