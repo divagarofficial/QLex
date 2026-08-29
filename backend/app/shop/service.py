@@ -75,10 +75,11 @@ class ShopService:
 
     def get_orders(self, shop_name: str | None = None):
         self.auto_process_printing_timeouts()
-        orders = self.repository.get_active_orders(shop_name=shop_name)
         from app.shop.queue_service import ShopQueueService
         from app.utils.estimated_time import calculate_order_estimated_time
         queue_service = ShopQueueService(self.repository.db)
+        queue_service.cleanup_previous_days_queue()
+        orders = self.repository.get_active_orders(shop_name=shop_name)
 
         for order in orders:
             queue = queue_service.create_queue_entry(order)

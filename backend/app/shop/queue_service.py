@@ -22,14 +22,41 @@ class ShopQueueService:
 
     def cleanup_previous_days_queue(self):
         """
-        Removes SERVED or REJECTED queue entries from previous days (queue_date < date.today()).
-        Preserves unserved active orders (WAITING/PRINTING/READY) so no pending order is lost!
+        Auto-purges queue entries from previous days (queue_date < date.today()).
+        - Staff/Satellite order queue MUST vanish at 12 AM midnight everyday:
+          Purges ALL previous days' Satellite queue entries (QueueType.SATELLITE / S-% token)
+          and marks active staff orders from previous days as EXPIRED.
+        - Deletes SERVED or REJECTED queue entries from previous days.
         """
+        from app.enums.order_status import OrderStatus
         today = date.today()
+
+        # 1. Expire active staff orders from previous days (queue_date < today)
+        prev_staff_queues = (
+            self.db.query(ShopQueue)
+            .filter(
+                ShopQueue.queue_date < today,
+                (ShopQueue.queue_type == QueueType.SATELLITE) | (ShopQueue.token.like("S-%"))
+            )
+            .all()
+        )
+
+        for sq in prev_staff_queues:
+            if sq.order and sq.order.status in [OrderStatus.PAID, OrderStatus.ACCEPTED, OrderStatus.PRINTING]:
+                sq.order.status = OrderStatus.EXPIRED
+
+        # 2. Delete ALL previous day Satellite queue entries so staff queue vanishes at 12 AM
+        self.db.query(ShopQueue).filter(
+            ShopQueue.queue_date < today,
+            (ShopQueue.queue_type == QueueType.SATELLITE) | (ShopQueue.token.like("S-%"))
+        ).delete(synchronize_session=False)
+
+        # 3. Delete SERVED or REJECTED queue entries from previous days
         self.db.query(ShopQueue).filter(
             ShopQueue.queue_date < today,
             ShopQueue.queue_state.in_([QueueState.SERVED, QueueState.REJECTED])
         ).delete(synchronize_session=False)
+
         self.db.commit()
 
     def create_queue_entry(
