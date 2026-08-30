@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Users, Cpu, Info, Compass } from "lucide-react";
+import { ArrowLeft, Sparkles, Compass } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface CreditsHeaderProps {
@@ -10,54 +10,28 @@ interface CreditsHeaderProps {
   backHref?: string;
 }
 
-const navAnchors = [
-  { href: "#identity", label: "Identity", icon: Sparkles },
-  { href: "#team", label: "Team", icon: Users },
-  { href: "#tech", label: "Tech Stack", icon: Cpu },
-  { href: "#info", label: "Product Info", icon: Info },
-  { href: "#vision", label: "Vision", icon: Compass },
-];
-
 export default function CreditsHeader({
-  title = "Credits & Acknowledgements",
-  subtitle = "The architects, technology stack, and vision powering QLex.",
+  title = "Credits",
+  subtitle = "The people and vision behind QLex.",
   backHref = "/student/dashboard",
 }: CreditsHeaderProps) {
   return (
     <header className="relative flex flex-col items-center text-center pt-2 sm:pt-6">
-      {/* Back Button & Top Navigation */}
-      <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-        <motion.div
-          whileHover={{ x: -4, scale: 1.02 }}
-          whileTap={{ scale: 0.96 }}
+      {/* Back Button */}
+      <motion.div
+        whileHover={{ x: -4, scale: 1.02 }}
+        whileTap={{ scale: 0.96 }}
+        className="mb-8"
+      >
+        <Link
+          href={backHref}
+          className="relative inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/[0.1] backdrop-blur-xl text-sm font-medium text-zinc-300 transition-all duration-300 hover:bg-white/[0.08] hover:border-amber-400/40 hover:text-white hover:shadow-[0_0_25px_rgba(231,200,115,0.18)] focus:outline-none focus:ring-2 focus:ring-amber-400/50 group"
+          aria-label="Back to Dashboard"
         >
-          <Link
-            href={backHref}
-            className="relative inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-white/[0.04] border border-white/[0.1] backdrop-blur-xl text-sm font-medium text-zinc-300 transition-all duration-300 hover:bg-white/[0.08] hover:border-amber-400/40 hover:text-white hover:shadow-[0_0_25px_rgba(231,200,115,0.18)] focus:outline-none focus:ring-2 focus:ring-amber-400/50 group"
-            aria-label="Back to Dashboard"
-          >
-            <ArrowLeft className="w-4 h-4 text-amber-300 transition-transform duration-300 group-hover:-translate-x-1" />
-            <span>Back to Dashboard</span>
-          </Link>
-        </motion.div>
-
-        {/* Quick Nav Anchors */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl max-w-full overflow-x-auto scrollbar-none">
-          {navAnchors.map((item) => {
-            const Icon = item.icon;
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-amber-300 hover:bg-white/[0.06] transition-all duration-200 whitespace-nowrap"
-              >
-                <Icon className="w-3 h-3" />
-                <span>{item.label}</span>
-              </a>
-            );
-          })}
-        </div>
-      </div>
+          <ArrowLeft className="w-4 h-4 text-amber-300 transition-transform duration-300 group-hover:-translate-x-1" />
+          <span>Back to Dashboard</span>
+        </Link>
+      </motion.div>
 
       {/* Decorative Pill Badge */}
       <motion.div
@@ -86,4 +60,3 @@ export default function CreditsHeader({
     </header>
   );
 }
-

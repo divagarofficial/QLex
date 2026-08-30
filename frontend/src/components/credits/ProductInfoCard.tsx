@@ -10,16 +10,12 @@ import {
   Calendar,
   CheckCircle2,
   Info,
-  Copy,
-  Check,
 } from "lucide-react";
-import { toast } from "sonner";
 import GlassCard from "@/components/glass/GlassCard";
 import { PRODUCT_INFO } from "./creditsData";
 
 export default function ProductInfoCard() {
   const [displayDate, setDisplayDate] = useState<string>(PRODUCT_INFO.lastUpdated);
-  const [copiedSpecs, setCopiedSpecs] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -33,25 +29,6 @@ export default function ProductInfoCard() {
       setDisplayDate(PRODUCT_INFO.lastUpdated);
     }
   }, []);
-
-  const handleCopyDiagnostics = () => {
-    const specs = [
-      `Application: ${PRODUCT_INFO.name}`,
-      `Version: ${PRODUCT_INFO.version}`,
-      `Build: ${PRODUCT_INFO.build}`,
-      `Channel: ${PRODUCT_INFO.releaseChannel}`,
-      `Platform: ${PRODUCT_INFO.platform}`,
-      `Status: ${PRODUCT_INFO.status}`,
-      `Last Updated: ${displayDate}`,
-    ].join("\n");
-
-    navigator.clipboard.writeText(specs);
-    setCopiedSpecs(true);
-    toast.success("System info copied!", {
-      description: "Diagnostics copied to clipboard.",
-    });
-    setTimeout(() => setCopiedSpecs(false), 2000);
-  };
 
   const infoItems = [
     {
@@ -95,36 +72,16 @@ export default function ProductInfoCard() {
   ];
 
   return (
-    <section id="info" aria-label="Product Information" className="w-full flex justify-center">
+    <section aria-label="Product Information" className="w-full flex justify-center">
       <div className="w-full max-w-2xl">
         <GlassCard>
           <div className="p-6 sm:p-8 md:p-10">
-            {/* Header with Copy Specs Button */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
-              <div className="flex items-center gap-2">
-                <Info className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                  Product Specifications
-                </h3>
-              </div>
-
-              <button
-                onClick={handleCopyDiagnostics}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-semibold text-zinc-300 hover:text-amber-300 hover:bg-white/[0.08] transition-all duration-200 cursor-pointer"
-                title="Copy all system details"
-              >
-                {copiedSpecs ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5 text-amber-400/80" />
-                    <span>Copy Specs</span>
-                  </>
-                )}
-              </button>
+            {/* Header */}
+            <div className="flex items-center justify-center gap-2 mb-6 text-center">
+              <Info className="w-4 h-4 text-amber-400" />
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                Product Information
+              </h3>
             </div>
 
             {/* Grid of Key-Value Items */}
@@ -176,4 +133,3 @@ export default function ProductInfoCard() {
     </section>
   );
 }
-

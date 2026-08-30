@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Award, GraduationCap, Building2, ExternalLink } from "lucide-react";
+import { Award, GraduationCap, Building2 } from "lucide-react";
 import GlassCard from "@/components/glass/GlassCard";
 import { SPECIAL_THANKS_LIST } from "./creditsData";
 
@@ -22,7 +22,7 @@ export default function SpecialThanks() {
           Special Thanks
         </h3>
         <p className="text-xs sm:text-sm text-zinc-400 max-w-sm mt-1">
-          With deep gratitude for academic mentorship, leadership & encouragement.
+          With deep gratitude for support and academic encouragement.
         </p>
       </div>
 
@@ -36,12 +36,9 @@ export default function SpecialThanks() {
             className="w-full"
           >
             <GlassCard>
-              <div className="relative flex flex-col items-center justify-center p-7 text-center h-full group overflow-hidden">
-                {/* Top Gold Edge Highlight Line */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent group-hover:w-2/3 transition-all duration-500" />
-
+              <div className="flex flex-col items-center justify-center p-7 text-center h-full group">
                 {/* Icon Emblem */}
-                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-white/10 to-white/4 border border-white/15 text-amber-300 mb-4 shadow-xl group-hover:border-amber-400/40 group-hover:scale-105 transition-all">
+                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-white/[0.06] border border-white/[0.12] text-amber-300 mb-4 shadow-xl group-hover:border-amber-400/40 group-hover:scale-105 transition-all">
                   {idx === 0 ? (
                     <GraduationCap className="w-7 h-7 text-amber-300" />
                   ) : (
@@ -56,7 +53,7 @@ export default function SpecialThanks() {
 
                 {/* Subtitle */}
                 {item.subtitle && (
-                  <span className="text-xs text-amber-300/90 font-semibold tracking-wide mb-1">
+                  <span className="text-xs text-amber-300/80 font-semibold tracking-wide mb-1">
                     {item.subtitle}
                   </span>
                 )}
@@ -75,4 +72,3 @@ export default function SpecialThanks() {
     </section>
   );
 }
-
