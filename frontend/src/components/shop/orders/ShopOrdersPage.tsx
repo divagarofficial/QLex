@@ -11,6 +11,7 @@ import type {
   DetailedOrderDocument,
 } from "@/types/shop";
 import { getFileUrl } from "@/utils/fileUrl";
+import { getPrintablePageCount } from "@/components/orders/PrintOptions";
 import {
   fetchTodaysOrders,
   fetchActiveShopOrders,
@@ -163,23 +164,28 @@ export default function ShopOrdersPage() {
           : details?.status ?? "WAITING";
 
         const docs: DetailedOrderDocument[] = details?.documents
-          ? details.documents.map((d: any) => ({
-              id: d.id,
-              original_filename: d.original_filename || "Document.pdf",
-              stored_filename: d.stored_filename || null,
-              page_count: d.page_count || 1,
-              copies: d.copies || 1,
-              print_type: d.print_type || "black_white",
-              paper_size: d.paper_size || "A4",
-              print_side: d.print_side || "single",
-              document_total: d.document_total || 0,
-              url: getFileUrl(d.url, orderId, d.stored_filename || d.original_filename),
-              services: d.services || [],
-            }))
+          ? details.documents.map((d: any) => {
+              const printableCnt = d.printable_page_count ?? getPrintablePageCount(d.custom_pages, d.page_count || 1);
+              return {
+                id: d.id,
+                original_filename: d.original_filename || "Document.pdf",
+                stored_filename: d.stored_filename || null,
+                page_count: d.page_count || 1,
+                custom_pages: d.custom_pages || null,
+                printable_page_count: printableCnt,
+                copies: d.copies || 1,
+                print_type: d.print_type || "black_white",
+                paper_size: d.paper_size || "A4",
+                print_side: d.print_side || "single",
+                document_total: d.document_total || 0,
+                url: getFileUrl(d.url, orderId, d.stored_filename || d.original_filename),
+                services: d.services || [],
+              };
+            })
           : [];
 
         const totalPages = docs.reduce(
-          (acc, d) => acc + (d.page_count || 1) * (d.copies || 1),
+          (acc, d) => acc + (d.printable_page_count ?? d.page_count ?? 1) * (d.copies || 1),
           0
         );
 

@@ -323,9 +323,17 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
 
                 // Active orders from today only
                 if (order.estimated_completion_time) {
-                  const compDate = new Date(order.estimated_completion_time);
-                  if (!isNaN(compDate.getTime()) && compDate > now) {
-                    return `Ready ~${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                  const rawTime = order.estimated_completion_time;
+                  const isoTime = rawTime.endsWith("Z") || rawTime.includes("+") ? rawTime : `${rawTime}Z`;
+                  const compDate = new Date(isoTime);
+                  if (!isNaN(compDate.getTime())) {
+                    const isToday = compDate.toDateString() === now.toDateString();
+                    if (isToday && compDate > now) {
+                      return `Ready ~${compDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+                    } else if (isToday) {
+                      const mins = order.estimated_wait_minutes && order.estimated_wait_minutes > 0 ? order.estimated_wait_minutes : 5;
+                      return `~${mins} min wait`;
+                    }
                   }
                 }
 
@@ -333,7 +341,8 @@ export default function MyOrderCard({ order, isActive = false }: MyOrderCardProp
                   return `~${order.estimated_wait_minutes} min wait`;
                 }
 
-                return status === "printing" ? "Printing..." : "Queued";
+                if (status === "printing") return "Printing...";
+                return "~5 min wait";
               })()}
             </p>
           </div>

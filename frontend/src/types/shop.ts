@@ -38,6 +38,8 @@ export interface ShopDocumentItem {
   original_filename: string;
   stored_filename?: string | null;
   page_count: number;
+  custom_pages?: string | null;
+  printable_page_count?: number;
   copies: number;
   print_type: "BLACK_AND_WHITE" | "COLOR" | "BLACK_WHITE";
   paper_size: "A4" | "A3" | string;
@@ -130,6 +132,8 @@ export interface DetailedOrderDocument {
   original_filename: string;
   stored_filename?: string | null;
   page_count: number;
+  custom_pages?: string | null;
+  printable_page_count?: number;
   copies: number;
   print_type: "BLACK_AND_WHITE" | "COLOR" | "BLACK_WHITE" | "colour" | "black_white";
   paper_size: "A4" | "A3" | string;

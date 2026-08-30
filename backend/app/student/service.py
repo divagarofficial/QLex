@@ -147,7 +147,8 @@ class StudentService:
         from app.utils.estimated_time import calculate_order_estimated_time
         est_time = calculate_order_estimated_time(self.repository.db, latest_order)
         estimated_wait = est_time["estimated_wait_minutes"]
-        estimated_completion_iso = est_time["estimated_completion_time"].isoformat() if est_time["estimated_completion_time"] else None
+        est_dt = est_time.get("estimated_completion_time")
+        estimated_completion_iso = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
 
         return {
             "token": token_str,
@@ -234,7 +235,8 @@ class StudentService:
             )
 
             est = calculate_order_estimated_time(self.repository.db, order)
-            est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+            est_dt = est.get("estimated_completion_time")
+            est_comp_iso = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
 
             result.append(
                 {
@@ -304,7 +306,8 @@ class StudentService:
 
         from app.utils.estimated_time import calculate_order_estimated_time
         est = calculate_order_estimated_time(self.repository.db, order)
-        est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+        est_dt = est.get("estimated_completion_time")
+        est_comp_iso = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
 
         from app.utils.pdf import get_printable_page_count
         return {

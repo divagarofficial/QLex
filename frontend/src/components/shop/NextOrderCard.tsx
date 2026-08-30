@@ -79,7 +79,7 @@ export default function NextOrderCard({
   // Derive aggregate metrics from details documents
   const documents = details?.documents || [];
   const docCount = documents.length || orderItem.documents || 1;
-  const totalPages = documents.reduce((sum, d) => sum + d.page_count * d.copies, 0) || docCount * 2;
+  const totalPages = documents.reduce((sum, d) => sum + (d.printable_page_count || d.page_count) * d.copies, 0) || docCount * 2;
   const copiesCount = documents.reduce((max, d) => Math.max(max, d.copies), 1);
   const primaryPrintType = documents[0]?.print_type === "COLOR" ? "Color" : "Black & White";
   const primaryPaperSize = documents[0]?.paper_size || "A4";
@@ -261,7 +261,7 @@ export default function NextOrderCard({
                       {doc.original_filename}
                     </span>
                     <span className="text-[11px] text-zinc-400 shrink-0">
-                      ({doc.page_count} pages • {doc.copies} copy)
+                      ({doc.printable_page_count || doc.page_count} pages{doc.custom_pages && doc.custom_pages.trim().toUpperCase() !== "ALL" ? ` • Range: ${doc.custom_pages}` : ""} • {doc.copies} copy)
                     </span>
                   </div>
 

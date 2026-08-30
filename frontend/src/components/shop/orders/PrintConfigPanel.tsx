@@ -73,6 +73,22 @@ export default function PrintConfigPanel({
         : "single"
     );
     setCopies(document.copies || 1);
+
+    if (document.custom_pages) {
+      const mode = document.custom_pages.trim().toUpperCase();
+      if (mode === "ALL") {
+        setRangeMode("ALL");
+      } else if (mode === "ODD") {
+        setRangeMode("ODD");
+      } else if (mode === "EVEN") {
+        setRangeMode("EVEN");
+      } else {
+        setRangeMode("CUSTOM");
+        setCustomRangeInput(document.custom_pages);
+      }
+    } else {
+      setRangeMode("ALL");
+    }
   }, [document]);
 
   // Calculate printable pages based on Custom Range Mode

@@ -224,16 +224,22 @@ export default function OrderCard({
             Files in Order:
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {order.documents.map((doc) => (
-              <span
-                key={doc.id}
-                className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-zinc-300 font-mono"
-              >
-                <FileText className="h-3 w-3 text-amber-400/80" />
-                <span className="max-w-[180px] truncate">{doc.original_filename}</span>
-                <span className="text-zinc-400">({doc.page_count}p)</span>
-              </span>
-            ))}
+            {order.documents.map((doc) => {
+              const hasCustom = doc.custom_pages && doc.custom_pages.trim().toUpperCase() !== "ALL";
+              const pCount = doc.printable_page_count || doc.page_count;
+              return (
+                <span
+                  key={doc.id}
+                  className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-zinc-300 font-mono"
+                >
+                  <FileText className="h-3 w-3 text-amber-400/80" />
+                  <span className="max-w-[180px] truncate">{doc.original_filename}</span>
+                  <span className="text-zinc-400">
+                    ({pCount}p{hasCustom ? ` • Pages: ${doc.custom_pages}` : ""})
+                  </span>
+                </span>
+              );
+            })}
           </div>
         </div>
       )}

@@ -190,6 +190,8 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
 
         total_wait_seconds = 0
 
+        from app.utils.pdf import get_printable_page_count
+
         # Calculate print time for all orders ahead (strictly today's orders)
         for q_ahead in queues_ahead:
             ahead_order = getattr(q_ahead, "order", None)
@@ -199,7 +201,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
             pages_ahead = 0
             if ahead_order and getattr(ahead_order, "documents", None):
                 for doc in ahead_order.documents:
-                    p = getattr(doc, "page_count", 1) or 1
+                    p = get_printable_page_count(getattr(doc, "custom_pages", None), getattr(doc, "page_count", 1) or 1)
                     c = getattr(doc, "copies", 1) or 1
                     pages_ahead += p * c
             else:
@@ -211,7 +213,7 @@ def calculate_order_estimated_time(db: Session, order: Order) -> dict:
         my_pages = 0
         if getattr(order, "documents", None):
             for doc in order.documents:
-                p = getattr(doc, "page_count", 1) or 1
+                p = get_printable_page_count(getattr(doc, "custom_pages", None), getattr(doc, "page_count", 1) or 1)
                 c = getattr(doc, "copies", 1) or 1
                 my_pages += p * c
         else:

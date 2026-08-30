@@ -210,7 +210,9 @@ export default function StudentOrderDetailClient({ orderId }: { orderId: string 
                       if (status === "payment_failed") return "Payment Failed";
 
                       if (order.estimated_completion_time) {
-                        const compDate = new Date(order.estimated_completion_time);
+                        const rawTime = order.estimated_completion_time;
+                        const isoTime = rawTime.endsWith("Z") || rawTime.includes("+") ? rawTime : `${rawTime}Z`;
+                        const compDate = new Date(isoTime);
                         if (!isNaN(compDate.getTime())) {
                           const now = new Date();
                           const isToday = compDate.toDateString() === now.toDateString();

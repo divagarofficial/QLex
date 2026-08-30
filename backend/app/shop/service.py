@@ -96,12 +96,14 @@ class ShopService:
 
             est = calculate_order_estimated_time(self.repository.db, order)
             order.estimated_wait_minutes = est["estimated_wait_minutes"]
-            order.estimated_completion_time = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+            est_dt = est.get("estimated_completion_time")
+            order.estimated_completion_time = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
 
         return orders
     
     def get_todays_orders(self, shop_name: str | None = None):
         self.auto_process_printing_timeouts()
+        self.get_orders(shop_name=shop_name)
 
         queues = (
             self.repository
@@ -118,7 +120,8 @@ class ShopService:
             q_state = (queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)).upper()
             
             est = calculate_order_estimated_time(self.repository.db, order) if order else {"estimated_wait_minutes": 0, "estimated_completion_time": None}
-            est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+            est_dt = est.get("estimated_completion_time")
+            est_comp_iso = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
 
             results.append(
                 {
@@ -237,7 +240,8 @@ class ShopService:
 
         from app.utils.estimated_time import calculate_order_estimated_time
         est = calculate_order_estimated_time(self.repository.db, order)
-        est_comp_iso = est["estimated_completion_time"].isoformat() if est["estimated_completion_time"] else None
+        est_dt = est.get("estimated_completion_time")
+        est_comp_iso = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
 
         return {
 

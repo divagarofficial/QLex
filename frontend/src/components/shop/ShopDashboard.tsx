@@ -18,6 +18,7 @@ import SkeletonLoader from "./SkeletonLoader";
 
 import {
   fetchTodaysOrders,
+  fetchActiveShopOrders,
   fetchTodayRevenue,
   fetchPendingSettlements,
   fetchSettlementHistory,
@@ -82,8 +83,9 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
   const loadDashboardData = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true);
     try {
-      const [ordersRes, revRes, pendRes, histRes, queueRes] = await Promise.all([
+      const [ordersRes, activeRes, revRes, pendRes, histRes, queueRes] = await Promise.all([
         fetchTodaysOrders(activeHub).catch(() => []),
+        fetchActiveShopOrders(activeHub).catch(() => []),
         fetchTodayRevenue(activeHub).catch(() => ({ total_orders: 0, total_revenue: 0 })),
         fetchPendingSettlements().catch(() => []),
         fetchSettlementHistory().catch(() => []),
@@ -94,7 +96,30 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
         })),
       ]);
 
-      setTodaysOrders(ordersRes);
+      // Combine ordersRes and activeRes ensuring no duplicates
+      const orderMap = new Map<string, TodayOrderItem>();
+      ordersRes.forEach((o) => orderMap.set(o.order_id, o));
+      activeRes.forEach((a) => {
+        if (!orderMap.has(a.id)) {
+          orderMap.set(a.id, {
+            token: a.token || `R-1`,
+            order_id: a.id,
+            student_id: a.student_id || "STUDENT",
+            student_name: a.student_name || "Student",
+            register_number: a.register_number,
+            assigned_printer: a.assigned_printer,
+            documents: a.document_count || (a.documents ? a.documents.length : 1),
+            is_priority: a.is_priority,
+            queue_state: (a.queue_state || a.status || "WAITING") as any,
+            is_current: false,
+            created_at: a.created_at,
+            grand_total: a.grand_total,
+            payment_status: a.payment_status,
+          });
+        }
+      });
+
+      setTodaysOrders(Array.from(orderMap.values()));
       setRevenue(revRes);
       setPendingSettlements(pendRes);
       setHistorySettlements(histRes);
@@ -125,11 +150,11 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
 
   // Determine HERO Order to Process:
   // 1. Any order currently PRINTING or READY (stay on Hero card until served)
-  // 2. Current active WAITING order (is_current == true)
+  // 2. Current active WAITING / ACCEPTED order (is_current == true)
   const activeQueueOrders = todaysOrders.filter(
     (o) => {
       const qs = (o.queue_state || "").toUpperCase();
-      return qs !== "SERVED" && qs !== "REJECTED" && !o.token?.startsWith("S-");
+      return qs !== "SERVED" && qs !== "COMPLETED" && qs !== "REJECTED" && qs !== "EXPIRED" && qs !== "CANCELLED" && !o.token?.startsWith("S-");
     }
   );
 
@@ -139,15 +164,15 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
   });
 
   if (!heroOrder) {
-    heroOrder = activeQueueOrders.find((o) => o.is_current && (o.queue_state || "").toUpperCase() === "WAITING");
+    heroOrder = activeQueueOrders.find((o) => o.is_current && ["WAITING", "ACCEPTED", "PAID"].includes((o.queue_state || "").toUpperCase()));
   }
 
   if (!heroOrder) {
-    heroOrder = activeQueueOrders.find((o) => o.is_priority && (o.queue_state || "").toUpperCase() === "WAITING");
+    heroOrder = activeQueueOrders.find((o) => o.is_priority && ["WAITING", "ACCEPTED", "PAID"].includes((o.queue_state || "").toUpperCase()));
   }
 
   if (!heroOrder) {
-    heroOrder = activeQueueOrders.find((o) => !o.is_priority && (o.queue_state || "").toUpperCase() === "WAITING");
+    heroOrder = activeQueueOrders.find((o) => !o.is_priority && ["WAITING", "ACCEPTED", "PAID"].includes((o.queue_state || "").toUpperCase()));
   }
 
   if (!heroOrder && activeQueueOrders.length > 0) {
