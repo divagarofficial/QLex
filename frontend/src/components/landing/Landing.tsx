@@ -32,29 +32,48 @@ export default function Landing() {
 
       {/* ─── HERO — Mobile-first: 75-80vh on mobile, full screen on desktop ─── */}
       <section className="relative flex min-h-[80vh] flex-col items-center justify-start px-6 pt-[5vh] sm:pt-[6vh] md:pt-[8vh]">
-        {/* ─── RIT LOGO — Centered on top of everything ─── */}
+        {/* ─── DUAL LOGOS — Rajalakshmi Institutions Left | RIT Right (Equal Distance from Center) ─── */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="relative mb-6 sm:mb-8 md:mb-10 flex items-center justify-center cursor-default group"
+          className="relative mb-6 sm:mb-8 md:mb-10 flex items-center justify-center w-full max-w-4xl px-4 gap-3 sm:gap-6 md:gap-8 cursor-default group"
         >
-          {/* Soft ambient aura glow behind RIT logo */}
+          {/* Soft ambient aura glow behind logos */}
           <div
-            className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
               background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 75%)",
               filter: "blur(24px)",
             }}
           />
-          <Image
-            src="/rit-logo.png"
-            alt="Rajalakshmi Institute of Technology"
-            width={380}
-            height={120}
-            className="relative h-14 min-[400px]:h-16 sm:h-20 md:h-24 lg:h-28 w-auto object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-transform duration-500 hover:scale-105"
-            priority
-          />
+
+          {/* Left: Rajalakshmi Institutions Logo */}
+          <div className="flex-1 flex justify-end items-center">
+            <Image
+              src="/rajalakshmi-logo.png"
+              alt="Rajalakshmi Institutions"
+              width={300}
+              height={90}
+              className="relative h-10 min-[400px]:h-12 sm:h-16 md:h-20 lg:h-24 w-auto max-w-[140px] min-[400px]:max-w-[180px] sm:max-w-[260px] md:max-w-[320px] object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-transform duration-500 hover:scale-105"
+              priority
+            />
+          </div>
+
+          {/* Subtle Vertical Divider */}
+          <div className="h-8 sm:h-12 md:h-16 w-px bg-gradient-to-b from-transparent via-white/30 to-transparent shrink-0 opacity-70" />
+
+          {/* Right: RIT Logo */}
+          <div className="flex-1 flex justify-start items-center">
+            <Image
+              src="/rit-logo.png"
+              alt="Rajalakshmi Institute of Technology"
+              width={380}
+              height={120}
+              className="relative h-10 min-[400px]:h-12 sm:h-16 md:h-20 lg:h-24 w-auto max-w-[140px] min-[400px]:max-w-[180px] sm:max-w-[260px] md:max-w-[320px] object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-transform duration-500 hover:scale-105"
+              priority
+            />
+          </div>
         </motion.div>
 
         {/* ─── MINDURA TECHNOLOGIES PRESENTS BRANDING ─── */}
