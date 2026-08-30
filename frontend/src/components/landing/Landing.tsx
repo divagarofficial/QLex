@@ -31,7 +31,32 @@ export default function Landing() {
       />
 
       {/* ─── HERO — Mobile-first: 75-80vh on mobile, full screen on desktop ─── */}
-      <section className="relative flex min-h-[80vh] flex-col items-center justify-start px-6 pt-[6vh] sm:pt-[8vh] md:pt-[10vh]">
+      <section className="relative flex min-h-[80vh] flex-col items-center justify-start px-6 pt-[5vh] sm:pt-[6vh] md:pt-[8vh]">
+        {/* ─── RIT LOGO — Centered on top of everything ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="relative mb-6 sm:mb-8 md:mb-10 flex items-center justify-center cursor-default group"
+        >
+          {/* Soft ambient aura glow behind RIT logo */}
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 75%)",
+              filter: "blur(24px)",
+            }}
+          />
+          <Image
+            src="/rit-logo.png"
+            alt="Rajalakshmi Institute of Technology"
+            width={380}
+            height={120}
+            className="relative h-14 min-[400px]:h-16 sm:h-20 md:h-24 lg:h-28 w-auto object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-transform duration-500 hover:scale-105"
+            priority
+          />
+        </motion.div>
+
         {/* ─── MINDURA TECHNOLOGIES PRESENTS BRANDING ─── */}
         <motion.div {...fadeUp(0.05)} className="flex flex-col items-center gap-3 sm:gap-4">
           {/* Mindura Logo (Enhanced Size, Floating Seal without Box) */}
