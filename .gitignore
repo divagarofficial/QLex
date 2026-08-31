@@ -32,7 +32,10 @@ backend/uploads/
 cloudflared.exe
 backend_routes.txt
 print-agent/tools/*.exe
+*.log
+scratch/
 
 # Keys & Signing Secrets
 *.jks
 *.idsig
+

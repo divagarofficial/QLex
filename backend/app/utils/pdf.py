@@ -1,14 +1,20 @@
 import os
-import fitz
 
 
 def get_pdf_information(path: str):
     try:
         if path.lower().endswith(".pdf"):
-            pdf = fitz.open(path)
-            pages = pdf.page_count
-            pdf.close()
-            return {"pages": max(1, pages)}
+            try:
+                import fitz
+                pdf = fitz.open(path)
+                pages = pdf.page_count
+                pdf.close()
+                return {"pages": max(1, pages)}
+            except ImportError:
+                from pypdf import PdfReader
+                reader = PdfReader(path)
+                pages = len(reader.pages)
+                return {"pages": max(1, pages)}
     except Exception:
         pass
 
@@ -23,7 +29,7 @@ def get_pdf_information(path: str):
 def parse_page_selection(custom_pages: str | None, total_pages: int) -> list[int]:
     """
     Parses a custom pages specification string into a sorted list of unique 1-indexed page numbers.
-    Supports presets: "ALL", "ODD", "EVEN", or ranges like "1-5, 8, 11-15".
+    Supports presets: "ALL", "ODD", "EVEN", or ranges like "1-5, 8, 11-15", or single page "3".
     """
     if total_pages <= 0:
         return []
@@ -81,21 +87,39 @@ def extract_pdf_pages(input_pdf_path: str, output_pdf_path: str, pages_to_keep: 
     Slices input_pdf_path to keep only pages in pages_to_keep (1-indexed) and saves to output_pdf_path.
     """
     try:
-        doc = fitz.open(input_pdf_path)
-        new_doc = fitz.open()
-        total_in_doc = doc.page_count
+        try:
+            import fitz
+            doc = fitz.open(input_pdf_path)
+            new_doc = fitz.open()
+            total_in_doc = doc.page_count
 
-        zero_indices = [p - 1 for p in pages_to_keep if 1 <= p <= total_in_doc]
-        if not zero_indices:
-            zero_indices = list(range(total_in_doc))
+            zero_indices = [p - 1 for p in pages_to_keep if 1 <= p <= total_in_doc]
+            if not zero_indices:
+                zero_indices = list(range(total_in_doc))
 
-        for page_idx in zero_indices:
-            new_doc.insert_pdf(doc, from_page=page_idx, to_page=page_idx)
+            for page_idx in zero_indices:
+                new_doc.insert_pdf(doc, from_page=page_idx, to_page=page_idx)
 
-        new_doc.save(output_pdf_path)
-        new_doc.close()
-        doc.close()
-        return True
+            new_doc.save(output_pdf_path)
+            new_doc.close()
+            doc.close()
+            return True
+        except ImportError:
+            from pypdf import PdfReader, PdfWriter
+            reader = PdfReader(input_pdf_path)
+            writer = PdfWriter()
+            total_in_doc = len(reader.pages)
+
+            zero_indices = [p - 1 for p in pages_to_keep if 1 <= p <= total_in_doc]
+            if not zero_indices:
+                zero_indices = list(range(total_in_doc))
+
+            for page_idx in zero_indices:
+                writer.add_page(reader.pages[page_idx])
+
+            with open(output_pdf_path, "wb") as f:
+                writer.write(f)
+            return True
     except Exception as e:
         print(f"[PDF Extract Error] Failed to slice PDF: {e}")
-        return False
+        return False

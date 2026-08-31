@@ -252,6 +252,118 @@ class PrinterPoolManager:
             logger.error(f"Failed to auto-download SumatraPDF executable: {err}")
             return False
 
+    def parse_page_selection(self, custom_pages: Optional[str], total_pages: int) -> List[int]:
+        """
+        Parses a custom pages specification string into a sorted list of unique 1-indexed page numbers.
+        Supports presets: "ALL", "ODD", "EVEN", ranges like "1-5, 8, 11-15", or single page "3".
+        """
+        if total_pages <= 0:
+            return []
+
+        if not custom_pages or str(custom_pages).strip().upper() == "ALL":
+            return list(range(1, total_pages + 1))
+
+        mode = str(custom_pages).strip().upper()
+        if mode == "ODD":
+            return [p for p in range(1, total_pages + 1) if p % 2 != 0]
+        if mode == "EVEN":
+            return [p for p in range(1, total_pages + 1) if p % 2 == 0]
+
+        pages_set = set()
+        parts = str(custom_pages).split(",")
+        for part in parts:
+            trimmed = part.strip()
+            if not trimmed:
+                continue
+            if "-" in trimmed:
+                try:
+                    subparts = trimmed.split("-")
+                    start = int(subparts[0].strip())
+                    end = int(subparts[1].strip())
+                    if start <= end:
+                        for p in range(start, end + 1):
+                            if 1 <= p <= total_pages:
+                                pages_set.add(p)
+                except Exception:
+                    pass
+            elif trimmed.isdigit():
+                try:
+                    val = int(trimmed)
+                    if 1 <= val <= total_pages:
+                        pages_set.add(val)
+                except Exception:
+                    pass
+
+        if not pages_set:
+            return list(range(1, total_pages + 1))
+
+        return sorted(list(pages_set))
+
+    def slice_pdf_document(self, pdf_path: str, custom_pages: Optional[str]) -> Tuple[str, bool]:
+        """
+        Slices a PDF to include only pages matching custom_pages specification.
+        Returns tuple of (target_pdf_path, is_temp_sliced_file_created).
+        Supports pypdf (preferred standard) and PyMuPDF (fitz) with graceful fallback.
+        """
+        if not custom_pages or str(custom_pages).strip().upper() == "ALL":
+            return pdf_path, False
+
+        sliced_path = pdf_path.replace(".pdf", "_sliced.pdf")
+
+        # Method 1: pypdf
+        try:
+            from pypdf import PdfReader, PdfWriter
+            reader = PdfReader(pdf_path)
+            total_pages = len(reader.pages)
+            pages_to_keep = self.parse_page_selection(custom_pages, total_pages)
+
+            if len(pages_to_keep) < total_pages and len(pages_to_keep) > 0:
+                writer = PdfWriter()
+                for p in pages_to_keep:
+                    writer.add_page(reader.pages[p - 1])
+                with open(sliced_path, "wb") as f:
+                    writer.write(f)
+                logger.info(
+                    f"Sliced PDF '{os.path.basename(pdf_path)}' using pypdf to {len(pages_to_keep)} pages "
+                    f"({pages_to_keep}) -> '{os.path.basename(sliced_path)}'"
+                )
+                return sliced_path, True
+            elif len(pages_to_keep) == total_pages:
+                return pdf_path, False
+        except ImportError:
+            pass
+        except Exception as e:
+            logger.warning(f"pypdf slicing failed: {e}. Trying PyMuPDF fitz...")
+
+        # Method 2: PyMuPDF fitz
+        try:
+            import fitz
+            doc = fitz.open(pdf_path)
+            total_pages = doc.page_count
+            pages_to_keep = self.parse_page_selection(custom_pages, total_pages)
+
+            if len(pages_to_keep) < total_pages and len(pages_to_keep) > 0:
+                new_doc = fitz.open()
+                for p in pages_to_keep:
+                    new_doc.insert_pdf(doc, from_page=p - 1, to_page=p - 1)
+                new_doc.save(sliced_path)
+                new_doc.close()
+                doc.close()
+                logger.info(
+                    f"Sliced PDF '{os.path.basename(pdf_path)}' using PyMuPDF fitz to {len(pages_to_keep)} pages "
+                    f"({pages_to_keep}) -> '{os.path.basename(sliced_path)}'"
+                )
+                return sliced_path, True
+            doc.close()
+            return pdf_path, False
+        except ImportError:
+            pass
+        except Exception as e:
+            logger.warning(f"PyMuPDF fitz slicing failed: {e}")
+
+        logger.warning(f"Could not slice PDF with pypdf or PyMuPDF. Falling back to original PDF.")
+        return pdf_path, False
+
     def print_document(
         self,
         pdf_path: str,
@@ -270,122 +382,95 @@ class PrinterPoolManager:
             f"[Copies: {copies}, Type: {print_type}, Side: {print_side}, Size: {paper_size}, CustomPages: {custom_pages}]"
         )
 
-        target_pdf_path = pdf_path
-        sliced_temp_created = False
-        if custom_pages and str(custom_pages).strip().upper() != "ALL":
-            try:
-                import fitz
-                doc = fitz.open(pdf_path)
-                total_pages = doc.page_count
-
-                pages_set = set()
-                mode = str(custom_pages).strip().upper()
-                if mode == "ODD":
-                    pages_set = {p for p in range(1, total_pages + 1) if p % 2 != 0}
-                elif mode == "EVEN":
-                    pages_set = {p for p in range(1, total_pages + 1) if p % 2 == 0}
-                else:
-                    for part in str(custom_pages).split(","):
-                        trimmed = part.strip()
-                        if "-" in trimmed:
-                            subparts = trimmed.split("-")
-                            if len(subparts) == 2 and subparts[0].strip().isdigit() and subparts[1].strip().isdigit():
-                                s, e = int(subparts[0].strip()), int(subparts[1].strip())
-                                for p in range(s, e + 1):
-                                    if 1 <= p <= total_pages:
-                                        pages_set.add(p)
-                        elif trimmed.isdigit():
-                            val = int(trimmed)
-                            if 1 <= val <= total_pages:
-                                pages_set.add(val)
-
-                if pages_set:
-                    pages_list = sorted(list(pages_set))
-                    sliced_path = pdf_path.replace(".pdf", "_sliced.pdf")
-                    new_doc = fitz.open()
-                    for p in pages_list:
-                        new_doc.insert_pdf(doc, from_page=p - 1, to_page=p - 1)
-                    new_doc.save(sliced_path)
-                    new_doc.close()
-                    target_pdf_path = sliced_path
-                    sliced_temp_created = True
-                    logger.info(f"Sliced PDF '{os.path.basename(pdf_path)}' to {len(pages_list)} pages ({pages_list}) -> '{os.path.basename(sliced_path)}'")
-                doc.close()
-            except Exception as e:
-                logger.warning(f"Could not slice PDF with PyMuPDF fitz: {e}. Falling back to full PDF.")
-
+        target_pdf_path, sliced_temp_created = self.slice_pdf_document(pdf_path, custom_pages)
         pdf_path = target_pdf_path
 
-        if MOCK_PRINT or "Mock" in printer_name:
-            logger.info(f"[MOCK PRINT SUCCESS] Printed {os.path.basename(pdf_path)} on '{printer_name}'")
-            time.sleep(1)  # Simulate printing time
+        try:
+            if MOCK_PRINT or "Mock" in printer_name:
+                logger.info(f"[MOCK PRINT SUCCESS] Printed {os.path.basename(pdf_path)} on '{printer_name}'")
+                time.sleep(1)  # Simulate printing time
+                return True
+
+            if self.is_windows:
+                # Ensure SumatraPDF executable is available for silent PDF rendering
+                self.ensure_sumatra_installed()
+
+                # Approach A: Use SumatraPDF CLI if available for exact silent rendering
+                if os.path.exists(SUMATRA_PATH):
+                    settings = []
+                    if print_type.lower() == "bw":
+                        settings.append("monochrome")
+                    else:
+                        settings.append("color")
+
+                    if print_side.lower() in ("double", "duplex"):
+                        settings.append("duplex")
+                    else:
+                        settings.append("simplex")
+
+                    if copies > 1:
+                        settings.append(f"{copies}x")
+
+                    if custom_pages and str(custom_pages).strip().upper() != "ALL" and not sliced_temp_created:
+                        clean_range = str(custom_pages).strip()
+                        if clean_range.upper() not in ("ODD", "EVEN"):
+                            settings.append(clean_range)
+
+                    settings_str = ",".join(settings)
+                    cmd = [
+                        str(SUMATRA_PATH),
+                        "-print-to", printer_name,
+                        "-print-settings", settings_str,
+                        "-silent",
+                        pdf_path
+                    ]
+                    logger.info(f"Executing SumatraPDF: {' '.join(cmd)}")
+                    res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                    if res.returncode == 0:
+                        return True
+                    else:
+                        logger.warning(f"SumatraPDF exited with code {res.returncode}: {res.stderr}")
+
+                # Approach B: Windows ShellExecute printto verb (Fallback)
+                try:
+                    import win32api
+                    win32api.ShellExecute(0, "printto", pdf_path, f'"{printer_name}"', ".", 0)
+                    time.sleep(2)  # Give spooler time to enqueue
+                    return True
+                except Exception as e:
+                    logger.error(f"Windows ShellExecute printto failed: {e}")
+                    return False
+
+            else:
+                # Linux / macOS CUPS lp command
+                cmd = ["lp", "-d", printer_name, "-n", str(copies)]
+
+                if print_type.lower() == "bw":
+                    cmd.extend(["-o", "ColorModel=KGray"])
+                else:
+                    cmd.extend(["-o", "ColorModel=Color"])
+
+                if print_side.lower() in ("double", "duplex"):
+                    cmd.extend(["-o", "sides=two-sided-long-edge"])
+                else:
+                    cmd.extend(["-o", "sides=one-sided"])
+
+                if custom_pages and str(custom_pages).strip().upper() != "ALL" and not sliced_temp_created:
+                    clean_range = str(custom_pages).strip()
+                    if clean_range.upper() in ("ODD", "EVEN"):
+                        cmd.extend(["-o", f"page-set={clean_range.lower()}"])
+                    else:
+                        cmd.extend(["-P", clean_range])
+
+                cmd.append(pdf_path)
+                logger.info(f"Executing CUPS lp: {' '.join(cmd)}")
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                return res.returncode == 0
+        finally:
             if sliced_temp_created and os.path.exists(pdf_path):
                 try:
                     os.remove(pdf_path)
-                except Exception:
-                    pass
-            return True
+                    logger.info(f"Cleaned up sliced temp file: {os.path.basename(pdf_path)}")
+                except Exception as cleanup_err:
+                    logger.warning(f"Failed to remove temp sliced file '{pdf_path}': {cleanup_err}")
 
-        if self.is_windows:
-            # Ensure SumatraPDF executable is available for silent PDF rendering
-            self.ensure_sumatra_installed()
-
-            # Approach A: Use SumatraPDF CLI if available for exact silent rendering
-            if os.path.exists(SUMATRA_PATH):
-                settings = []
-                if print_type.lower() == "bw":
-                    settings.append("monochrome")
-                else:
-                    settings.append("color")
-
-                if print_side.lower() in ("double", "duplex"):
-                    settings.append("duplex")
-                else:
-                    settings.append("simplex")
-
-                if copies > 1:
-                    settings.append(f"{copies}x")
-
-                settings_str = ",".join(settings)
-                cmd = [
-                    str(SUMATRA_PATH),
-                    "-print-to", printer_name,
-                    "-print-settings", settings_str,
-                    "-silent",
-                    pdf_path
-                ]
-                logger.info(f"Executing SumatraPDF: {' '.join(cmd)}")
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-                if res.returncode == 0:
-                    return True
-                else:
-                    logger.warning(f"SumatraPDF exited with code {res.returncode}: {res.stderr}")
-
-            # Approach B: Windows ShellExecute printto verb (Fallback)
-            try:
-                import win32api
-                win32api.ShellExecute(0, "printto", pdf_path, f'"{printer_name}"', ".", 0)
-                time.sleep(2)  # Give spooler time to enqueue
-                return True
-            except Exception as e:
-                logger.error(f"Windows ShellExecute printto failed: {e}")
-                return False
-
-        else:
-            # Linux / macOS CUPS lp command
-            cmd = ["lp", "-d", printer_name, "-n", str(copies)]
-
-            if print_type.lower() == "bw":
-                cmd.extend(["-o", "ColorModel=KGray"])
-            else:
-                cmd.extend(["-o", "ColorModel=Color"])
-
-            if print_side.lower() in ("double", "duplex"):
-                cmd.extend(["-o", "sides=two-sided-long-edge"])
-            else:
-                cmd.extend(["-o", "sides=one-sided"])
-
-            cmd.append(pdf_path)
-            logger.info(f"Executing CUPS lp: {' '.join(cmd)}")
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-            return res.returncode == 0
