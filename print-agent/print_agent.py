@@ -28,7 +28,10 @@ from printer_pool import PrinterPoolManager
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] (QLex-PrintAgent) %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(Path(__file__).parent / "print_agent.log", encoding="utf-8")
+    ]
 )
 logger = logging.getLogger("PrintAgentDaemon")
 
