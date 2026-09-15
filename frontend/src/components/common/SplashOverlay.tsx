@@ -26,9 +26,9 @@ export default function SplashOverlay() {
       setIsVisible(true);
     }
 
-    // 10-second (10000ms) precise progress timer
+    // 6-second (6000ms) precise progress timer
     const intervalTime = 100;
-    const totalSteps = 10000 / intervalTime;
+    const totalSteps = 6000 / intervalTime;
     let currentStep = 0;
 
     const timer = setInterval(() => {
@@ -85,41 +85,6 @@ export default function SplashOverlay() {
             <div className="absolute top-1/3 right-12 w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping [animation-duration:4s]" />
             <div className="absolute bottom-1/3 left-1/4 w-2 h-2 rounded-full bg-amber-300 animate-ping [animation-duration:3.5s]" />
           </div>
-
-          {/* Top Header: Dual Institution Logos (Rajalakshmi Institutions Left | RIT Right) */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="relative z-10 flex items-center justify-center w-full max-w-4xl pt-4 px-4 sm:px-8 gap-3 sm:gap-6 md:gap-8"
-          >
-            {/* Left: Rajalakshmi Institutions Logo */}
-            <div className="flex-1 flex justify-end items-center">
-              <Image
-                src="/rajalakshmi-logo.png"
-                alt="Rajalakshmi Institutions"
-                width={300}
-                height={90}
-                className="object-contain h-10 min-[400px]:h-12 sm:h-16 md:h-20 w-auto max-w-[140px] min-[400px]:max-w-[180px] sm:max-w-[240px] md:max-w-[280px] filter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-transform duration-500 hover:scale-105"
-                priority
-              />
-            </div>
-
-            {/* Vertical Divider */}
-            <div className="h-8 sm:h-12 md:h-14 w-px bg-gradient-to-b from-transparent via-amber-400/40 to-transparent shrink-0 opacity-70" />
-
-            {/* Right: RIT Logo */}
-            <div className="flex-1 flex justify-start items-center">
-              <Image
-                src="/rit-logo.png"
-                alt="Rajalakshmi Institute of Technology"
-                width={340}
-                height={120}
-                className="object-contain h-10 min-[400px]:h-12 sm:h-16 md:h-20 w-auto max-w-[140px] min-[400px]:max-w-[180px] sm:max-w-[240px] md:max-w-[280px] filter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-transform duration-500 hover:scale-105"
-                priority
-              />
-            </div>
-          </motion.div>
 
           {/* Center Royal Artifact & Empire Titles */}
           <div className="relative z-10 flex flex-col items-center text-center max-w-2xl w-full px-2 mt-4">
