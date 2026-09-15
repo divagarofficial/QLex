@@ -12,9 +12,13 @@ htmlcov/
 .env
 .env.*
 !.env.example
-# uploads directory preserved for seed/draft files
+uploads/
 tests/
 .vscode/
 .idea/
 vercel.json
 *.log
+whatsapp-service/node_modules/
+whatsapp-service/.wwebjs_auth*/
+.wwebjs_auth*/
+

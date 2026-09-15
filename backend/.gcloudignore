@@ -13,13 +13,13 @@ htmlcov/
 .env
 .env.*
 !.env.example
-uploads/*
-!uploads/.gitkeep
+uploads/
+uploads/**
 tests/
 .vscode/
 .idea/
 vercel.json
 whatsapp-service/node_modules/
-.wwebjs_auth/
-.wwebjs_cache/
+whatsapp-service/.wwebjs_auth*/
+.wwebjs_auth*/
 *.log
