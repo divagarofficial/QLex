@@ -36,13 +36,13 @@ class SettlementService:
         )
         return self.repository.create(settlement)
 
-    def get_pending_settlements(self):
-        self.repository.sync_settlements(self.SHOP_ID)
-        return self.repository.get_pending()
+    def get_pending_settlements(self, shop_name: str | None = None):
+        self.repository.sync_settlements(target_shop_name=shop_name)
+        return self.repository.get_pending(shop_name=shop_name)
 
-    def get_settlement_history(self):
-        self.repository.sync_settlements(self.SHOP_ID)
-        return self.repository.get_history()
+    def get_settlement_history(self, shop_name: str | None = None):
+        self.repository.sync_settlements(target_shop_name=shop_name)
+        return self.repository.get_history(shop_name=shop_name)
 
     def get_settlement_by_id(self, settlement_id: UUID):
         self.repository.sync_settlements(self.SHOP_ID)

@@ -134,8 +134,11 @@ export async function fetchTodayRevenue(shopName?: string): Promise<TodayRevenue
 /**
  * Fetch pending settlements for the shop
  */
-export async function fetchPendingSettlements(): Promise<SettlementItem[]> {
-  const res = await fetch(`${API_BASE}/settlements/pending`, {
+export async function fetchPendingSettlements(shopName?: string): Promise<SettlementItem[]> {
+  const url = shopName
+    ? `${API_BASE}/settlements/pending?shop_name=${encodeURIComponent(shopName)}`
+    : `${API_BASE}/settlements/pending`;
+  const res = await fetch(url, {
     method: "GET",
     headers: getAuthHeaders(),
     cache: "no-store",
@@ -146,8 +149,11 @@ export async function fetchPendingSettlements(): Promise<SettlementItem[]> {
 /**
  * Fetch historical settlements for the shop
  */
-export async function fetchSettlementHistory(): Promise<SettlementItem[]> {
-  const res = await fetch(`${API_BASE}/settlements/history`, {
+export async function fetchSettlementHistory(shopName?: string): Promise<SettlementItem[]> {
+  const url = shopName
+    ? `${API_BASE}/settlements/history?shop_name=${encodeURIComponent(shopName)}`
+    : `${API_BASE}/settlements/history`;
+  const res = await fetch(url, {
     method: "GET",
     headers: getAuthHeaders(),
     cache: "no-store",

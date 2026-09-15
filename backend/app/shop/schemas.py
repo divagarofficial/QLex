@@ -32,11 +32,15 @@ class ShopOrderResponse(BaseModel):
 
     assigned_printer: str | None = None
 
-    grand_total: Decimal
+    subtotal: Decimal = Decimal("0.00")
+
+    grand_total: Decimal = Decimal("0.00")
 
     is_priority: bool
 
     created_at: datetime
+
+    document_items: list["ShopDocumentResponse"] = []
 
 class TodayOrderResponse(BaseModel):
 
@@ -44,7 +48,7 @@ class TodayOrderResponse(BaseModel):
 
     order_id: UUID
 
-    student_id: UUID
+    student_id: UUID | None = None
 
     student_name: str | None = None
 
@@ -54,11 +58,21 @@ class TodayOrderResponse(BaseModel):
 
     documents: int
 
+    document_items: list["ShopDocumentResponse"] = []
+
     is_priority: bool
 
     queue_state: str
 
     is_current: bool = False
+
+    subtotal: Decimal = Decimal("0.00")
+
+    grand_total: Decimal = Decimal("0.00")
+
+    payment_status: str | None = None
+
+    created_at: datetime | str | None = None
 
 class RejectOrderRequest(BaseModel):
 
@@ -107,7 +121,7 @@ class ShopOrderDetailsResponse(BaseModel):
 
     order_id: UUID
 
-    student_id: UUID
+    student_id: UUID | None = None
 
     student_name: str | None = None
 
@@ -124,6 +138,14 @@ class ShopOrderDetailsResponse(BaseModel):
     payment_status: str | None = None
 
     is_priority: bool
+
+    subtotal: Decimal
+
+    convenience_fee: Decimal = Decimal("0.00")
+
+    platform_fee: Decimal = Decimal("0.00")
+
+    priority_fee: Decimal = Decimal("0.00")
 
     grand_total: Decimal
 

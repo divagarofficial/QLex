@@ -37,24 +37,34 @@ import type {
 } from "@/types/shop";
 
 import PrintAgentStatusCard from "./PrintAgentStatusCard";
+import CounterQRCodeModal from "./CounterQRCodeModal";
 import SupportCard from "@/components/common/SupportCard";
 import Popup from "@/components/popup/Popup";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, QrCode } from "lucide-react";
 
 import { Building2, Printer } from "lucide-react";
 
 interface ShopDashboardProps {
   defaultHub?: "QLex Central Print Hub" | "QLex Satellite Print Hub";
+  targetShopSlug?: string;
+  targetShopName?: string;
 }
 
-export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }: ShopDashboardProps) {
+export default function ShopDashboard({
+  defaultHub = "QLex Central Print Hub",
+  targetShopSlug,
+  targetShopName,
+}: ShopDashboardProps) {
   const router = useRouter();
-  const [activeHub, setActiveHub] = useState<"QLex Central Print Hub" | "QLex Satellite Print Hub">(defaultHub);
+  const initialHubName = targetShopName || (targetShopSlug ? targetShopSlug.replace(/-/g, " ").toUpperCase() : defaultHub);
+  const [activeHub, setActiveHub] = useState<string>(initialHubName);
+
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [inspectOrderId, setInspectOrderId] = useState<string | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   // Backend state
   const [todaysOrders, setTodaysOrders] = useState<TodayOrderItem[]>([]);
@@ -298,6 +308,33 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
             {/* Welcome Card */}
             <WelcomeCard />
 
+            {/* Counter QR Standee Promo Banner */}
+            <div className="deep-glass rounded-2xl p-4 border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-transparent to-champagne-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-white">Express Counter Standee QR</h3>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      ⚡ No-Login Ordering
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400">
+                    Display your counter QR code so walk-in customers can order without account login (/acme).
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowQRModal(true)}
+                className="px-4 py-2 rounded-xl bg-champagne-500 hover:bg-champagne-400 text-obsidian text-xs font-bold shadow-md shadow-champagne-500/20 transition-all flex items-center gap-1.5 flex-shrink-0"
+              >
+                <QrCode className="w-4 h-4" /> Print Standee QR
+              </button>
+            </div>
+
             {/* Today's Summary Stat Cards */}
             <SummaryCards
               todaysOrders={todaysOrders}
@@ -377,6 +414,14 @@ export default function ShopDashboard({ defaultHub = "QLex Central Print Hub" }:
           )
         }
         showCloseButton={true}
+      />
+
+      {/* Counter Standee QR Modal */}
+      <CounterQRCodeModal
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        shopName="Acme Print Hub"
+        shopSlug="acme"
       />
     </div>
   );

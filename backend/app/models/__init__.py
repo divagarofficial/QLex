@@ -12,6 +12,7 @@ from app.models.payment import Payment
 from .shop_queue import ShopQueue
 from .daily_queue_counter import DailyQueueCounter
 from .settlement import Settlement
+from .shop_model import Shop
 from .waiting_room import WaitingRoom
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "Section",
     "User",
     "Year",
+    "Shop",
 ]

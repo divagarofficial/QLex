@@ -55,6 +55,14 @@ def init_db_tables():
                     from sqlalchemy import text
                     conn.execute(text("ALTER TABLE platform_settings ADD COLUMN IF NOT EXISTS allow_first_year_personal_email BOOLEAN DEFAULT TRUE NOT NULL;"))
                     conn.execute(text("ALTER TABLE order_documents ADD COLUMN IF NOT EXISTS custom_pages VARCHAR(255);"))
+                    conn.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_guest_order BOOLEAN DEFAULT FALSE NOT NULL;"))
+                    conn.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS guest_phone VARCHAR(20);"))
+                    conn.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS guest_name VARCHAR(100);"))
+                    conn.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS shop_slug VARCHAR(100) DEFAULT 'rit';"))
+                    try:
+                        conn.execute(text("ALTER TABLE orders ALTER COLUMN student_id DROP NOT NULL;"))
+                    except Exception:
+                        pass
                     try:
                         conn.execute(text("ALTER TYPE queuetype ADD VALUE IF NOT EXISTS 'satellite';"))
                         conn.execute(text("ALTER TYPE queuetype ADD VALUE IF NOT EXISTS 'SATELLITE';"))
@@ -72,15 +80,22 @@ def init_db_tables():
                 from app.seeds.seed_services import seed_services
                 from app.seeds.seed_platform_settings import seed_platform_settings
                 from app.seeds.seed_pricing import seed_pricing
+                from app.seeds.seed_shops import seed_shops
 
-                seed_departments(db)
-                seed_years(db)
-                seed_sections(db)
-                seed_services(db)
-                seed_platform_settings(db)
-                seed_pricing(db)
-            except Exception as seed_err:
-                print(f"[DB Init Warning] Seeding failed: {seed_err}")
+                for seed_fn in [
+                    seed_departments,
+                    seed_years,
+                    seed_sections,
+                    seed_services,
+                    seed_platform_settings,
+                    seed_pricing,
+                    seed_shops,
+                ]:
+                    try:
+                        seed_fn(db)
+                    except Exception as s_err:
+                        db.rollback()
+                        print(f"[DB Init Warning] Seeder {seed_fn.__name__} warning: {s_err}")
             finally:
                 db.close()
             _tables_initialized = True

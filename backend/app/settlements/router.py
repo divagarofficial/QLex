@@ -33,24 +33,26 @@ def generate_today_settlement(
     response_model=list[SettlementResponse],
 )
 def pending_settlements(
+    shop_name: str | None = None,
     db: Session = Depends(get_db),
 ):
 
     service = SettlementService(db)
 
-    return service.get_pending_settlements()
+    return service.get_pending_settlements(shop_name=shop_name)
 
 @router.get(
     "/history",
     response_model=list[SettlementResponse],
 )
 def settlement_history(
+    shop_name: str | None = None,
     db: Session = Depends(get_db),
 ):
 
     service = SettlementService(db)
 
-    return service.get_settlement_history()
+    return service.get_settlement_history(shop_name=shop_name)
 
 @router.get(
     "/{settlement_id}",

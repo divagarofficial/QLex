@@ -25,6 +25,7 @@ from app.student.router import (
 )
 
 from app.admin.router import router as admin_router
+from app.orders.express_router import router as express_router
 from app.utils.file_storage import find_uploaded_file, generate_fallback_pdf
 
 app = FastAPI(
@@ -116,6 +117,7 @@ app.include_router(
     student_router
 )
 app.include_router(admin_router)
+app.include_router(express_router)
 
 
 import asyncio

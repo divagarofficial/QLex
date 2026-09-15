@@ -3,7 +3,7 @@
 import Link from "next/link";
 import StatusChip from "./StatusChip";
 import SettlementBreakdown from "./SettlementBreakdown";
-import { SettlementItem, downloadSettlementStatement, formatToIST } from "@/services/adminSettlements";
+import { SettlementItem, downloadSettlementStatement, formatToIST, formatDateDDMMYYYY } from "@/services/adminSettlements";
 import {
   X,
   Building2,
@@ -86,6 +86,10 @@ export default function SettlementDetailModal({
             <div>
               <span className="text-[11px] text-slate-500 block">Shop Name</span>
               <span className="font-bold text-slate-100">{settlement.shop_name}</span>
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-500 block">Settlement Date</span>
+              <span className="font-bold text-cyan-400">{formatDateDDMMYYYY(settlement.settlement_date)}</span>
             </div>
             <div>
               <span className="text-[11px] text-slate-500 block">Merchant Owner</span>

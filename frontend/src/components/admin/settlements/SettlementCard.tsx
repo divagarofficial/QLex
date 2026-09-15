@@ -3,7 +3,7 @@
 import Link from "next/link";
 import StatusChip from "./StatusChip";
 import SettlementBreakdown from "./SettlementBreakdown";
-import { SettlementItem, downloadSettlementStatement, formatToIST } from "@/services/adminSettlements";
+import { SettlementItem, downloadSettlementStatement, formatToIST, formatDateDDMMYYYY } from "@/services/adminSettlements";
 import {
   Building2,
   Calendar,
@@ -87,7 +87,7 @@ export default function SettlementCard({
           <span className="text-[11px] text-slate-400 block">Settlement Date</span>
           <span className="font-semibold text-slate-200 flex items-center gap-1 justify-end">
             <Calendar className="w-3 h-3 text-cyan-400" />
-            {settlement.settlement_date}
+            {formatDateDDMMYYYY(settlement.settlement_date)}
           </span>
         </div>
       </div>

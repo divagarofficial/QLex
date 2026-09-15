@@ -119,6 +119,22 @@ export default function ShopHubSelectionModal({ open, onClose }: ShopHubSelectio
                 </div>
               </Link>
             </div>
+
+            {/* Scaled Multi-Shop Directory & Registration Footer */}
+            <div className="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <span className="text-zinc-400 text-center sm:text-left">
+                Want to register a new print shop or browse all independent hubs?
+              </span>
+              <Link
+                href="/shops"
+                onClick={onClose}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:brightness-110 transition shadow-md shrink-0"
+              >
+                <Store className="h-3.5 w-3.5" />
+                <span>Explore All Shops & Register</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </motion.div>
         </div>
       )}

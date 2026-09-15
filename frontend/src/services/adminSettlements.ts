@@ -84,12 +84,31 @@ function normalizeSettlement(s: any): SettlementItem {
     tax: Number(s.tax || 0),
     net_settlement_amount: Number(s.net_settlement_amount || s.amount || 0),
     shop_id: String(s.shop_id || "RIT_PRINT_SHOP"),
-    shop_name: String(s.shop_name || "QLex Central Print Hub"),
+    shop_name: String(
+      s.shop_name ||
+        (s.shop_id && s.shop_id !== "RIT_PRINT_SHOP" ? s.shop_id : "QLex Central Print Hub")
+    ),
     owner_name: String(s.owner_name || "RIT Central Admin"),
     bank_name: String(s.bank_name || "HDFC Bank Ltd."),
     account_number: String(s.account_number || "XXXX-XXXX-4821"),
     settlement_cycle: String(s.settlement_cycle || "Daily"),
   };
+}
+
+/** Utility to format dates to DD-MM-YYYY */
+export function formatDateDDMMYYYY(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return "N/A";
+  const str = String(dateInput).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const [year, month, day] = str.split("-");
+    return `${day}-${month}-${year}`;
+  }
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return str;
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
 }
 
 /** Fetch all settlements from backend */

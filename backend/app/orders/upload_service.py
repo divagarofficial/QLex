@@ -103,10 +103,24 @@ class UploadService:
 
                 display_order=display_order,
 
-                shop_price_per_page=Decimal("0.00"),
+                shop_price_per_page=Decimal("1.00"),
 
                 document_total=Decimal("0.00"),
             )
+
+            # Auto-calculate initial document total
+            doc_price = self.pricing_service.calculate_document_total(
+                page_count=document.page_count,
+                copies=1,
+                paper_size=PaperSize.A4,
+                print_type=PrintType.BLACK_WHITE,
+                print_side=PrintSide.SINGLE,
+            )
+            pricing_rec = self.pricing_service.get_print_price(PaperSize.A4, PrintType.BLACK_WHITE, PrintSide.SINGLE)
+            if pricing_rec and pricing_rec.shop_price:
+                document.shop_price_per_page = Decimal(pricing_rec.shop_price)
+
+            document.document_total = doc_price
 
             self.upload_repository.create(document)
 
@@ -114,6 +128,28 @@ class UploadService:
 
             display_order += 1
 
+        self.upload_repository.commit()
+
+        # Recalculate order subtotal and grand total for order
+        subtotal = Decimal("0.00")
+        convenience_fee_total = Decimal("0.00")
+        for current_doc in order.documents:
+            subtotal += current_doc.document_total or Decimal("0.00")
+            convenience_fee_total += self.pricing_service.calculate_document_convenience_fee(
+                page_count=current_doc.page_count,
+                copies=current_doc.copies,
+                paper_size=current_doc.paper_size,
+                print_type=current_doc.print_type,
+                print_side=current_doc.print_side,
+            )
+        order.subtotal = subtotal
+        order.convenience_fee = convenience_fee_total
+        order.grand_total = (
+            order.subtotal
+            + (order.platform_fee or Decimal("0.00"))
+            + (order.convenience_fee or Decimal("0.00"))
+            + (order.priority_fee or Decimal("0.00"))
+        )
         self.upload_repository.commit()
 
         for document in uploaded_documents:

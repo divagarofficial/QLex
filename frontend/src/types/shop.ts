@@ -10,10 +10,12 @@ export interface TodayOrderItem {
   register_number?: string;
   assigned_printer?: string;
   documents?: number;
+  document_items?: ShopDocumentItem[];
   is_priority: boolean;
   queue_state: QueueState;
   is_current: boolean;
   created_at?: string;
+  subtotal?: number;
   grand_total?: number;
   payment_status?: string;
   document_count?: number;
@@ -51,7 +53,7 @@ export interface ShopDocumentItem {
 
 export interface ShopOrderDetails {
   order_id: string;
-  student_id: string;
+  student_id?: string | null;
   student_name?: string;
   register_number?: string;
   assigned_printer?: string;
@@ -117,6 +119,7 @@ export interface ActiveShopOrder {
   payment_status?: string;
   token?: string;
   queue_state?: string;
+  subtotal?: number;
   grand_total: number;
   is_priority: boolean;
   created_at: string;
@@ -174,5 +177,14 @@ export interface DashboardData {
   pendingSettlements: SettlementItem[];
   historySettlements: SettlementItem[];
   liveQueue: LiveQueueSummary;
+}
+
+export interface PrintAgentHealth {
+  status: string;
+  is_connected: boolean;
+  shop_name?: string;
+  terminal_location?: string;
+  last_seen: string;
+  active_printers: (string | any)[];
 }
 

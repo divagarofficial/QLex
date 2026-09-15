@@ -56,7 +56,12 @@ class ShopRepository:
                 User.role == UserRole.STAFF
             )
         elif shop_name:
-            query = query.filter(Order.shop_name == shop_name)
+            query = query.filter(
+                (Order.shop_name == shop_name)
+                | (Order.shop_slug == shop_name)
+                | (func.lower(Order.shop_name) == shop_name.lower())
+                | (func.lower(Order.shop_slug) == shop_name.lower())
+            )
 
         return query.order_by(Order.created_at.asc()).all()
 
@@ -100,7 +105,12 @@ class ShopRepository:
                 User.role == UserRole.STAFF
             )
         elif shop_name:
-            query = query.filter(Order.shop_name == shop_name)
+            query = query.filter(
+                (Order.shop_name == shop_name)
+                | (Order.shop_slug == shop_name)
+                | (func.lower(Order.shop_name) == shop_name.lower())
+                | (func.lower(Order.shop_slug) == shop_name.lower())
+            )
 
         return query.order_by(
             Order.is_priority.desc(),
@@ -139,7 +149,12 @@ class ShopRepository:
             )
         )
         if shop_name:
-            query = query.filter(Order.shop_name == shop_name)
+            query = query.filter(
+                (Order.shop_name == shop_name)
+                | (Order.shop_slug == shop_name)
+                | (func.lower(Order.shop_name) == shop_name.lower())
+                | (func.lower(Order.shop_slug) == shop_name.lower())
+            )
         return query.first()
 
     def get_today_queue(self, shop_name: str | None = None):
@@ -179,7 +194,12 @@ class ShopRepository:
                 (User.role == UserRole.STAFF)
             )
         elif shop_name:
-            query = query.filter(Order.shop_name == shop_name)
+            query = query.filter(
+                (Order.shop_name == shop_name)
+                | (Order.shop_slug == shop_name)
+                | (func.lower(Order.shop_name) == shop_name.lower())
+                | (func.lower(Order.shop_slug) == shop_name.lower())
+            )
 
         return query.order_by(
             ShopQueue.queue_type.asc(),
@@ -196,7 +216,12 @@ class ShopRepository:
             )
         )
         if shop_name:
-            query = query.filter(Order.shop_name == shop_name)
+            query = query.filter(
+                (Order.shop_name == shop_name)
+                | (Order.shop_slug == shop_name)
+                | (func.lower(Order.shop_name) == shop_name.lower())
+                | (func.lower(Order.shop_slug) == shop_name.lower())
+            )
         return query.order_by(
             ShopQueue.queue_type.asc(),
             ShopQueue.queue_number.asc(),
@@ -215,7 +240,12 @@ class ShopRepository:
             .filter(Order.payment_status == PaymentStatus.PAID)
         )
         if shop_name:
-            query = query.filter(Order.shop_name == shop_name)
+            query = query.filter(
+                (Order.shop_name == shop_name)
+                | (Order.shop_slug == shop_name)
+                | (func.lower(Order.shop_name) == shop_name.lower())
+                | (func.lower(Order.shop_slug) == shop_name.lower())
+            )
         return query.first()
 
     def save(self):

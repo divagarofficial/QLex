@@ -148,6 +148,23 @@ function AdminSettlementsPageContent() {
     setCurrentPage(1);
   };
 
+  // Available Shops list combined from shops API and existing settlements
+  const availableShops = useMemo(() => {
+    const map = new Map<string, { shop_id: string; name: string }>();
+    shops.forEach((s) => {
+      const sId = s.shop_id || s.name;
+      if (sId && s.name) map.set(sId, { shop_id: sId, name: s.name });
+    });
+    settlements.forEach((st) => {
+      const sId = st.shop_id || st.shop_name || "RIT_PRINT_SHOP";
+      const sName = st.shop_name || (st.shop_id === "RIT_PRINT_SHOP" ? "QLex Central Print Hub" : st.shop_id);
+      if (sId && !map.has(sId)) {
+        map.set(sId, { shop_id: sId, name: sName || sId });
+      }
+    });
+    return Array.from(map.values());
+  }, [shops, settlements]);
+
   // Filter & Search & Sort Memoization
   const filteredSettlements = useMemo(() => {
     let list = [...settlements];
@@ -172,7 +189,11 @@ function AdminSettlementsPageContent() {
 
     // Shop Filter
     if (shopFilter !== "all") {
-      list = list.filter((s) => (s.shop_id || "RIT_PRINT_SHOP") === shopFilter);
+      list = list.filter(
+        (s) =>
+          (s.shop_id || "RIT_PRINT_SHOP") === shopFilter ||
+          (s.shop_name && s.shop_name.toLowerCase() === shopFilter.toLowerCase())
+      );
     }
 
     // Cycle Filter
@@ -272,7 +293,7 @@ function AdminSettlementsPageContent() {
                 cycle={cycleFilter}
                 dateRange={dateRangeFilter}
                 sortBy={sortBy}
-                shopsList={shops.map((s) => ({ shop_id: s.shop_id, name: s.name }))}
+                shopsList={availableShops}
                 onStatusChange={(val) => {
                   setStatusFilter(val);
                   setCurrentPage(1);

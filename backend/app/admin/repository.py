@@ -401,7 +401,7 @@ class AdminRepository:
     def get_all_settlements(self):
         from app.settlements.repository import SettlementRepository
         settlement_repo = SettlementRepository(self.db)
-        settlement_repo.sync_settlements("RIT_PRINT_SHOP")
+        settlement_repo.sync_settlements()
         settlements = (
             self.db.query(Settlement)
             .order_by(
@@ -417,7 +417,7 @@ class AdminRepository:
     ):
         from app.settlements.repository import SettlementRepository
         settlement_repo = SettlementRepository(self.db)
-        settlement_repo.sync_settlements("RIT_PRINT_SHOP")
+        settlement_repo.sync_settlements()
         settlement = (
             self.db.query(Settlement)
             .filter(
@@ -472,7 +472,7 @@ class AdminRepository:
         target_date = date.today()
         from app.settlements.repository import SettlementRepository
         settlement_repo = SettlementRepository(self.db)
-        settlement_repo.sync_settlements("RIT_PRINT_SHOP")
+        settlement_repo.sync_settlements()
 
         existing = self.get_today_settlement()
         if existing:
@@ -841,31 +841,112 @@ class AdminRepository:
 
 
     def admin_shops(self):
-        today_rev = self.today_revenue()
-        today_ord = self.today_orders()
-        waiting_ord = self.waiting_orders()
-        
-        pending_settlement = (
-            self.db.query(func.sum(Settlement.amount))
-            .filter(Settlement.status == SettlementStatus.PENDING)
-            .scalar()
-            or Decimal("0.00")
-        )
+        from app.models.shop_model import Shop
+        shops_db = self.db.query(Shop).filter(Shop.is_active == True).all()
 
-        return {
-            "shops": [
+        if not shops_db:
+            today_rev = self.today_revenue()
+            today_ord = self.today_orders()
+            waiting_ord = self.waiting_orders()
+            pending_settlement = (
+                self.db.query(func.sum(Settlement.amount))
+                .filter(Settlement.status == SettlementStatus.PENDING)
+                .scalar()
+                or Decimal("0.00")
+            )
+            return {
+                "shops": [
+                    {
+                        "shop_id": "RIT_PRINT_SHOP",
+                        "name": "QLex Central Print Hub",
+                        "status": "ONLINE",
+                        "orders_today": today_ord,
+                        "orders_waiting": waiting_ord,
+                        "revenue_today": float(today_rev),
+                        "pending_settlement": float(pending_settlement),
+                        "health": "OPERATIONAL",
+                    }
+                ]
+            }
+
+        shops_list = []
+        for shop in shops_db:
+            target_name = shop.name
+            target_slug = shop.slug
+
+            ord_today = (
+                self.db.query(func.count(Order.id))
+                .filter(
+                    func.date(Order.created_at) == date.today(),
+                    (Order.shop_name == target_name)
+                    | (Order.shop_slug == target_slug)
+                    | (func.lower(Order.shop_name) == target_name.lower())
+                    | (func.lower(Order.shop_slug) == target_slug.lower())
+                    | (target_slug == "rit" and Order.shop_name == "QLex Central Print Hub"),
+                )
+                .scalar()
+                or 0
+            )
+
+            ord_waiting = (
+                self.db.query(func.count(ShopQueue.id))
+                .join(Order, ShopQueue.order_id == Order.id)
+                .filter(
+                    ShopQueue.queue_date == date.today(),
+                    ShopQueue.queue_state == QueueState.WAITING,
+                    (Order.shop_name == target_name)
+                    | (Order.shop_slug == target_slug)
+                    | (func.lower(Order.shop_name) == target_name.lower())
+                    | (func.lower(Order.shop_slug) == target_slug.lower())
+                    | (target_slug == "rit" and Order.shop_name == "QLex Central Print Hub"),
+                )
+                .scalar()
+                or 0
+            )
+
+            rev_today = (
+                self.db.query(func.coalesce(func.sum(Order.subtotal), Decimal("0.00")))
+                .filter(
+                    func.date(Order.created_at) == date.today(),
+                    Order.payment_status == PaymentStatus.PAID,
+                    (Order.shop_name == target_name)
+                    | (Order.shop_slug == target_slug)
+                    | (func.lower(Order.shop_name) == target_name.lower())
+                    | (func.lower(Order.shop_slug) == target_slug.lower())
+                    | (target_slug == "rit" and Order.shop_name == "QLex Central Print Hub"),
+                )
+                .scalar()
+                or Decimal("0.00")
+            )
+
+            pend_settle = (
+                self.db.query(func.coalesce(func.sum(Settlement.amount), Decimal("0.00")))
+                .filter(
+                    Settlement.status == SettlementStatus.PENDING,
+                    (Settlement.shop_id == target_name)
+                    | (Settlement.shop_id == target_slug)
+                    | (func.lower(Settlement.shop_id) == target_name.lower())
+                    | (func.lower(Settlement.shop_id) == target_slug.lower())
+                    | (target_slug == "rit" and Settlement.shop_id == "RIT_PRINT_SHOP"),
+                )
+                .scalar()
+                or Decimal("0.00")
+            )
+
+            shops_list.append(
                 {
-                    "shop_id": "RIT_PRINT_SHOP",
-                    "name": "QLex Central Print Hub",
-                    "status": "ONLINE",
-                    "orders_today": today_ord,
-                    "orders_waiting": waiting_ord,
-                    "revenue_today": today_rev,
-                    "pending_settlement": pending_settlement,
+                    "shop_id": target_name if target_slug != "rit" else "RIT_PRINT_SHOP",
+                    "name": target_name,
+                    "status": "ONLINE" if shop.is_active else "OFFLINE",
+                    "orders_today": ord_today,
+                    "orders_waiting": ord_waiting,
+                    "revenue_today": float(rev_today),
+                    "pending_settlement": float(pend_settle),
                     "health": "OPERATIONAL",
                 }
-            ]
-        }
+            )
+
+        return {"shops": shops_list}
 
     def admin_notifications(self):
         notifications = []

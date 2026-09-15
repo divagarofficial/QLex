@@ -4,7 +4,7 @@ import subprocess
 import time
 import logging
 from typing import List, Dict, Optional, Tuple, Any
-from config import SUMATRA_PATH, MOCK_PRINT, PRINTER_POOL
+from config import SUMATRA_PATH, MOCK_PRINT, PRINTER_POOL, COLOR_PRINTERS, BW_PRINTERS
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s")
 logger = logging.getLogger("PrinterPool")
@@ -214,25 +214,64 @@ class PrinterPoolManager:
 
     def select_available_printer(self, print_type: str = "bw", paper_size: str = "a4") -> Tuple[str, str]:
         """
-        Selects the best available printer from the pool based on lowest queue count.
+        Selects the best available printer from the pool based on print_type (Color vs B&W matching)
+        and lowest queue count for optimal queue balancing.
         Returns tuple of (printer_name, status_reason).
         """
         printers = self.get_installed_printers()
         if not printers:
             raise RuntimeError("No installed printers found on shop system.")
 
-        # Evaluate queue length for each printer
+        target_type = (print_type or "bw").lower()
+
+        # Step 1: Filter printers matching print_type capabilities (Color vs B&W)
+        color_keywords = ["color", "colour", "cmyk", "inkjet", "pixma", "l3150", "l805", "l3250", "epson color", "canon color"]
+        mono_keywords = ["mono", "laser", "black", "bw", "m404", "ir2006", "laserjet", "xerox", "ricoh"]
+
+        candidate_printers = printers
+
+        if target_type == "color":
+            # Priority 1: Explicit COLOR_PRINTERS setting from .env
+            if COLOR_PRINTERS:
+                explicit_color = [p for p in printers if any(c.lower() in p.lower() for c in COLOR_PRINTERS)]
+                if explicit_color:
+                    candidate_printers = explicit_color
+                    logger.info(f"Color print requested: Matched {len(explicit_color)} explicitly configured color printers.")
+            
+            # Priority 2: Keyword auto-matching if no explicit list matched
+            if candidate_printers == printers:
+                color_matches = [p for p in printers if any(k in p.lower() for k in color_keywords)]
+                if color_matches:
+                    candidate_printers = color_matches
+                    logger.info(f"Color print requested: Filtered {len(color_matches)} keyword-matched color printers.")
+
+        elif target_type in ("bw", "black_and_white", "monochrome"):
+            # Priority 1: Explicit BW_PRINTERS setting from .env
+            if BW_PRINTERS:
+                explicit_bw = [p for p in printers if any(b.lower() in p.lower() for b in BW_PRINTERS)]
+                if explicit_bw:
+                    candidate_printers = explicit_bw
+                    logger.info(f"B&W print requested: Matched {len(explicit_bw)} explicitly configured B&W printers.")
+
+            # Priority 2: Keyword auto-matching if no explicit list matched
+            if candidate_printers == printers:
+                mono_matches = [p for p in printers if any(k in p.lower() for k in mono_keywords) and not any(k in p.lower() for k in color_keywords)]
+                if mono_matches:
+                    candidate_printers = mono_matches
+                    logger.info(f"B&W print requested: Filtered {len(mono_matches)} keyword-matched B&W printers.")
+
+        # Step 2: Evaluate active queue depth across candidate printers and select least-busy
         scored_printers = []
-        for p in printers:
+        for p in candidate_printers:
             queue_len = self.get_printer_queue_count(p)
             scored_printers.append((queue_len, p))
 
-        # Sort by shortest queue
+        # Sort by shortest queue length
         scored_printers.sort(key=lambda x: x[0])
         best_queue, best_printer = scored_printers[0]
 
-        logger.info(f"Selected Printer: '{best_printer}' (Active Queue Depth: {best_queue})")
-        return best_printer, f"Assigned to {best_printer} (Queue length: {best_queue})"
+        logger.info(f"Selected Printer for [{target_type.upper()}]: '{best_printer}' (Active Queue Depth: {best_queue})")
+        return best_printer, f"Assigned to {best_printer} ({target_type.upper()} queue length: {best_queue})"
 
     def ensure_sumatra_installed(self) -> bool:
         """Automatically fetch portable SumatraPDF.exe if not present in tools directory."""

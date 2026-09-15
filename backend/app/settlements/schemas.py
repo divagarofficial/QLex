@@ -33,6 +33,8 @@ class SettlementResponse(BaseModel):
     priority_fee_deduction: Decimal | None = None
     tax: Decimal | None = Decimal("0.00")
     net_settlement_amount: Decimal | None = None
+    shop_id: str | None = None
+    shop_name: str | None = None
 
     class Config:
         from_attributes = True

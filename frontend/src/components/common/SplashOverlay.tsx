@@ -10,8 +10,13 @@ export default function SplashOverlay() {
   const [statusText, setStatusText] = useState("ENTERING THE EMPIRE...");
   const [isAccessGranted, setIsAccessGranted] = useState(false);
 
+  // Return null immediately for all express and sub-routes except root home page '/'
+  if (typeof window !== "undefined" && window.location.pathname !== "/") {
+    return null;
+  }
+
   useEffect(() => {
-    // Only show splash screen once per browser session
+    // Only show splash screen once per browser session on root homepage
     if (typeof window !== "undefined") {
       const hasSeenSplash = sessionStorage.getItem("qlex_splash_shown");
       if (hasSeenSplash) {

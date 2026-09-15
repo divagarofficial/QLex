@@ -206,8 +206,8 @@ class SettlementResponse(BaseModel):
     tax: Optional[Decimal] = Decimal("0.00")
     net_settlement_amount: Optional[Decimal] = None
 
-    shop_id: Optional[str] = "RIT_PRINT_SHOP"
-    shop_name: Optional[str] = "QLex Central Print Hub"
+    shop_id: Optional[str] = None
+    shop_name: Optional[str] = None
     owner_name: Optional[str] = "RIT Central Admin"
     bank_name: Optional[str] = "HDFC Bank Ltd."
     account_number: Optional[str] = "XXXX-XXXX-4821"

@@ -28,5 +28,11 @@ SUMATRA_PATH = BASE_DIR / "tools" / "SumatraPDF.exe"
 PRINTER_POOL_ENV = os.getenv("PRINTER_POOL", "")
 PRINTER_POOL = [p.strip() for p in PRINTER_POOL_ENV.split(",") if p.strip()]
 
+COLOR_PRINTERS_ENV = os.getenv("COLOR_PRINTERS", "")
+COLOR_PRINTERS = [p.strip() for p in COLOR_PRINTERS_ENV.split(",") if p.strip()]
+
+BW_PRINTERS_ENV = os.getenv("BW_PRINTERS", "")
+BW_PRINTERS = [p.strip() for p in BW_PRINTERS_ENV.split(",") if p.strip()]
+
 # Mock Print Mode (Set to True for testing without physical paper output)
 MOCK_PRINT = os.getenv("MOCK_PRINT", "false").lower() in ("true", "1", "yes")

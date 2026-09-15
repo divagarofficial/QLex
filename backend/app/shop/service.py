@@ -31,12 +31,12 @@ class ShopService:
             if not student and getattr(order, "student_id", None):
                 student = self.repository.db.query(User).filter(User.id == order.student_id).first()
 
-            if not student:
+            student_name = getattr(student, "full_name", None) or getattr(order, "guest_name", None) or "Guest Customer"
+            phone = getattr(student, "phone", None) or getattr(order, "guest_phone", "") or ""
+            email = getattr(student, "email", "") or ""
+            if not phone and not email:
                 return
 
-            student_name = getattr(student, "full_name", "Student") or "Student"
-            phone = getattr(student, "phone", "") or ""
-            email = getattr(student, "email", "") or ""
             target_shop = getattr(order, "shop_name", None) or "QLex Central Print Hub"
             if phone:
                 whatsapp_service.send_status_update(
@@ -87,9 +87,11 @@ class ShopService:
             if queue:
                 order.token = queue.token
                 order.queue_state = queue.queue_state.value if hasattr(queue.queue_state, "value") else str(queue.queue_state)
-                order.assigned_printer = getattr(queue, "assigned_printer", None)
-            order.student_name = getattr(student, "full_name", "Student") if student else "Student"
-            order.register_number = getattr(student, "register_number", "N/A") if student else "N/A"
+                order.assigned_printer = getattr(queue, "assigned_printer", None) or getattr(order, "assigned_printer", None)
+            else:
+                order.assigned_printer = getattr(order, "assigned_printer", None)
+            order.student_name = getattr(student, "full_name", None) or getattr(order, "guest_name", None) or "Guest Customer"
+            order.register_number = getattr(student, "register_number", None) or (f"📱 {order.guest_phone}" if getattr(order, "guest_phone", None) else "GUEST")
 
             p_status = getattr(order, "payment_status", None)
             order.payment_status = p_status.value if hasattr(p_status, "value") else (str(p_status) if p_status else "unpaid")
@@ -98,6 +100,25 @@ class ShopService:
             order.estimated_wait_minutes = est["estimated_wait_minutes"]
             est_dt = est.get("estimated_completion_time")
             order.estimated_completion_time = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
+
+            # Map document items with full specs
+            docs = getattr(order, "documents", []) or []
+            order.document_items = [
+                {
+                    "id": d.id,
+                    "original_filename": d.original_filename,
+                    "stored_filename": getattr(d, "stored_filename", None),
+                    "url": d.url if getattr(d, "url", None) else (f"/uploads/{d.stored_filename}" if getattr(d, "stored_filename", None) else f"/uploads/{d.original_filename}"),
+                    "page_count": d.page_count,
+                    "copies": d.copies,
+                    "print_type": d.print_type.value if hasattr(d.print_type, "value") else str(d.print_type),
+                    "paper_size": d.paper_size.value if hasattr(d.paper_size, "value") else str(d.paper_size),
+                    "print_side": d.print_side.value if hasattr(d.print_side, "value") else str(d.print_side),
+                    "document_total": d.document_total,
+                    "services": []
+                }
+                for d in docs
+            ]
 
         return orders
     
@@ -123,18 +144,41 @@ class ShopService:
             est_dt = est.get("estimated_completion_time")
             est_comp_iso = (est_dt.isoformat() + "Z") if est_dt and hasattr(est_dt, "isoformat") else (str(est_dt) + "Z" if est_dt else None)
 
+            docs = getattr(order, "documents", []) if order else []
+            doc_items = [
+                {
+                    "id": d.id,
+                    "original_filename": d.original_filename,
+                    "stored_filename": getattr(d, "stored_filename", None),
+                    "url": d.url if getattr(d, "url", None) else (f"/uploads/{d.stored_filename}" if getattr(d, "stored_filename", None) else f"/uploads/{d.original_filename}"),
+                    "page_count": d.page_count,
+                    "copies": d.copies,
+                    "print_type": d.print_type.value if hasattr(d.print_type, "value") else str(d.print_type),
+                    "paper_size": d.paper_size.value if hasattr(d.paper_size, "value") else str(d.paper_size),
+                    "print_side": d.print_side.value if hasattr(d.print_side, "value") else str(d.print_side),
+                    "document_total": d.document_total,
+                    "services": []
+                }
+                for d in docs
+            ]
+
             results.append(
                 {
                     "token": queue.token,
                     "order_id": order.id,
                     "student_id": order.student_id,
-                    "student_name": getattr(student, "full_name", "Student") if student else "Student",
-                    "register_number": getattr(student, "register_number", "N/A") if student else "N/A",
-                    "assigned_printer": getattr(queue, "assigned_printer", None),
-                    "documents": len(order.documents),
+                    "student_name": getattr(student, "full_name", None) or getattr(order, "guest_name", None) or "Guest Customer",
+                    "register_number": getattr(student, "register_number", None) or (f"📱 {order.guest_phone}" if getattr(order, "guest_phone", None) else "GUEST"),
+                    "assigned_printer": getattr(queue, "assigned_printer", None) or getattr(order, "assigned_printer", None),
+                    "documents": len(doc_items),
+                    "document_items": doc_items,
                     "is_priority": order.is_priority,
                     "queue_state": q_state,
                     "is_current": queue.is_current,
+                    "subtotal": order.subtotal,
+                    "grand_total": order.grand_total,
+                    "payment_status": order.payment_status.value if hasattr(order.payment_status, "value") else str(order.payment_status),
+                    "created_at": (order.created_at.isoformat() + "Z") if order.created_at and hasattr(order.created_at, "isoformat") else str(order.created_at),
                     "estimated_wait_minutes": est["estimated_wait_minutes"],
                     "estimated_completion_time": est_comp_iso,
                 }
@@ -264,6 +308,14 @@ class ShopService:
             "payment_status": payment_status_val,
 
             "is_priority": order.is_priority,
+
+            "subtotal": order.subtotal,
+
+            "convenience_fee": order.convenience_fee,
+
+            "platform_fee": order.platform_fee,
+
+            "priority_fee": order.priority_fee,
 
             "grand_total": order.grand_total,
 
@@ -505,22 +557,23 @@ class ShopService:
             self.repository.save()
         
     def get_today_revenue(
-    self,
-):
+        self,
+        shop_name: str | None = None,
+    ):
 
         result = (
             self.repository
-            .get_today_revenue()
+            .get_today_revenue(shop_name=shop_name)
         )
 
         return {
 
             "total_orders": (
-                result.total_orders
+                result.total_orders if result else 0
             ),
 
             "total_revenue": (
-                result.total_revenue
+                result.total_revenue if result else 0
             ),
         }
 

@@ -20,10 +20,33 @@ from sqlalchemy import Index
 class Order(BaseModel):
     __tablename__ = "orders"
 
-    student_id: Mapped[UUID] = mapped_column(
-    ForeignKey("users.id"),
-    nullable=False,
-)
+    student_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+
+    is_guest_order: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    guest_phone: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    guest_name: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    shop_slug: Mapped[str | None] = mapped_column(
+        String(100),
+        default="rit",
+        nullable=True,
+        index=True,
+    )
 
     shop_name: Mapped[str] = mapped_column(
         String(100),

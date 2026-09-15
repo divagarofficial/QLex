@@ -99,7 +99,8 @@ class ShopQueueService:
             queue_number = self.counter_service.next_number(QueueType.SATELLITE)
             token = f"S-{queue_number}"
         else:
-            order.shop_name = "QLex Central Print Hub"
+            if not getattr(order, "shop_name", None):
+                order.shop_name = "QLex Central Print Hub"
             if getattr(order, "is_priority", False):
                 queue_type = QueueType.PRIORITY
                 queue_number = self.counter_service.next_number(queue_type)
