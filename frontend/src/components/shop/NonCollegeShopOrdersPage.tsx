@@ -52,9 +52,21 @@ interface NonCollegeShopOrdersPageProps {
 export default function NonCollegeShopOrdersPage({
   shopSlug: inputSlug = "acme-offset-and-printers",
 }: NonCollegeShopOrdersPageProps) {
+  const router = useRouter();
   const shopSlug = (inputSlug || "acme-offset-and-printers").toLowerCase();
 
+  // Require 4-digit PIN authentication for THIS SPECIFIC SHOP
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("qlex_shop_token") : null;
+    const slug = typeof window !== "undefined" ? localStorage.getItem("qlex_shop_slug") : null;
+    if (!token || (slug && slug !== shopSlug)) {
+      router.replace(`/shop/${encodeURIComponent(shopSlug)}/login`);
+    }
+  }, [router, shopSlug]);
+
+
   const [shopProfile, setShopProfile] = useState<PublicShop | null>(null);
+
   const [shopName, setShopName] = useState<string>(
     shopSlug.includes("acme") ? "ACME OFFSET AND PRINTERS" : shopSlug.replace(/-/g, " ").toUpperCase()
   );

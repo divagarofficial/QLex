@@ -16,6 +16,7 @@ def seed_shops(db: Session):
             "requires_account": True,
             "is_active": True,
             "operating_hours": "8:30 AM - 5:30 PM",
+            "access_pin": "0810",
         },
         {
             "name": "Acme Print Hub",
@@ -29,6 +30,7 @@ def seed_shops(db: Session):
             "requires_account": False,
             "is_active": True,
             "operating_hours": "8:00 AM - 9:00 PM",
+            "access_pin": "1234",
         }
     ]
 
@@ -44,5 +46,8 @@ def seed_shops(db: Session):
             existing.is_express_enabled = data["is_express_enabled"]
             existing.requires_account = data["requires_account"]
             existing.is_active = data["is_active"]
+            existing.access_pin = data["access_pin"]
+
+
     
     db.commit()

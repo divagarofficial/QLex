@@ -204,4 +204,31 @@ def get_today_revenue(
     db: Session = Depends(get_db),
 ):
     service = ShopService(db)
-    return service.get_today_revenue(shop_name=shop_name)
+    return service.get_today_revenue(shop_name=shop_name)
+
+
+from app.auth.schemas import UpdateShopPinRequest
+from fastapi import HTTPException
+
+@router.put(
+    "/pin",
+)
+def update_shop_pin(
+    request: UpdateShopPinRequest,
+    db: Session = Depends(get_db),
+):
+    if not request.pin or len(request.pin) != 4 or not request.pin.isdigit():
+        raise HTTPException(status_code=400, detail="PIN must be exactly 4 numeric digits.")
+    
+    target_slug = request.shop_slug or "rit"
+    service = ShopService(db)
+    try:
+        shop = service.update_shop_pin(target_slug, request.pin)
+        return {
+            "success": True,
+            "message": f"4-Digit PIN for '{shop.name}' updated successfully!",
+            "shop_slug": shop.slug,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+

@@ -15,7 +15,10 @@ function ShopLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const initialHub = searchParams.get("hub") === "satellite" ? "satellite" : "central";
+  const slugParam = searchParams.get("slug");
+  const hubParam = searchParams.get("hub");
+
+  const initialHub = hubParam === "satellite" ? "satellite" : "central";
   const [selectedHub, setSelectedHub] = useState<"central" | "satellite">(initialHub);
 
   const [pin, setPin] = useState<string[]>(["", "", "", ""]);
@@ -50,12 +53,21 @@ function ShopLoginForm() {
     setIsSuccess(false);
 
     try {
-      const res = await loginShop(pinString);
+      const targetSlug = slugParam || (selectedHub === "satellite" ? "acme" : "rit");
+      const res = await loginShop(pinString, targetSlug);
 
       if (res.success) {
         setIsSuccess(true);
-        const targetPath = selectedHub === "satellite" ? "/shop/satellite" : "/shop/dashboard";
-        const hubName = selectedHub === "satellite" ? "QLex Satellite Print Hub" : "QLex Central Print Hub";
+        let targetPath = "/shop/dashboard";
+        if (targetSlug === "rit" || targetSlug === "central") {
+          targetPath = "/shop/dashboard";
+        } else if (targetSlug === "satellite") {
+          targetPath = "/shop/satellite";
+        } else {
+          targetPath = `/shop/${res.shop_slug || targetSlug}/dashboard`;
+        }
+
+        const hubName = res.shop_name || targetSlug.replace(/-/g, " ").toUpperCase();
 
         setPopupState({
           open: true,
@@ -92,6 +104,7 @@ function ShopLoginForm() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center p-4 sm:p-6 md:p-8">
@@ -165,9 +178,21 @@ function ShopLoginForm() {
           success={isSuccess}
         />
 
+        {/* Non-College Shop Registration Option */}
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => router.push("/shop/register")}
+            className="text-xs text-amber-400/90 hover:text-amber-300 font-semibold underline underline-offset-4 transition-colors cursor-pointer"
+          >
+            New Non-College Shop? Register & Set 4-Digit PIN →
+          </button>
+        </div>
+
         {/* Back to Home Button Component */}
         <BackHomeButton />
       </motion.div>
+
 
       {/* Reusable QLex Popup Modal */}
       <Popup

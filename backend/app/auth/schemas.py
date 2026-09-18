@@ -117,13 +117,43 @@ class SectionsListResponse(BaseModel):
 
 
 class ShopLoginRequest(BaseModel):
-    pin: str
+    pin: str = Field(min_length=4, max_length=4)
+    shop_slug: str | None = None
 
 
 class ShopLoginResponse(BaseModel):
     success: bool = True
     message: str
     token: str | None = None
+    shop_name: str | None = None
+    shop_slug: str | None = None
+
+
+class ShopRegisterRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    slug: str = Field(min_length=2, max_length=100)
+    phone: str | None = Field(default=None, max_length=20)
+    email: str | None = None
+    address: str | None = None
+    tagline: str | None = None
+    description: str | None = None
+    operating_hours: str | None = "8:00 AM - 8:00 PM"
+    is_express_enabled: bool = True
+    requires_account: bool = False
+    pin: str = Field(min_length=4, max_length=4)
+
+
+class ShopRegisterResponse(BaseModel):
+    success: bool = True
+    message: str
+    shop_id: UUID | None = None
+    slug: str
+    token: str | None = None
+
+
+class UpdateShopPinRequest(BaseModel):
+    shop_slug: str | None = None
+    pin: str = Field(min_length=4, max_length=4)
 
 
 class AdminLoginRequest(BaseModel):
@@ -134,5 +164,6 @@ class AdminLoginResponse(BaseModel):
     success: bool = True
     message: str
     token: str | None = None
+
 
 

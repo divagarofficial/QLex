@@ -31,7 +31,17 @@ const SATELLITE_HUB = "QLex Satellite Print Hub";
 
 export default function SatelliteShopDashboard() {
   const router = useRouter();
+
+  // Require 4-digit PIN authentication before opening dashboard
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("qlex_shop_token") : null;
+    if (!token) {
+      router.replace("/shop/login?hub=satellite");
+    }
+  }, [router]);
+
   const [loading, setLoading] = useState(true);
+
   const [actionLoading, setActionLoading] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [inspectOrderId, setInspectOrderId] = useState<string | null>(null);

@@ -741,7 +741,33 @@ class ShopService:
         else:
             raise ValueError(f"Unsupported status update: {status}")
 
+    def register_shop(self, request):
+        if not request.pin or len(request.pin) != 4 or not request.pin.isdigit():
+            raise ValueError("PIN must be exactly 4 numeric digits")
+        
+        shop_data = {
+            "name": request.name,
+            "slug": request.slug.lower().strip(),
+            "phone": request.phone,
+            "email": request.email,
+            "address": request.address,
+            "tagline": request.tagline,
+            "description": request.description,
+            "operating_hours": request.operating_hours or "8:00 AM - 8:00 PM",
+            "is_express_enabled": request.is_express_enabled,
+            "requires_account": request.requires_account,
+            "access_pin": request.pin,
+            "is_active": True,
+        }
+        return self.repository.register_shop(shop_data)
+
+    def update_shop_pin(self, shop_slug: str, new_pin: str):
+        if not new_pin or len(new_pin) != 4 or not new_pin.isdigit():
+            raise ValueError("PIN must be exactly 4 numeric digits")
+        return self.repository.update_shop_pin(shop_slug, new_pin)
+
 AGENT_HEARTBEAT_CACHE = {
+
     "last_seen": None,
     "active_printers": [],
     "agent_id": "shop-windows7-pc",

@@ -85,7 +85,9 @@ export default function ShopsPortalPage() {
     operating_hours: "8:00 AM - 8:00 PM",
     is_express_enabled: true,
     requires_account: false,
+    pin: "0810",
   });
+
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -148,23 +150,42 @@ export default function ShopsPortalPage() {
     });
   }, [shops, searchQuery, filterExpressOnly]);
 
-  // Proceed to shop dashboard
+  // Proceed to shop dashboard (verifying 4-digit PIN first)
   const handleSelectShop = (shop: PublicShop) => {
-    // Save selected shop in localStorage
     try {
       localStorage.setItem("qlex_active_shop_slug", shop.slug);
       localStorage.setItem("qlex_active_shop_name", shop.name);
     } catch {}
 
-    // Dedicated routes for flagship hubs
-    if (shop.slug === "rit" || shop.slug === "central") {
-      router.push("/shop/dashboard");
-    } else if (shop.slug === "satellite") {
-      router.push("/shop/satellite");
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("qlex_shop_token") : null;
+    const storedSlug = typeof window !== "undefined" ? localStorage.getItem("qlex_shop_slug") : null;
+
+    // Check if operator is authenticated for this specific shop
+    const isAuthedForShop = Boolean(storedToken && storedSlug === shop.slug);
+
+    if (isAuthedForShop) {
+      if (shop.slug === "rit" || shop.slug === "central") {
+        router.push("/shop/dashboard");
+      } else if (shop.slug === "satellite") {
+        router.push("/shop/satellite");
+      } else {
+        router.push(`/shop/${shop.slug}/dashboard`);
+      }
     } else {
-      router.push(`/shop/${shop.slug}/dashboard`);
+      // Flagship college hubs use official college portal login
+      if (shop.slug === "rit" || shop.slug === "central") {
+        router.push("/shop/login?hub=central");
+      } else if (shop.slug === "satellite") {
+        router.push("/shop/login?hub=satellite");
+      } else {
+        // All non-college shops use their dedicated shop PIN login screen
+        router.push(`/shop/${encodeURIComponent(shop.slug)}/login`);
+      }
     }
   };
+
+
+
 
   // Submit shop registration
   const handleRegisterSubmit = async (e: React.FormEvent) => {
@@ -176,6 +197,12 @@ export default function ShopsPortalPage() {
       setFormError("Please enter a valid Shop Name.");
       return;
     }
+
+    if (!registerForm.pin || registerForm.pin.length !== 4) {
+      setFormError("Operator Access PIN must be exactly 4 numeric digits.");
+      return;
+    }
+
 
     try {
       setSubmitting(true);
@@ -578,7 +605,30 @@ export default function ShopsPortalPage() {
                       />
                     </div>
 
+                    {/* 4-Digit Operator PIN Setup */}
+                    <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+                      <label className="block text-xs font-bold text-amber-300 mb-1">
+                        Operator Access PIN (4 Digits) <span className="text-amber-400">*</span>
+                      </label>
+                      <p className="text-[11px] text-zinc-400 mb-2.5">
+                        Set a secret 4-digit PIN for logging into your shop operator dashboard terminal.
+                      </p>
+                      <input
+                        type="text"
+                        maxLength={4}
+                        required
+                        placeholder="0810"
+                        value={registerForm.pin || ""}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                          setRegisterForm({ ...registerForm, pin: val });
+                        }}
+                        className="w-36 rounded-xl border border-amber-400/40 bg-black/70 px-3.5 py-2 text-base font-mono text-amber-300 tracking-widest text-center focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
+
                     {/* Feature Checkboxes */}
+
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input

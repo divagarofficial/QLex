@@ -59,6 +59,15 @@ export default function ShopDashboard({
   const initialHubName = targetShopName || (targetShopSlug ? targetShopSlug.replace(/-/g, " ").toUpperCase() : defaultHub);
   const [activeHub, setActiveHub] = useState<string>(initialHubName);
 
+  // Require 4-digit PIN authentication before opening dashboard
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("qlex_shop_token") : null;
+    if (!token) {
+      router.replace("/shop/login?hub=central");
+    }
+  }, [router]);
+
+
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -97,8 +106,8 @@ export default function ShopDashboard({
         fetchTodaysOrders(activeHub).catch(() => []),
         fetchActiveShopOrders(activeHub).catch(() => []),
         fetchTodayRevenue(activeHub).catch(() => ({ total_orders: 0, total_revenue: 0 })),
-        fetchPendingSettlements().catch(() => []),
-        fetchSettlementHistory().catch(() => []),
+        fetchPendingSettlements(activeHub).catch(() => []),
+        fetchSettlementHistory(activeHub).catch(() => []),
         fetchLiveQueueSummary().catch(() => ({
           currently_printing: null,
           priority_queue: [],
@@ -308,33 +317,6 @@ export default function ShopDashboard({
             {/* Welcome Card */}
             <WelcomeCard />
 
-            {/* Counter QR Standee Promo Banner */}
-            <div className="deep-glass rounded-2xl p-4 border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-transparent to-champagne-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
-                  <QrCode className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-white">Express Counter Standee QR</h3>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      ⚡ No-Login Ordering
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-400">
-                    Display your counter QR code so walk-in customers can order without account login (/acme).
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowQRModal(true)}
-                className="px-4 py-2 rounded-xl bg-champagne-500 hover:bg-champagne-400 text-obsidian text-xs font-bold shadow-md shadow-champagne-500/20 transition-all flex items-center gap-1.5 flex-shrink-0"
-              >
-                <QrCode className="w-4 h-4" /> Print Standee QR
-              </button>
-            </div>
-
             {/* Today's Summary Stat Cards */}
             <SummaryCards
               todaysOrders={todaysOrders}
@@ -414,14 +396,6 @@ export default function ShopDashboard({
           )
         }
         showCloseButton={true}
-      />
-
-      {/* Counter Standee QR Modal */}
-      <CounterQRCodeModal
-        isOpen={showQRModal}
-        onClose={() => setShowQRModal(false)}
-        shopName="Acme Print Hub"
-        shopSlug="acme"
       />
     </div>
   );

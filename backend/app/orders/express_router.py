@@ -110,8 +110,10 @@ def register_new_shop(
         operating_hours=payload.operating_hours.strip() if payload.operating_hours else "8:00 AM - 8:00 PM",
         is_express_enabled=payload.is_express_enabled,
         requires_account=payload.requires_account,
+        access_pin=payload.pin.strip() if payload.pin and len(payload.pin.strip()) == 4 else "0810",
         is_active=True,
     )
+
 
     db.add(new_shop)
     db.commit()

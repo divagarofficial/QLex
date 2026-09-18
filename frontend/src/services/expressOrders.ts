@@ -37,7 +37,9 @@ export interface ShopRegisterInput {
   operating_hours?: string;
   is_express_enabled?: boolean;
   requires_account?: boolean;
+  pin?: string;
 }
+
 
 
 export interface ExpressDraftResponse {

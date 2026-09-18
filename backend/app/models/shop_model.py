@@ -77,3 +77,10 @@ class Shop(BaseModel):
         default="8:00 AM - 8:00 PM",
         nullable=True,
     )
+
+    access_pin: Mapped[str | None] = mapped_column(
+        String(4),
+        default="0810",
+        nullable=True,
+    )
+

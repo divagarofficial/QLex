@@ -106,7 +106,16 @@ def login(
         required_role=UserRole.STUDENT,
     )
 
-from app.auth.schemas import LoginRequest, LoginResponse, ShopLoginRequest, ShopLoginResponse, AdminLoginRequest, AdminLoginResponse
+from app.auth.schemas import (
+    LoginRequest,
+    LoginResponse,
+    ShopLoginRequest,
+    ShopLoginResponse,
+    ShopRegisterRequest,
+    ShopRegisterResponse,
+    AdminLoginRequest,
+    AdminLoginResponse,
+)
 import os
 from fastapi import HTTPException
 
@@ -116,15 +125,55 @@ from fastapi import HTTPException
 )
 def shop_login(
     request: ShopLoginRequest,
+    db: Session = Depends(get_db),
 ):
+    if not request.pin or len(request.pin) != 4 or not request.pin.isdigit():
+        raise HTTPException(status_code=400, detail="PIN must be exactly 4 numeric digits.")
+    
+    from app.shop.repository import ShopRepository
+    repo = ShopRepository(db)
+    matched_shop = repo.authenticate_shop(request.pin, shop_slug=request.shop_slug)
+    
     expected_pin = os.getenv("SHOP_ACCESS_PIN", "0810")
-    if request.pin == expected_pin:
+    if matched_shop or request.pin == expected_pin:
+        shop_name = matched_shop.name if matched_shop else "QLex Print Hub"
+        shop_slug = matched_shop.slug if matched_shop else "rit"
         return ShopLoginResponse(
             success=True,
-            message="Access Granted",
-            token="shop-operator-session-token",
+            message=f"Access Granted to {shop_name}",
+            token=f"shop-token-{shop_slug}",
+            shop_name=shop_name,
+            shop_slug=shop_slug,
         )
     raise HTTPException(status_code=401, detail="Incorrect PIN. Access Denied.")
+
+
+@router.post(
+    "/shop-register",
+    response_model=ShopRegisterResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def shop_register(
+    request: ShopRegisterRequest,
+    db: Session = Depends(get_db),
+):
+    if not request.pin or len(request.pin) != 4 or not request.pin.isdigit():
+        raise HTTPException(status_code=400, detail="PIN must be exactly 4 numeric digits.")
+    
+    from app.shop.service import ShopService
+    service = ShopService(db)
+    try:
+        shop = service.register_shop(request)
+        return ShopRegisterResponse(
+            success=True,
+            message=f"Shop '{shop.name}' registered successfully!",
+            shop_id=shop.id,
+            slug=shop.slug,
+            token=f"shop-token-{shop.slug}",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.post(
     "/admin-login",

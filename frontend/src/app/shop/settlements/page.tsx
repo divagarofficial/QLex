@@ -44,9 +44,9 @@ export default function SettlementsPage() {
     if (showRefreshing) setIsRefreshing(true);
     try {
       const [pending, history, revenue] = await Promise.all([
-        fetchPendingSettlements(),
-        fetchSettlementHistory(),
-        fetchTodayRevenue().catch(() => ({ total_orders: 0, total_revenue: 0 })),
+        fetchPendingSettlements("QLex Central Print Hub"),
+        fetchSettlementHistory("QLex Central Print Hub"),
+        fetchTodayRevenue("QLex Central Print Hub").catch(() => ({ total_orders: 0, total_revenue: 0 })),
       ]);
 
       setPendingSettlements(pending || []);

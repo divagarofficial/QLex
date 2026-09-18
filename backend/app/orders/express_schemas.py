@@ -33,6 +33,8 @@ class ShopRegisterRequest(BaseModel):
     operating_hours: str | None = Field(default="8:00 AM - 8:00 PM", max_length=100, description="Daily operating hours")
     is_express_enabled: bool = Field(default=True, description="Enable express walk-in orders")
     requires_account: bool = Field(default=False, description="Require customer student/staff account login")
+    pin: str | None = Field(default="0810", description="4-digit operator access PIN")
+
 
 
 

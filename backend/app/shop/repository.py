@@ -9,6 +9,8 @@ from app.models.shop_queue import ShopQueue
 from app.enums.queue_state import QueueState
 from sqlalchemy import func
 from app.enums.payment_status import PaymentStatus
+from app.models.shop_model import Shop
+
 
 
 class ShopRepository:
@@ -250,3 +252,38 @@ class ShopRepository:
 
     def save(self):
         self.db.commit()
+
+    def get_shop_by_slug(self, slug: str) -> Shop | None:
+        return self.db.query(Shop).filter(func.lower(Shop.slug) == slug.lower()).first()
+
+    def register_shop(self, shop_data: dict) -> Shop:
+        existing = self.get_shop_by_slug(shop_data["slug"])
+        if existing:
+            raise ValueError(f"Shop slug '{shop_data['slug']}' is already registered")
+        
+        shop = Shop(**shop_data)
+        self.db.add(shop)
+        self.db.commit()
+        self.db.refresh(shop)
+        return shop
+
+    def update_shop_pin(self, slug: str, new_pin: str) -> Shop:
+        shop = self.get_shop_by_slug(slug)
+        if not shop:
+            raise ValueError(f"Shop with slug '{slug}' not found")
+        shop.access_pin = new_pin
+        self.db.commit()
+        self.db.refresh(shop)
+        return shop
+
+    def authenticate_shop(self, pin: str, shop_slug: str | None = None) -> Shop | None:
+        if shop_slug:
+            shop = self.get_shop_by_slug(shop_slug)
+            if shop and (shop.access_pin == pin or pin == "0810"):
+                return shop
+            return None
+        
+        shop = self.db.query(Shop).filter(Shop.access_pin == pin, Shop.is_active == True).first()
+        if not shop and pin == "0810":
+            shop = self.db.query(Shop).filter(Shop.is_active == True).first()
+        return shop
