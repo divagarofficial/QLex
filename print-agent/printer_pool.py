@@ -225,7 +225,7 @@ class PrinterPoolManager:
         target_type = (print_type or "bw").lower()
 
         # Step 1: Filter printers matching print_type capabilities (Color vs B&W)
-        color_keywords = ["color", "colour", "cmyk", "inkjet", "pixma", "l3150", "l805", "l3250", "epson color", "canon color"]
+        color_keywords = ["color", "colour", "cmyk", "inkjet", "pixma", "l3150", "l805", "l3250", "epson color", "canon color","KONICA"]
         mono_keywords = ["mono", "laser", "black", "bw", "m404", "ir2006", "laserjet", "xerox", "ricoh"]
 
         candidate_printers = printers
@@ -253,12 +253,19 @@ class PrinterPoolManager:
                     candidate_printers = explicit_bw
                     logger.info(f"B&W print requested: Matched {len(explicit_bw)} explicitly configured B&W printers.")
 
-            # Priority 2: Keyword auto-matching if no explicit list matched
+            # Priority 2: Exclude all color printers (defined in COLOR_PRINTERS or matching color keywords)
             if candidate_printers == printers:
-                mono_matches = [p for p in printers if any(k in p.lower() for k in mono_keywords) and not any(k in p.lower() for k in color_keywords)]
-                if mono_matches:
-                    candidate_printers = mono_matches
-                    logger.info(f"B&W print requested: Filtered {len(mono_matches)} keyword-matched B&W printers.")
+                def is_color_printer(p_name: str) -> bool:
+                    if COLOR_PRINTERS and any(c.lower() in p_name.lower() for c in COLOR_PRINTERS):
+                        return True
+                    return any(k.lower() in p_name.lower() for k in color_keywords)
+
+                bw_candidates = [p for p in printers if not is_color_printer(p)]
+                if bw_candidates:
+                    candidate_printers = bw_candidates
+                    logger.info(f"B&W print requested: Filtered {len(bw_candidates)} non-color printers: {bw_candidates}")
+                else:
+                    logger.warning("B&W print requested, but no dedicated B&W printer found in pool.")
 
         # Step 2: Evaluate active queue depth across candidate printers and select least-busy
         scored_printers = []

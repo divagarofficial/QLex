@@ -2,16 +2,9 @@ import os
 import sys
 import time
 import logging
-import socket
-import urllib3.util.connection as urllib_util
-
-# Force IPv4 resolution to prevent Windows IPv6 DNS resolution failures (Errno 11001)
-def allowed_gai_family():
-    return socket.AF_INET
-
-urllib_util.allowed_gai_family = allowed_gai_family
-
-import requests
+import json
+import subprocess
+import shutil
 from pathlib import Path
 from typing import Dict, Any
 
@@ -49,6 +42,68 @@ class QLexPrintAgentDaemon:
         logger.info(f"Connecting to Backend: {self.backend_url}")
         logger.info(f"Mock Print Mode: {MOCK_PRINT}")
 
+
+    def _curl(self, method: str, url: str, json_payload=None, stream_to=None, timeout=30):
+        """Perform an HTTP request through Windows curl.exe.
+
+        The shop PC allows curl.exe to make outbound HTTPS connections even
+        though Python's socket API is restricted. This keeps QLex networking
+        working without changing Windows firewall/Winsock settings.
+        """
+        curl = shutil.which("curl.exe") or shutil.which("curl")
+        if not curl:
+            raise RuntimeError("curl.exe was not found in PATH")
+
+        cmd = [
+            curl,
+            "-4",
+            "--silent",
+            "--show-error",
+            "--fail-with-body",
+            "--max-time", str(timeout),
+            "-X", method.upper(),
+            url,
+        ]
+
+        for key, value in self.headers.items():
+            cmd.extend(["-H", f"{key}: {value}"])
+
+        if json_payload is not None:
+            cmd.extend(["-H", "Content-Type: application/json"])
+            cmd.extend(["--data", json.dumps(json_payload)])
+
+        if stream_to is not None:
+            cmd.extend(["-o", str(stream_to)])
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout + 5,
+        )
+
+        if result.returncode != 0:
+            body = result.stderr.strip() or result.stdout.strip()
+            raise RuntimeError(f"curl failed (exit {result.returncode}): {body}")
+
+        return result.stdout
+
+    def _curl_json(self, method: str, url: str, json_payload=None, timeout=30):
+        """HTTP request through curl.exe, returning decoded JSON."""
+        body = self._curl(
+            method=method,
+            url=url,
+            json_payload=json_payload,
+            timeout=timeout,
+        )
+
+        if not body.strip():
+            return {}
+
+        return json.loads(body)
+
     def send_heartbeat(self):
         """Send periodic telemetry heartbeat including printer ink levels to backend."""
         url = f"{self.backend_url}/shop/print-agent/heartbeat"
@@ -58,9 +113,8 @@ class QLexPrintAgentDaemon:
                 "shop_name": SHOP_NAME,
                 "printers": ink_levels,
             }
-            resp = requests.post(url, json=payload, headers=self.headers, timeout=10)
-            if resp.status_code == 200:
-                logger.debug(f"Heartbeat synced for '{SHOP_NAME}' with {len(ink_levels)} printer telemetry records.")
+            self._curl_json("POST", url, json_payload=payload, timeout=10)
+            logger.debug(f"Heartbeat synced for '{SHOP_NAME}' with {len(ink_levels)} printer telemetry records.")
         except Exception as e:
             logger.debug(f"Heartbeat sync error: {e}")
 
@@ -68,13 +122,9 @@ class QLexPrintAgentDaemon:
         """Poll QLex backend for pending PAID orders waiting to be printed."""
         url = f"{self.backend_url}/shop/print-agent/pending-jobs"
         try:
-            resp = requests.get(url, headers=self.headers, timeout=30)
-            if resp.status_code == 200:
-                return resp.json()
-            else:
-                logger.warning(f"Failed to fetch pending jobs. HTTP {resp.status_code}: {resp.text}")
-                return []
-        except requests.exceptions.Timeout:
+            data = self._curl_json("GET", url, timeout=30)
+            return data if isinstance(data, list) else []
+        except subprocess.TimeoutExpired:
             logger.debug("Cloud Run polling request timed out during cold start, retrying...")
             return []
         except Exception as e:
@@ -90,14 +140,9 @@ class QLexPrintAgentDaemon:
             "assigned_printer": assigned_printer,
         }
         try:
-            resp = requests.post(url, json=payload, headers=self.headers, timeout=30)
-            if resp.status_code == 200:
-                result = resp.json()
-                logger.info(f"Backend status update for order '{order_id}': {result.get('message')}")
-                return result
-            else:
-                logger.error(f"Failed to update job status on backend. HTTP {resp.status_code}: {resp.text}")
-                return None
+            result = self._curl_json("POST", url, json_payload=payload, timeout=30)
+            logger.info(f"Backend status update for order '{order_id}': {result.get('message')}")
+            return result
         except Exception as e:
             logger.error(f"Network error posting job status for order '{order_id}': {e}")
             return None
@@ -112,12 +157,12 @@ class QLexPrintAgentDaemon:
         target_path = TEMP_DIR / filename
 
         logger.info(f"Downloading document: {doc.get('original_filename')} from '{doc_url}'")
-        resp = requests.get(doc_url, headers=self.headers, stream=True, timeout=30)
-        resp.raise_for_status()
-
-        with open(target_path, "wb") as f:
-            for chunk in resp.iter_content(chunk_size=8192):
-                f.write(chunk)
+        self._curl(
+            method="GET",
+            url=doc_url,
+            stream_to=target_path,
+            timeout=30,
+        )
 
         logger.info(f"Saved document to temp cache: {target_path}")
         return str(target_path)
