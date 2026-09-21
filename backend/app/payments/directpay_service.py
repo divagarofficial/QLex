@@ -30,7 +30,20 @@ class DirectPayService:
         encoded_name = quote(self.payee_name)
         encoded_note = quote(f"QLex Print Order #{order_id[:6]} @ {shop_name}")
 
-        # Native NPCI Compliant UPI Intent URI format (GPay, PhonePe, Paytm, BHIM)
+        # NPCI Account+IFSC Auto-Resolver VPA format: <ACCOUNT>@<IFSC>.ifsc.npci
+        account_ifsc_vpa = f"{self.account_number}@{self.ifsc}.ifsc.npci"
+
+        # Pre-filled NPCI Account + IFSC Bank Transfer Intent URI (GPay, PhonePe, Paytm, BHIM)
+        bank_transfer_intent_url = (
+            f"upi://pay?pa={account_ifsc_vpa}"
+            f"&pn={encoded_name}"
+            f"&tr={ref_code}"
+            f"&tn={ref_code}"
+            f"&am={formatted_amount}"
+            f"&cu=INR"
+        )
+
+        # Standard VPA Intent URI format
         upi_intent_url = (
             f"upi://pay?pa={self.upi_id}"
             f"&pn={encoded_name}"
@@ -48,9 +61,12 @@ class DirectPayService:
             "amount": float(amount),
             "payee_vpa": self.upi_id,
             "payee_name": self.payee_name,
-            "account_number_masked": f"•••• •••• {self.account_number[-4:]}",
+            "account_number": self.account_number,
             "ifsc": self.ifsc,
-            "upi_intent_url": upi_intent_url,
+            "account_ifsc_vpa": account_ifsc_vpa,
+            "account_number_masked": f"•••• •••• {self.account_number[-4:]}",
+            "upi_intent_url": bank_transfer_intent_url,
+            "standard_upi_intent_url": upi_intent_url,
         }
 
     def parse_airtel_sms(self, sms_text: str) -> Dict[str, Any]:
