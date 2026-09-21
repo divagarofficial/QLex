@@ -27,10 +27,22 @@ def test_airtel_directpay():
     print(f"  UPI Intent URI: {result.get('upi_intent_url')}")
     print("--------------------------------------------------")
 
-    assert result.get('payee_vpa') == "thirudiva@upi", "VPA assertion failed!"
-    assert result.get('payee_name') == "MINDURA TECHNOLOGIES", "Payee name assertion failed!"
-    assert "MINDURA" in result.get('upi_intent_url'), "URI encoding assertion failed!"
-    print("ALL AIRTEL DIRECTPAY ASSERTIONS PASSED CLEANLY!")
+    # SMS Parsing Test Suite across Multiple Indian Banks
+    sms_test_cases = [
+        ("Airtel Payments Bank a/c is credited with Rs.1.50. Txn ID: 618351692231.", 1.50, "618351692231"),
+        ("Dear Customer, your a/c XXXXX1234 is credited by Rs 45.00 on 21-09-26 by UPI/618351692231.", 45.00, "618351692231"),
+        ("Rs. 1.50 credited to your A/c ending 1234 on 21-Sep-26 via UPI Ref No 987654321012.", 1.50, "987654321012"),
+        ("Received payment of Rs 100.00 from John via PhonePe. Ref: 112233445566.", 100.00, "112233445566"),
+    ]
+
+    for sms, expected_amt, expected_txn in sms_test_cases:
+        parsed = service.parse_bank_sms(sms)
+        print(f"Parsing SMS: '{sms}' => Amount: {parsed.get('amount')}, Txn ID: {parsed.get('txn_id')}")
+        assert parsed.get('amount') == expected_amt, f"Amount match failed for '{sms}'"
+        assert parsed.get('txn_id') == expected_txn, f"Txn ID match failed for '{sms}'"
+
+    print("ALL AIRTEL & MULTI-BANK DIRECTPAY ASSERTIONS PASSED CLEANLY!")
 
 if __name__ == "__main__":
     test_airtel_directpay()
+

@@ -53,8 +53,9 @@ class DirectPayService:
 
     def parse_airtel_sms(self, sms_text: str) -> Dict[str, Any]:
         """
-        Parses Airtel Payments Bank credit SMS format:
-        'Airtel Payments Bank a/c is credited with Rs.400.00. Txn ID: 618351692231. Call 180023400 for help'
+        Parses Airtel Payments Bank, SBI, HDFC, ICICI, PhonePe, Paytm, etc. credit SMS format:
+        e.g., 'Airtel Payments Bank a/c is credited with Rs.400.00. Txn ID: 618351692231.'
+        e.g., 'Rs. 1.50 credited to your A/c ending 1234 on 21-Sep-26 via UPI Ref No 618351692231.'
         """
         import re
 
@@ -62,20 +63,42 @@ class DirectPayService:
         txn_id = None
         ref_code = None
 
-        # Extract Amount (e.g., Rs.400.00 or Rs. 400)
-        amt_match = re.search(r"(?:credited\s+with|credit\s+of)\s+Rs\.?\s*([0-9]+(?:\.[0-9]{1,2})?)", sms_text, re.IGNORECASE)
+        if not sms_text:
+            return {"is_credit": False, "amount": None, "txn_id": None, "reference_code": None, "raw_sms": ""}
+
+        # 1. Amount Extraction (handles "credited with Rs.1.50", "credit of Rs 1.50", "received Rs 1.50", "Rs.1.50 credited")
+        amt_match = re.search(
+            r"(?:credited\s+(?:with|by|for)|credit\s+of|received|recieved|payment\s+of)\s*(?:Rs\.?|INR|₹)?\s*([0-9]+(?:\.[0-9]{1,2})?)|(?:Rs\.?|INR|₹)\s*([0-9]+(?:\.[0-9]{1,2})?)\s*(?:credited|received)",
+            sms_text,
+            re.IGNORECASE,
+        )
         if amt_match:
             try:
-                amount = float(amt_match.group(1))
+                amt_str = amt_match.group(1) or amt_match.group(2)
+                if amt_str:
+                    amount = float(amt_str)
             except ValueError:
                 pass
 
-        # Extract Txn ID (e.g., Txn ID: 618351692231)
-        txn_match = re.search(r"Txn\s+ID:\s*([0-9A-Za-z]+)", sms_text, re.IGNORECASE)
+        # Fallback Amount regex if explicit prefix missed: e.g. "Rs.1.50" or "Rs 45.00"
+        if amount is None:
+            fallback_match = re.search(r"(?:Rs\.?|INR|₹)\s*([0-9]+\.[0-9]{1,2})", sms_text, re.IGNORECASE)
+            if fallback_match:
+                try:
+                    amount = float(fallback_match.group(1))
+                except ValueError:
+                    pass
+
+        # 2. Extract Txn ID / UTR (e.g. Txn ID: 618351692231, UPI/618351692231, Ref 618351692231, UTR 618351692231)
+        txn_match = re.search(
+            r"(?:Txn\s*ID|Transaction\s*ID|Ref\s*No|UPI/|UTR|Ref:?)\s*:?\s*([0-9A-Za-z]+)",
+            sms_text,
+            re.IGNORECASE,
+        )
         if txn_match:
             txn_id = txn_match.group(1)
 
-        # Extract QLex Ref Code if embedded
+        # 3. Extract QLex Ref Code if embedded
         ref_match = re.search(r"QLX_([0-9a-fA-F]+)", sms_text, re.IGNORECASE)
         if ref_match:
             ref_code = f"QLX_{ref_match.group(1)}"
@@ -87,4 +110,9 @@ class DirectPayService:
             "reference_code": ref_code,
             "raw_sms": sms_text,
         }
+
+    def parse_bank_sms(self, sms_text: str) -> Dict[str, Any]:
+        """Alias for parse_airtel_sms for multi-bank support."""
+        return self.parse_airtel_sms(sms_text)
+
 
