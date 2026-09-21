@@ -37,11 +37,14 @@ import {
   createExpressPayment,
   verifyExpressPayment,
   getExpressOrderStatus,
+  createDecentroPaymentIntent,
   type PublicShop,
   type ExpressOrderStatusResponse,
 } from "@/services/expressOrders";
+import DecentroUpiModal from "@/components/orders/DecentroUpiModal";
 import { PrintType, PrintSide, PaperSize } from "@/types/orders";
 import type { OrderSummaryResponse, OrderDocumentSummary } from "@/types/orders";
+
 
 // ── Razorpay Script Loader ──────────────────────────────────────────
 function loadRazorpayScript(): Promise<void> {
@@ -93,12 +96,46 @@ export default function ExpressShopPage() {
   const [updatingDocId, setUpdatingDocId] = useState<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
+  // Decentro Instant T+0 State
+  const [isDecentroModalOpen, setIsDecentroModalOpen] = useState(false);
+  const [decentroIntentUrl, setDecentroIntentUrl] = useState<string>("");
+  const [decentroQrUrl, setDecentroQrUrl] = useState<string>("");
+  const [isProcessingDecentro, setIsProcessingDecentro] = useState(false);
+
   // Live order status (Step 4)
   const [liveStatus, setLiveStatus] = useState<ExpressOrderStatusResponse | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle Direct UPI Payment (Instant Settlement)
+  async function handlePayDecentro() {
+    if (!orderId || !orderSummary) return;
+    setErrorMessage(null);
+    setIsProcessingDecentro(true);
+
+    try {
+      await confirmExpressOrder(orderId);
+      const intent = await createDecentroPaymentIntent(orderId);
+      if (intent && (intent.success || intent.upi_intent)) {
+        setDecentroIntentUrl(intent.upi_intent || "");
+        setDecentroQrUrl(intent.qr_code_url || "");
+      } else {
+        setDecentroIntentUrl("");
+        setDecentroQrUrl("");
+      }
+      setIsDecentroModalOpen(true);
+    } catch (err: any) {
+      console.warn("Direct UPI API fallback activated:", err);
+      setDecentroIntentUrl("");
+      setDecentroQrUrl("");
+      setIsDecentroModalOpen(true);
+    } finally {
+      setIsProcessingDecentro(false);
+    }
+  }
+
 
   // 1. Fetch target shop on mount
   useEffect(() => {
@@ -855,34 +892,51 @@ export default function ExpressShopPage() {
                 </div>
               </div>
 
-              {/* Pay Button */}
-              <div className="pt-6 pb-2 space-y-2">
+              {/* Pay Buttons */}
+              <div className="pt-6 pb-2 space-y-2.5">
                 <button
-                  onClick={handlePayOnline}
-                  disabled={isProcessingPayment}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-champagne-500 to-champagne-400 hover:from-champagne-400 hover:to-champagne-300 text-obsidian font-bold text-base shadow-lg shadow-champagne-500/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  onClick={handlePayDecentro}
+                  disabled={isProcessingDecentro || isProcessingPayment}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-400 via-champagne-400 to-amber-500 hover:from-amber-300 hover:to-champagne-300 text-slate-950 font-extrabold text-base shadow-lg shadow-amber-500/25 active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {isProcessingPayment ? (
+                  {isProcessingDecentro ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" /> Processing Payment...
+                      <Loader2 className="w-5 h-5 animate-spin text-slate-950" /> Initializing Direct UPI...
                     </>
                   ) : (
                     <>
-                      <CreditCard className="w-5 h-5" /> Pay ₹{orderSummary.grand_total.toFixed(2)} via UPI / Card
+                      <Sparkles className="w-5 h-5 text-slate-950" /> Pay ₹{orderSummary.grand_total.toFixed(2)} via Direct UPI
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handlePayOnline}
+                  disabled={isProcessingPayment || isProcessingDecentro}
+                  className="w-full py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-sm border border-white/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                >
+                  {isProcessingPayment ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" /> Launching Gateway...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4 text-slate-300" /> Pay via Cards / Razorpay
                     </>
                   )}
                 </button>
 
                 <button
                   onClick={() => setCurrentStep(2)}
-                  disabled={isProcessingPayment}
-                  className="w-full py-2.5 text-xs text-white/50 hover:text-white transition-colors flex items-center justify-center gap-1.5"
+                  disabled={isProcessingPayment || isProcessingDecentro}
+                  className="w-full py-2 text-xs text-white/50 hover:text-white transition-colors flex items-center justify-center gap-1.5"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back to Files & Options
                 </button>
               </div>
             </motion.div>
           )}
+
 
           {/* ══════════════════════════════════════════════════════════════
               STEP 4: PICKUP TOKEN & REAL-TIME QUEUE CARD
@@ -998,7 +1052,23 @@ export default function ExpressShopPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Decentro Direct Instant UPI Modal (T+0 Settlement) */}
+        <DecentroUpiModal
+          isOpen={isDecentroModalOpen}
+          onClose={() => setIsDecentroModalOpen(false)}
+          orderId={orderId || ""}
+          amount={orderSummary?.grand_total || 0}
+          shopName={shop?.name || "QLex Express Hub"}
+          upiIntent={decentroIntentUrl}
+          qrCodeUrl={decentroQrUrl}
+          onPaymentSuccess={() => {
+            setIsDecentroModalOpen(false);
+            setCurrentStep(4);
+          }}
+        />
       </main>
     </div>
   );
 }
+

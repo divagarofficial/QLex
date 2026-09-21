@@ -45,11 +45,13 @@ class ShopQueueService:
             o.status = OrderStatus.EXPIRED
 
         # 2. Delete ALL previous day queue entries so today starts with a clean queue
-        self.db.query(ShopQueue).filter(
-            ShopQueue.queue_date < today
-        ).delete(synchronize_session=False)
+        old_queues = self.db.query(ShopQueue).filter(ShopQueue.queue_date < today).all()
+        for q in old_queues:
+            self.db.delete(q)
 
         self.db.commit()
+
+
 
     def create_queue_entry(
         self,

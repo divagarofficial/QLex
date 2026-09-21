@@ -234,3 +234,50 @@ export async function getExpressOrderStatus(orderId: string): Promise<ExpressOrd
   const res = await fetch(`${API_BASE}/orders/express/${orderId}/status`);
   return handleResponse<ExpressOrderStatusResponse>(res);
 }
+
+export interface DecentroIntentResponse {
+  success: boolean;
+  order_id: string;
+  amount: number;
+  decentro_txn_id?: string;
+  upi_intent?: string;
+  qr_code_url?: string;
+  error?: string;
+}
+
+/**
+ * Create Decentro Dynamic UPI intent and QR for T+0 instant settlement
+ */
+export async function createDecentroPaymentIntent(orderId: string): Promise<DecentroIntentResponse> {
+  const res = await fetch(`${API_BASE}/orders/${orderId}/payments/decentro-intent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  return handleResponse<DecentroIntentResponse>(res);
+}
+
+export interface DirectPayIntentResponse {
+  success: boolean;
+  order_id: string;
+  reference_code: string;
+  amount: number;
+  payee_vpa: string;
+  payee_name: string;
+  account_number_masked: string;
+  ifsc: string;
+  upi_intent_url: string;
+  error?: string;
+}
+
+/**
+ * Create DirectPay Airtel Payments Bank (thirudiva@upi / MINDURA TECHNOLOGIES) intent
+ */
+export async function createDirectPayIntent(orderId: string): Promise<DirectPayIntentResponse> {
+  const res = await fetch(`${API_BASE}/orders/${orderId}/payments/directpay-intent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  return handleResponse<DirectPayIntentResponse>(res);
+}
+
+

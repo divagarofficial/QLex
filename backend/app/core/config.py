@@ -25,6 +25,18 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_SECRET: str = ""
     RAZORPAY_WEBHOOK_SECRET: str = ""
 
+    # DECENTRO
+    DECENTRO_CLIENT_ID: str = "x4uza8c6z15dqu0xshag9"
+    DECENTRO_CLIENT_SECRET: str = "ceL5WH5fwE7TEiqR7JQ4Ue6dNzUowjFz"
+    DECENTRO_MASTER_CONSUMER_URN: str = "C0075CA91787425F9BF0A601650416D8"
+    DECENTRO_BASE_URL: str = "https://in.staging.decentro.tech"
+
+    # DIRECTPAY AIRTEL PAYMENTS BANK CONFIG
+    DIRECTPAY_UPI_ID: str = "thirudiva@upi"
+    DIRECTPAY_PAYEE_NAME: str = "MINDURA TECHNOLOGIES"
+    DIRECTPAY_ACCOUNT_NUMBER: str = "9360087608"
+    DIRECTPAY_IFSC_CODE: str = "AIRP0000001"
+
     # WHATSAPP MICROSERVICE
     WHATSAPP_BOT_URL: str = "http://localhost:5001"
 
@@ -34,4 +46,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings = Settings()
