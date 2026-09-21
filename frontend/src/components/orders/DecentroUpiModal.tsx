@@ -15,6 +15,7 @@ interface DecentroUpiModalProps {
   upiIntent?: string;
   qrCodeUrl?: string;
   onPaymentSuccess: () => void;
+  onPayViaRazorpay?: () => void;
 }
 
 export default function DecentroUpiModal({
@@ -26,6 +27,7 @@ export default function DecentroUpiModal({
   upiIntent,
   qrCodeUrl,
   onPaymentSuccess,
+  onPayViaRazorpay,
 }: DecentroUpiModalProps) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [statusMessage, setStatusMessage] = useState("Waiting for UPI payment...");
@@ -121,15 +123,28 @@ export default function DecentroUpiModal({
           </p>
         </div>
 
-        {/* Direct Mobile UPI Intent Button */}
+        {/* Direct Mobile UPI App Button */}
         <div className="mt-4 space-y-2.5">
-          <a
-            href={fallbackUpi}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-champagne-400 via-amber-400 to-amber-500 hover:from-champagne-300 hover:to-amber-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-champagne-500/20 transition-all flex items-center justify-center gap-2 text-center"
-          >
-            <span>Open UPI App (GPay / PhonePe)</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          {onPayViaRazorpay ? (
+            <button
+              onClick={() => {
+                onClose();
+                onPayViaRazorpay();
+              }}
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-champagne-400 via-amber-400 to-amber-500 hover:from-champagne-300 hover:to-amber-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-champagne-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-center cursor-pointer"
+            >
+              <span>Pay via Paytm / GPay / PhonePe</span>
+              <ExternalLink className="w-4 h-4" />
+            </button>
+          ) : (
+            <a
+              href={fallbackUpi}
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-champagne-400 via-amber-400 to-amber-500 hover:from-champagne-300 hover:to-amber-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-champagne-500/20 transition-all flex items-center justify-center gap-2 text-center"
+            >
+              <span>Pay via Paytm / GPay / PhonePe</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
 
           {/* Verification Status Banner */}
           <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center gap-2 text-xs text-champagne-300/90 font-medium">
