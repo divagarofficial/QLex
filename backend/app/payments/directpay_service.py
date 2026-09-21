@@ -30,13 +30,15 @@ class DirectPayService:
         encoded_name = quote(self.payee_name)
         encoded_note = quote(f"QLex Print Order #{order_id[:6]} @ {shop_name}")
 
-        # Native NPCI UPI Intent URI format
+        # Native NPCI Compliant UPI Intent URI format (GPay, PhonePe, Paytm, BHIM)
         upi_intent_url = (
             f"upi://pay?pa={self.upi_id}"
             f"&pn={encoded_name}"
-            f"&am={formatted_amount}"
+            f"&tr={ref_code}"
             f"&tn={ref_code}"
+            f"&am={formatted_amount}"
             f"&cu=INR"
+            f"&mc=5999"
         )
 
         return {

@@ -57,8 +57,9 @@ export default function DecentroUpiModal({
 
   if (!isOpen) return null;
 
-  // Fallback UPI Intent string if API returns empty
-  const fallbackUpi = upiIntent || `upi://pay?pa=thirudiva@upi&pn=${encodeURIComponent("MINDURA TECHNOLOGIES")}&am=${amount.toFixed(2)}&tn=QLX_${orderId ? orderId.slice(0, 8) : "ORDER"}&cu=INR`;
+  // Fallback NPCI Compliant UPI Intent string if API returns empty
+  const refCode = orderId ? `QLX_${orderId.slice(0, 8)}` : "QLX_ORDER";
+  const fallbackUpi = upiIntent || `upi://pay?pa=thirudiva@upi&pn=${encodeURIComponent("MINDURA TECHNOLOGIES")}&tr=${refCode}&tn=${refCode}&am=${amount.toFixed(2)}&cu=INR&mc=5999`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
