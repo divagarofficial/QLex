@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Zap, X, Copy, Check, Loader2, CheckCircle2, QrCode, Building2, ExternalLink } from "lucide-react";
+import { Zap, X, Copy, Check, Loader2, CheckCircle2, QrCode, Building2, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
 import { getExpressOrderStatus } from "@/services/expressOrders";
 
@@ -28,16 +28,13 @@ export default function DecentroUpiModal({
   onPaymentSuccess,
 }: DecentroUpiModalProps) {
   const [isVerifying, setIsVerifying] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("Waiting for UPI / Bank payment...");
+  const [statusMessage, setStatusMessage] = useState("Waiting for bank credit SMS...");
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const payeeName = "Divagar E";
   const accountNumber = "9360087608";
   const ifscCode = "AIRP0000001"; // Airtel Payments Bank
   const payeeVpa = "thirudiva@upi";
-  
-  // NPCI Account+IFSC auto-resolver VPA format for 1-tap pre-filled Bank Transfer:
-  const accountIfscVpa = `${accountNumber}@${ifscCode}.ifsc.npci`;
 
   // Poll order status every 3 seconds to auto-detect Webhook verification
   useEffect(() => {
@@ -67,12 +64,7 @@ export default function DecentroUpiModal({
   if (!isOpen) return null;
 
   const refCode = orderId ? `QLX_${orderId.slice(0, 8)}` : "QLX_ORDER";
-  
-  // Pre-filled Bank Transfer Intent (Account + IFSC Resolver)
-  const bankTransferUpi = upiIntent || `upi://pay?pa=${accountIfscVpa}&pn=${encodeURIComponent(payeeName)}&tr=${refCode}&tn=${refCode}&am=${amount.toFixed(2)}&cu=INR`;
-  
-  // Standard VPA Intent
-  const standardVpaUpi = `upi://pay?pa=${payeeVpa}&pn=${encodeURIComponent(payeeName)}&tr=${refCode}&tn=${refCode}&am=${amount.toFixed(2)}&cu=INR&mc=5999`;
+  const qrUpiString = `upi://pay?pa=${payeeVpa}&pn=${encodeURIComponent(payeeName)}&tr=${refCode}&tn=${refCode}&am=${amount.toFixed(2)}&cu=INR&mc=5999`;
 
   const copyToClipboard = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
@@ -100,16 +92,16 @@ export default function DecentroUpiModal({
             <Building2 className="w-6 h-6" />
           </div>
           <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 text-[10px] font-extrabold uppercase tracking-wider border border-amber-500/30 mb-1">
-            ⚡ Pre-Filled Bank & UPI Pay
+            ⚡ Direct Bank Transfer • 100% Risk Free
           </div>
-          <h2 className="text-lg font-bold text-white">Direct Bank / UPI Transfer</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Payee: <strong className="text-white font-semibold">{payeeName}</strong></p>
+          <h2 className="text-lg font-bold text-white">Bank Account Transfer</h2>
+          <p className="text-xs text-slate-400 mt-0.5">Payee: <strong className="text-white font-semibold">{payeeName}</strong> (Airtel Payments Bank)</p>
         </div>
 
-        {/* Amount Header Banner */}
+        {/* Total Owed Card */}
         <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs mb-3">
           <div>
-            <span className="text-slate-400 block font-medium">Bank Name</span>
+            <span className="text-slate-400 block font-medium">Recipient Bank</span>
             <span className="font-bold text-white text-xs">Airtel Payments Bank</span>
           </div>
           <div className="text-right">
@@ -118,53 +110,55 @@ export default function DecentroUpiModal({
           </div>
         </div>
 
-        {/* Bank Account Details Card with Copy Buttons */}
-        <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-2 mb-3 text-xs">
-          <div className="text-[10px] uppercase font-black tracking-wider text-amber-400 border-b border-amber-500/20 pb-1 flex items-center justify-between">
-            <span>Pre-Filled Bank Account Credentials</span>
-            <span className="text-emerald-400 font-mono">100% Risk Free</span>
+        {/* Bank Credentials Box with 1-Tap Copy Buttons */}
+        <div className="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-3 mb-3 text-xs">
+          <div className="text-[11px] font-bold text-amber-400 border-b border-amber-500/20 pb-1.5 flex items-center justify-between">
+            <span>Copy Bank Transfer Credentials</span>
+            <span className="text-emerald-400 font-mono text-[10px] font-extrabold">Instant IMPS / Bank Transfer</span>
           </div>
 
-          <div className="flex items-center justify-between py-1">
+          {/* Account Number Row */}
+          <div className="flex items-center justify-between py-0.5">
             <div>
               <span className="text-slate-400 block text-[11px]">Account Number</span>
-              <span className="font-bold text-white font-mono text-sm">{accountNumber}</span>
+              <span className="font-bold text-white font-mono text-base tracking-wide">{accountNumber}</span>
             </div>
             <button
               onClick={() => copyToClipboard(accountNumber, "account")}
-              className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-[11px] transition-colors flex items-center gap-1 border border-amber-500/30"
+              className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs transition-colors flex items-center gap-1.5 border border-amber-500/40"
             >
               {copiedField === "account" ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copied</span>
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400">Account Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Copy Acc</span>
+                  <Copy className="w-4 h-4 text-amber-300" />
+                  <span>Copy Account</span>
                 </>
               )}
             </button>
           </div>
 
-          <div className="flex items-center justify-between py-1 border-t border-slate-800/80">
+          {/* IFSC Code Row */}
+          <div className="flex items-center justify-between py-0.5 border-t border-slate-800 pt-2">
             <div>
               <span className="text-slate-400 block text-[11px]">IFSC Code</span>
-              <span className="font-bold text-white font-mono text-sm">{ifscCode}</span>
+              <span className="font-bold text-white font-mono text-base tracking-wide">{ifscCode}</span>
             </div>
             <button
               onClick={() => copyToClipboard(ifscCode, "ifsc")}
-              className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-[11px] transition-colors flex items-center gap-1 border border-amber-500/30"
+              className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs transition-colors flex items-center gap-1.5 border border-amber-500/40"
             >
               {copiedField === "ifsc" ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copied</span>
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400">IFSC Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5 text-amber-300" />
+                  <Copy className="w-4 h-4 text-amber-300" />
                   <span>Copy IFSC</span>
                 </>
               )}
@@ -172,16 +166,15 @@ export default function DecentroUpiModal({
           </div>
         </div>
 
-        {/* Pre-Filled 1-Tap Intent Button */}
-        <div className="space-y-2 mb-3">
-          <a
-            href={bankTransferUpi}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-champagne-400 to-amber-500 hover:from-amber-300 hover:to-champagne-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-center"
-          >
-            <Building2 className="w-4 h-4 text-slate-950" />
-            <span>Pay via Pre-Filled Account & IFSC</span>
-            <ExternalLink className="w-4 h-4 text-slate-950" />
-          </a>
+        {/* Step-by-Step Instructions */}
+        <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-300 space-y-1.5 mb-3">
+          <div className="font-bold text-white text-xs mb-1 flex items-center gap-1">
+            <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+            <span>How to pay via Bank Transfer:</span>
+          </div>
+          <p>1. Tap <strong className="text-amber-300">Copy Account</strong> & <strong className="text-amber-300">Copy IFSC</strong> above.</p>
+          <p>2. Open GPay / PhonePe / Paytm $\rightarrow$ Tap <strong className="text-white font-semibold">"Bank Transfer" / "To Account"</strong>.</p>
+          <p>3. Paste Account & IFSC $\rightarrow$ Transfer <strong className="text-amber-300">₹{amount.toFixed(2)}</strong>.</p>
         </div>
 
         {/* QR Code Container */}
@@ -196,7 +189,7 @@ export default function DecentroUpiModal({
             {qrCodeUrl ? (
               <img src={qrCodeUrl} alt="Direct Dynamic UPI QR" className="w-40 h-40 mx-auto rounded-lg" />
             ) : (
-              <QRCodeSVG value={bankTransferUpi} size={160} level="H" fgColor="#0b0f17" bgColor="#ffffff" />
+              <QRCodeSVG value={qrUpiString} size={160} level="H" fgColor="#0b0f17" bgColor="#ffffff" />
             )}
           </div>
 
