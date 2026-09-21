@@ -1066,7 +1066,6 @@ export default function ExpressShopPage() {
             setIsDecentroModalOpen(false);
             setCurrentStep(4);
           }}
-          onPayViaRazorpay={handlePayOnline}
         />
       </main>
     </div>
