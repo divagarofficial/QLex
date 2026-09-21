@@ -59,7 +59,7 @@ export default function DecentroUpiModal({
 
   // Fallback NPCI Compliant UPI Intent string if API returns empty
   const refCode = orderId ? `QLX_${orderId.slice(0, 8)}` : "QLX_ORDER";
-  const fallbackUpi = upiIntent || `upi://pay?pa=thirudiva@upi&pn=${encodeURIComponent("MINDURA TECHNOLOGIES")}&tr=${refCode}&tn=${refCode}&am=${amount.toFixed(2)}&cu=INR&mc=5999`;
+  const fallbackUpi = upiIntent || `upi://pay?pa=thirudiva@upi&pn=${encodeURIComponent("Divagar E")}&tr=${refCode}&tn=${refCode}&am=${amount.toFixed(2)}&cu=INR&mc=5999`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
@@ -81,10 +81,10 @@ export default function DecentroUpiModal({
             <Zap className="w-6 h-6" />
           </div>
           <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-500/30 mb-1">
-            ⚡ Direct UPI • MINDURA TECHNOLOGIES
+            ⚡ Direct UPI • Divagar E
           </div>
           <h2 className="text-lg font-bold text-white">Scan & Pay via UPI</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Payee: <strong className="text-white font-semibold">MINDURA TECHNOLOGIES</strong> (thirudiva@upi)</p>
+          <p className="text-xs text-slate-400 mt-0.5">Payee: <strong className="text-white font-semibold">Divagar E</strong> (thirudiva@upi)</p>
         </div>
 
         {/* Total Amount Card */}
