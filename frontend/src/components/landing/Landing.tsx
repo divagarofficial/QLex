@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Building2, Zap, CreditCard, QrCode } from "lucide-react";
+import { Zap, CreditCard, QrCode } from "lucide-react";
 
 import RoleCards from "./RoleCards";
 
@@ -32,49 +32,6 @@ export default function Landing() {
 
       {/* ─── HERO — Mobile-first: 75-80vh on mobile, full screen on desktop ─── */}
       <section className="relative flex min-h-[80vh] flex-col items-center justify-start px-6 pt-[5vh] sm:pt-[6vh] md:pt-[8vh]">
-        {/* ─── DUAL LOGOS — Rajalakshmi Institutions Left | RIT Right (Equal Distance from Center) ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          className="relative mb-6 sm:mb-8 md:mb-10 flex items-center justify-center w-full max-w-4xl px-4 gap-3 sm:gap-6 md:gap-8 cursor-default group"
-        >
-          {/* Soft ambient aura glow behind logos */}
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 75%)",
-              filter: "blur(24px)",
-            }}
-          />
-
-          {/* Left: Rajalakshmi Institutions Logo */}
-          <div className="flex-1 flex justify-end items-center">
-            <Image
-              src="/rajalakshmi-logo.png"
-              alt="Rajalakshmi Institutions"
-              width={300}
-              height={90}
-              className="relative h-10 min-[400px]:h-12 sm:h-16 md:h-20 lg:h-24 w-auto max-w-[140px] min-[400px]:max-w-[180px] sm:max-w-[260px] md:max-w-[320px] object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-transform duration-500 hover:scale-105"
-              priority
-            />
-          </div>
-
-          {/* Subtle Vertical Divider */}
-          <div className="h-8 sm:h-12 md:h-16 w-px bg-gradient-to-b from-transparent via-white/30 to-transparent shrink-0 opacity-70" />
-
-          {/* Right: RIT Logo */}
-          <div className="flex-1 flex justify-start items-center">
-            <Image
-              src="/rit-logo.png"
-              alt="Rajalakshmi Institute of Technology"
-              width={380}
-              height={120}
-              className="relative h-10 min-[400px]:h-12 sm:h-16 md:h-20 lg:h-24 w-auto max-w-[140px] min-[400px]:max-w-[180px] sm:max-w-[260px] md:max-w-[320px] object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-transform duration-500 hover:scale-105"
-              priority
-            />
-          </div>
-        </motion.div>
 
         {/* ─── MINDURA TECHNOLOGIES PRESENTS BRANDING ─── */}
         <motion.div {...fadeUp(0.05)} className="flex flex-col items-center gap-3 sm:gap-4">
@@ -174,46 +131,6 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          {/* ─── FOR RAJALAKSHMI INSTITUTE OF TECHNOLOGY (Fitted Single Line Mobile) ─── */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-5 flex flex-col items-center gap-1.5 sm:gap-2 sm:mt-7 md:mt-8 w-full max-w-full px-2"
-          >
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div
-                className="h-px w-8 sm:w-16 md:w-20"
-                style={{
-                  background:
-                    "linear-gradient(to right, transparent, rgba(231,200,115,0.45), transparent)",
-                }}
-              />
-              <span className="text-[9px] sm:text-xs tracking-[0.4em] sm:tracking-[0.55em] uppercase font-light text-white/50">
-                FOR
-              </span>
-              <div
-                className="h-px w-8 sm:w-16 md:w-20"
-                style={{
-                  background:
-                    "linear-gradient(to right, transparent, rgba(231,200,115,0.45), transparent)",
-                }}
-              />
-            </div>
-
-            <div className="group relative overflow-hidden rounded-full border border-[rgba(231,200,115,0.22)] bg-[rgba(231,200,115,0.04)] px-3 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 backdrop-blur-xl shadow-[0_0_25px_rgba(231,200,115,0.06)] transition-all duration-500 hover:border-[rgba(231,200,115,0.45)] hover:shadow-[0_0_35px_rgba(231,200,115,0.15)] hover:bg-[rgba(231,200,115,0.08)] max-w-full">
-              {/* Top edge highlight */}
-              <div className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#E7C873]/50 to-transparent" />
-              
-              <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 md:gap-3 whitespace-nowrap">
-                <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 shrink-0 text-[#E7C873] transition-transform duration-500 group-hover:scale-110" />
-                <span className="text-[9px] min-[360px]:text-[9.5px] min-[400px]:text-[10.5px] sm:text-xs md:text-sm font-bold tracking-[0.08em] min-[360px]:tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.3em] uppercase bg-gradient-to-r from-[#FFF5D6] via-[#E7C873] to-[#F5D98E] bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(231,200,115,0.2)] whitespace-nowrap">
-                  RAJALAKSHMI INSTITUTE OF TECHNOLOGY
-                </span>
-              </div>
-            </div>
-          </motion.div>
-
           {/* Tagline */}
           <motion.p
             initial={{ opacity: 0, y: 15 }}
@@ -262,7 +179,7 @@ export default function Landing() {
           </div>
 
           <p className="mt-8 text-center text-sm leading-relaxed text-white/30 sm:text-base md:text-lg sm:mt-10 md:mt-14">
-            Built for every participant in the Rajalakshmi Institute of Technology campus printing ecosystem.
+            Built for every participant in the campus printing ecosystem.
           </p>
         </motion.div>
 

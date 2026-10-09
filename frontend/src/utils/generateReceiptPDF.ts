@@ -148,7 +148,7 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   doc.setTextColor(245, 158, 11); // Amber accent
-  doc.text("QLex • Rajalakshmi Institute of Technology", margin + 31, y + 18.5);
+  doc.text("QLex", margin + 31, y + 18.5);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
@@ -498,7 +498,7 @@ export function generateReceiptPDF({ order, details }: ReceiptPDFInput): void {
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
   doc.text(
-    `Receipt Generated: ${generatedDateStr} • QLex • Rajalakshmi Institute of Technology`,
+    `Receipt Generated: ${generatedDateStr} • QLex`,
     pageWidth / 2,
     y,
     { align: "center" }

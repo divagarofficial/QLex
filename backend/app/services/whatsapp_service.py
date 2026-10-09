@@ -123,7 +123,7 @@ class WhatsAppService:
                 f"📎 Attached is your official QLex PDF Receipt.\n"
                 f"We will notify you here as soon as your printing starts!\n\n"
                 f"© 2026 MINDURA TECHNOLOGIES. All rights reserved.\n"
-                f"QLex • Rajalakshmi Institute of Technology"
+                f"QLex"
             )
 
             self.send_message(phone, msg, pdf_path=pdf_path)
@@ -153,7 +153,7 @@ class WhatsAppService:
             footer_str = (
                 f"\n📍 Pickup Location: *{shop_name}*"
                 "\n\n© 2026 MINDURA TECHNOLOGIES. All rights reserved.\n"
-                "QLex • Rajalakshmi Institute of Technology"
+                "QLex"
             )
 
             if "PRINTING" in status_clean:

@@ -105,7 +105,7 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
 
     # Title & Subtitles
     banner_drawing.add(String(78, 56, "MINDURA TECHNOLOGIES", fontName="Helvetica-Bold", fontSize=15, fillColor=colors.white))
-    banner_drawing.add(String(78, 40, "QLex • Rajalakshmi Institute of Technology", fontName="Helvetica-Bold", fontSize=10, fillColor=COLOR_AMBER))
+    banner_drawing.add(String(78, 40, "QLex", fontName="Helvetica-Bold", fontSize=10, fillColor=COLOR_AMBER))
     banner_drawing.add(String(78, 26, "QLex Central Print Hub", fontName="Helvetica", fontSize=8.5, fillColor=colors.HexColor('#CBD5E1')))
 
     # Status Badge (Top Right)
@@ -377,7 +377,7 @@ def generate_order_receipt_pdf(order, token_number: str = None, shop_name: str =
     # 7. Corporate Legal Footer
     elements.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#CBD5E1'), spaceAfter=6))
     elements.append(Paragraph(
-        f"Receipt Generated: {gen_str} • QLex • Rajalakshmi Institute of Technology",
+        f"Receipt Generated: {gen_str} • QLex",
         ParagraphStyle('F1', parent=styles['Normal'], fontName='Helvetica', fontSize=7, textColor=COLOR_SLATE_500, alignment=1)
     ))
     elements.append(Paragraph(

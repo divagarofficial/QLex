@@ -171,7 +171,7 @@ Attached is your official QLex PDF Receipt for your records.
 We will notify you via Email and WhatsApp as soon as your printing begins!
 
 © 2026 MINDURA TECHNOLOGIES. All rights reserved.
-QLex • Rajalakshmi Institute of Technology
+QLex
 """
 
                 html_body = f"""
@@ -273,7 +273,7 @@ QLex • Rajalakshmi Institute of Technology
                 © 2026 MINDURA TECHNOLOGIES. All rights reserved.
               </p>
               <p style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 600;">
-                QLex • Rajalakshmi Institute of Technology
+                QLex
               </p>
             </td>
           </tr>
@@ -352,7 +352,7 @@ QLex • Rajalakshmi Institute of Technology
                     badge_border = "rgba(16, 185, 129, 0.3)"
                     badge_text = "✅ Order Completed"
                     message_intro = f"Hi <strong>{student_name}</strong>, your order <strong>#{short_id}</strong> has been marked as completed."
-                    action_note = "Thank you for printing with QLex at RIT!"
+                    action_note = "Thank you for printing with QLex!"
                 elif "REJECTED" in status_clean or "CANCELLED" in status_clean:
                     subject = f"❌ Order #{short_id} Status Update — QLex"
                     badge_color = "#ef4444"
@@ -388,7 +388,7 @@ Details:
 {action_note}
 
 © 2026 MINDURA TECHNOLOGIES. All rights reserved.
-QLex • Rajalakshmi Institute of Technology
+QLex
 """
 
                 html_body = f"""
@@ -459,7 +459,7 @@ QLex • Rajalakshmi Institute of Technology
                 © 2026 MINDURA TECHNOLOGIES. All rights reserved.
               </p>
               <p style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 600;">
-                QLex • Rajalakshmi Institute of Technology
+                QLex
               </p>
             </td>
           </tr>

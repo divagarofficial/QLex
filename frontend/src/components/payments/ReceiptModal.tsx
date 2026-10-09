@@ -94,7 +94,7 @@ export default function ReceiptModal({
                   Mindura Technologies
                 </h3>
                 <p className="text-xs font-bold text-amber-400">
-                  QLex • Rajalakshmi Institute of Technology
+                  QLex
                 </p>
                 <p className="text-[10px] text-slate-400">
                   Central Campus Print & Digital Token Terminal

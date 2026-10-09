@@ -52,7 +52,7 @@ export default function Footer() {
         </p>
 
         <p className="text-[10px] tracking-widest text-[#E7C873]/60 uppercase font-medium">
-          QLex • Rajalakshmi Institute of Technology
+          QLex
         </p>
       </div>
     </footer>

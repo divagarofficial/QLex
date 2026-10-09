@@ -155,12 +155,6 @@ export const TECH_STACK_ITEMS: TechItem[] = [
 
 export const SPECIAL_THANKS_LIST: SpecialThanksItem[] = [
   {
-    id: "rit",
-    name: "Rajalakshmi Institute of Technology",
-    subtitle: "Academic Institution",
-    roleDescription: "Empowering innovation and engineering excellence.",
-  },
-  {
     id: "aids-dept",
     name: "Department of Artificial Intelligence & Data Science",
     subtitle: "Department",

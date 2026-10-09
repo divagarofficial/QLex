@@ -54,7 +54,7 @@ def send_email_via_smtp(to_email: str, code: str) -> bool:
 QLex | A PRODUCT OF MINDURA TECHNOLOGIES
 =====================================================
 
-Hello RIT Student,
+Hello Student,
 
 Your 6-digit verification code is: {code}
 
@@ -63,7 +63,7 @@ This code is valid for 5 minutes. Use it to complete your account registration o
 Security Warning: Never share this OTP code with anyone.
 
 © 2026 MINDURA TECHNOLOGIES. All rights reserved.
-QLex • Rajalakshmi Institute of Technology
+QLex
 """
 
         html_content = f"""
@@ -99,7 +99,7 @@ QLex • Rajalakshmi Institute of Technology
                 Student Account Verification Code 🔐
               </h2>
               <p style="font-size: 14px; color: #94a3b8; line-height: 1.6; margin-bottom: 20px;">
-                Hello RIT Student,<br>
+                Hello Student,<br>
                 Use the 6-digit OTP verification code below to confirm your email address and complete your account registration on <strong>QLex</strong>:
               </p>
 
@@ -146,7 +146,7 @@ QLex • Rajalakshmi Institute of Technology
                 © 2026 MINDURA TECHNOLOGIES. All rights reserved.
               </p>
               <p style="margin: 4px 0 0 0; font-size: 11px; color: #94a3b8; font-weight: 600;">
-                QLex • Rajalakshmi Institute of Technology
+                QLex
               </p>
             </td>
           </tr>
