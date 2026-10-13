@@ -168,7 +168,7 @@ export default function Landing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.05, duration: 1.2 }}
-          className="mt-[8vh] w-full max-w-6xl px-4 text-center sm:mt-[12vh] md:mt-[14vh]"
+          className="mt-[8vh] w-full max-w-7xl px-4 text-center sm:mt-[12vh] md:mt-[14vh]"
         >
           <h2 className="text-3xl font-bold tracking-tight text-white/90 sm:text-4xl md:text-5xl lg:text-6xl">
             Choose Your Experience
