@@ -2,20 +2,11 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, Store, GraduationCap, UserCheck } from "lucide-react";
+import { Store, GraduationCap, UserCheck } from "lucide-react";
 import RoleCard from "./RoleCard";
 import ShopHubSelectionModal from "./ShopHubSelectionModal";
 
 const cards = [
-  {
-    id: "admin",
-    title: "Administrator",
-    badge: "System Operations",
-    description: "Manage platform, students, print shops, analytics and payments.",
-    icon: ShieldCheck,
-    accent: "blue" as const,
-    href: "/admin/login",
-  },
   {
     id: "shop",
     title: "Print Shop",
@@ -68,7 +59,7 @@ export default function RoleCards() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6 lg:gap-6"
+        className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 md:gap-6 lg:gap-8"
       >
         {cards.map((card) => (
           <motion.div key={card.title} variants={item} className="h-full">
